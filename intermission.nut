@@ -10,14 +10,19 @@
 
 ::startIntermission <- function()
 {
+    //Anything else the mapmaker wants to happen when tank dies is handled by this guy
     EntFire("boss_dead_relay", "trigger")
+
+    //Wake up round timer, count down the intermission time now
+    roundTimer.AcceptInput("Enable", null, null, null)
+    roundTimer.AcceptInput("SetTime", INTERMISSION_LENGTH.tostring(), null, null)
 
     //Roll back hud train to nearest cp
     trainWatcherDummy.KeyValueFromInt("startspeed", INTERMISSION_ROLLBACK_SPEED)
     trainWatcherDummy.AcceptInput("SetSpeedDir", "-1", null, null)
     
-
-    //Tell path tracks to stop the hud train
+    //Tell path tracks to stop the hud train,
+    //and timer to execute the proper function OnFinished 
     isIntermissionHappening = true
 
     //Decide on which player gets giant privileges
@@ -40,7 +45,7 @@
         debugPrint("There are no blue players!")
         //Enable the bomb and teleport it to the most recent CP
         bombFlag.AcceptInput("Enable", null, null, null)
-        bombFlag.SetOrigin(bombSpawnOrigin)
+        bombFlag.SetAbsOrigin(bombSpawnOrigin)
         return
     }
 
@@ -156,6 +161,8 @@
             NetProps.SetPropString(player, "m_iszScriptThinkFunction", "")
         }
         return -1
+        AddThinkToEnt(player, "promptGiantThink")
     }
+
 }
 

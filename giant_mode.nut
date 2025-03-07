@@ -1,5 +1,17 @@
 ::startGiantMode <- function()
 {
+    //We're putting a lot of responsibility on the team_round_timer for calling 3 OnFinished functions...
+    //Let's ensure that this function only runs on the second one (intermission)
+    if(!isIntermissionHappening || isBombMissionHappening) return
+
+    //Next time the timer runs out, red wins!
+    isIntermissionHappening = false
+    isBombMissionHappening = true
+
+    //2:30 to deliver the bomb or else
+    //Might want to move this soon
+    roundTimer.AcceptInput("SetTime", BOMB_MISSION_LENGTH.tostring(), null, null)
+    
     //Adjust HUD to be CTF CP mode
     NetProps.SetPropInt(gamerules, "m_nHudType", 2)
     NetProps.SetPropBool(gamerules, "m_bPlayingHybrid_CTF_CP", true)
@@ -7,7 +19,7 @@
     //Set bomb origin to latest capped CP (start if no capped CP)
     //EDGE CASE WARNING: bomb might get picked up by another pleb and not the giant, careful
     bombFlag.AcceptInput("Enable", null, null, null)
-    bombFlag.SetOrigin(bombSpawnOrigin)
+    bombFlag.SetAbsOrigin(bombSpawnOrigin)
 
     //Check which pleb has isBecomingGiant
     for (local i = 1; i <= MaxPlayers ; i++)
@@ -104,6 +116,13 @@
 
     //Give the player the giant's player attributes
     foreach(attribute, value in giantSpecifics.playerAttributes)
+    {
+        player.AddCustomAttribute(attribute, value, -1)
+        // debugPrint("To player, attempting to add attribute \x04" + attribute + " \x01with the value \x04" + value)
+    }
+
+    //Give the player the global giant attributes
+    foreach(attribute, value in globalGiantAttributes)
     {
         player.AddCustomAttribute(attribute, value, -1)
         // debugPrint("To player, attempting to add attribute \x04" + attribute + " \x01with the value \x04" + value)

@@ -1,5 +1,11 @@
 ::spawnTank <- function()
 {
+    //Timer finishes three times in our current setup, let's ensure that tank only spawns on the first one
+    if(isIntermissionHappening || isBombMissionHappening) return
+
+    //Make sure tank hologram is called tank_hologram!!
+    tankHologram.AcceptInput("Disable", null, null, null)
+
     tank = SpawnEntityFromTable("tank_boss", {
         targetname = "tank",
         TeamNum = 4,
@@ -9,7 +15,7 @@
         model = "models/bots/boss_bot/boss_tank.mdl"
 	})
 
-    tank.SetOrigin(startingPathTrack.GetOrigin())
+    tank.SetAbsOrigin(startingPathTrack.GetOrigin())
 
     local tank_glow = SpawnEntityFromTable("tf_glow", {
         GlowColor = "125 168 196 255",
@@ -20,8 +26,13 @@
 
     trainWatcherDummy.AcceptInput("SetSpeedDir", "1", null, null)
     trainWatcherDummy.KeyValueFromInt("startspeed", TANK_SPEED)
+
+    //No round timer during tank phase, we'll need it again once the tank dies
+    //Refer to startIntermission in intermission.nut
+    roundTimer.AcceptInput("Disable", null, null, null)
 }
 
+//Input TANK_SPEED as speedInput to reset its speed
 ::setSpeedTank <- function(speedInput, dummyOnly=false)
 {
     //Intermission is happening and the command isnt to stop, ignore all previous instructions

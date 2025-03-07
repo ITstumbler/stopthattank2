@@ -1,10 +1,12 @@
 //Balance-sensitive parameters
 ::TANK_SPEED <- 75
-::INTERMISSION_LENGTH <- 5
+::POST_SETUP_LENGTH <- 5                //Time between setup ending and tank spawning
+::INTERMISSION_LENGTH <- 5              //Time between tank dying and giant spawning   
+::BOMB_MISSION_LENGTH <- 150            //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT <- 5
-::GIANT_TYPES_AMOUNT <- 2
+::GIANT_TYPES_AMOUNT <- 2               //Pick first x giant templates to choose from
 ::GIANT_SCALE <- 1.75
-::INTERMISSION_ROLLBACK_SPEED <- 400 //HUD tank rolls back during intermission - this determines its speed
+::INTERMISSION_ROLLBACK_SPEED <- 400    //HUD tank rolls back during intermission - this determines its speed
 
 //Allows us to reference constants by name so no need to remember the cringe out-of-order class ID e.g. TF_CLASS_SNIPER = 2
 ::ROOT <- getroottable();
@@ -18,9 +20,12 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 //Find map entities
 ::startingPathTrack <- Entities.FindByName(null, "tank_path_1")
 ::trainWatcherDummy <- Entities.FindByName(null, "fake_train")
+::redWin <- Entities.FindByName(null, "Red_Win")
+::tankHologram <- Entities.FindByName(null, "tank_hologram")
 ::gamerules <- Entities.FindByClassname(null, "tf_gamerules")
 ::playerManager <- Entities.FindByClassname(null, "tf_player_manager")
 ::bombFlag <- Entities.FindByClassname(null, "item_teamflag")
+::roundTimer <- Entities.FindByClassname(null, "team_round_timer")
 
 ::rejectGiantHudHint <- SpawnEntityFromTable("env_hudhint", {
     targetname = "reject_giant_hud_hint",
@@ -30,8 +35,9 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 //Keep track of some things
 ::tank <- null
 ::bombSpawnOrigin <- startingPathTrack.GetOrigin()
-::isIntermissionHappening <- false
 ::chosenGiantThisRound <- RandomInt(0, GIANT_TYPES_AMOUNT - 1)
+::isIntermissionHappening <- false      //28s break between tank dying and giant mode starting. This variable marks that phase
+::isBombMissionHappening <- false       //Bomb is OUT and READY TO DEPLOY BY PLAYERS
 
 //Misc.
 ::MaxPlayers <- MaxClients().tointeger()
@@ -39,15 +45,21 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 
 IncludeScript("stopthattank2/intermission.nut")
 IncludeScript("stopthattank2/bomb_deploy.nut")
+IncludeScript("stopthattank2/bomb.nut")
 IncludeScript("stopthattank2/tank_functions_callbacks.nut")
 IncludeScript("stopthattank2/giant_mode.nut")
 IncludeScript("stopthattank2/giant_attributes.nut")
 
-
-
 ::debugPrint <- function(msg)
 {
     ClientPrint(null,3,msg)
+}
+
+//Ensures that red will never win before the bomb goes out
+::attemptRedWin <- function()
+{
+    if(!isBombMissionHappening) return
+    redWin.AcceptInput("RoundWin", null, null, null)
 }
 
 ::roundCallbacks <-
@@ -56,6 +68,10 @@ IncludeScript("stopthattank2/giant_attributes.nut")
         //Reset HUD type
         NetProps.SetPropInt(gamerules, "m_nHudType", 3)
         NetProps.SetPropBool(gamerules, "m_bPlayingHybrid_CTF_CP", false)
+
+        //Reset round states
+        isIntermissionHappening = false
+        isBombMissionHappening = false
 
         //Reroll chosen giant type
         chosenGiantThisRound = RandomInt(0, GIANT_TYPES_AMOUNT - 1)
@@ -76,9 +92,9 @@ IncludeScript("stopthattank2/giant_attributes.nut")
         //Mapmaker decides what else needs to happen using boss_dead_relay
     }
 
-    OnGameEvent_player_death = function(params) {
-        debugPrint("Someone died (debug)")
-    }
+    // OnGameEvent_player_death = function(params) {
+    //     debugPrint("Someone died (debug)")
+    // }
 
     OnGameEvent_player_disconnect = function(params) {
         //For now, this only checks for when a jerk disconnects during intermission

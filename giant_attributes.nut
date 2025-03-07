@@ -60,6 +60,13 @@
 ::baseClassHealth[TF_CLASS_SNIPER] <- 125
 ::baseClassHealth[TF_CLASS_SPY] <- 125
 
+//Apply these attributes to ALL giants
+::globalGiantAttributes <-
+{
+    "airblast vulnerability multiplier": 0.0,
+    "health from packs decreased": 0.0
+}
+
 local giantSoldier = {
     classId                     = TF_CLASS_SOLDIER
     baseHealth                  = 10000.0,
