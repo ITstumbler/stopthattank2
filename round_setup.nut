@@ -55,11 +55,21 @@ IncludeScript("stopthattank2/giant_attributes.nut")
     ClientPrint(null,3,msg)
 }
 
-//Ensures that red will never win before the bomb goes out
-::attemptRedWin <- function()
+//Timer finishes 3 times, so we have to know which function we need to call
+::callTimerFunction <- function()
 {
-    if(!isBombMissionHappening) return
-    redWin.AcceptInput("RoundWin", null, null, null)
+    if(!isIntermissionHappening && !isBombMissionHappening)
+    {
+        spawnTank()
+    }
+    else if(isIntermissionHappening && !isBombMissionHappening)
+    {
+        startGiantMode()
+    }
+    else if(isBombMissionHappening)
+    {
+        redWin.AcceptInput("RoundWin", null, null, null)
+    }
 }
 
 ::roundCallbacks <-
@@ -85,6 +95,14 @@ IncludeScript("stopthattank2/giant_attributes.nut")
 			Cleanup()
 		} 
 	}
+
+    OnGameEvent_player_spawn = function(params) {
+        local player = PlayerInstanceFromIndex(params.userid)
+        if (!("isGiant" in player.GetScriptScope())) return
+        //After humiliation player health needs to be reset manually
+        player.ForceRegenerateAndRespawn()
+        player.SetCustomModelWithClassAnimations(null)
+    }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {
         debugPrint("Intermission stuff happening now")

@@ -34,4 +34,5 @@
         return
     }
     EntFire("bomb_deploy_relay", "trigger")
+    bombFlag.AcceptInput("Disable", null, null, null)
 }

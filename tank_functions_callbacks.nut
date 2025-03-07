@@ -1,8 +1,5 @@
 ::spawnTank <- function()
 {
-    //Timer finishes three times in our current setup, let's ensure that tank only spawns on the first one
-    if(isIntermissionHappening || isBombMissionHappening) return
-
     //Make sure tank hologram is called tank_hologram!!
     tankHologram.AcceptInput("Disable", null, null, null)
 

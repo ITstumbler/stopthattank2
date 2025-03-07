@@ -1,9 +1,5 @@
 ::startGiantMode <- function()
 {
-    //We're putting a lot of responsibility on the team_round_timer for calling 3 OnFinished functions...
-    //Let's ensure that this function only runs on the second one (intermission)
-    if(!isIntermissionHappening || isBombMissionHappening) return
-
     //Next time the timer runs out, red wins!
     isIntermissionHappening = false
     isBombMissionHappening = true
@@ -38,6 +34,10 @@
 ::becomeGiant <- function(playerIndex)
 {
     local player = PlayerInstanceFromIndex(playerIndex)
+
+    player.ValidateScriptScope()
+    local scope = player.GetScriptScope()
+    scope.isGiant <- null
 
     local giantSpecifics = giantProperties[chosenGiantThisRound]
     
