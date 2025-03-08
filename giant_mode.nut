@@ -1,12 +1,12 @@
 ::startGiantMode <- function()
 {
-    //Next time the timer runs out, red wins!
-    isIntermissionHappening = false
-    isBombMissionHappening = true
-
     //2:30 to deliver the bomb or else
     //Might want to move this soon
     roundTimer.AcceptInput("SetTime", BOMB_MISSION_LENGTH.tostring(), null, null)
+
+    //Next time the timer runs out, red wins!
+    isIntermissionHappening = false
+    isBombMissionHappening = true
     
     //Adjust HUD to be CTF CP mode
     NetProps.SetPropInt(gamerules, "m_nHudType", 2)
@@ -23,7 +23,6 @@
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
         if (player.GetTeam() != 3) continue
-        player.ValidateScriptScope()
         if (!("isBecomingGiant" in player.GetScriptScope())) continue
         debugPrint("Attempting to make player index " + i + " a giant")
         becomeGiant(i)
@@ -35,7 +34,6 @@
 {
     local player = PlayerInstanceFromIndex(playerIndex)
 
-    player.ValidateScriptScope()
     local scope = player.GetScriptScope()
     scope.isGiant <- null
 
@@ -52,13 +50,22 @@
         if (player.GetTeam() != 2) continue
         redPlayerCount += 1
     }
-    giantHealth = giantHealth / 12.0
+    giantHealth = giantHealth / BASE_GIANT_PLAYER_COUNT.tofloat()
     giantHealth = giantHealth * redPlayerCount
     //Why is nobody on red? You get 1000 hp as consolation prize
     if(giantHealth == 0) {
         giantHealth = 1000
         debugPrint("\x05NOBODY is on red? Giant HP is now " + giantHealth)
     }
+
+    //The healing the giant receives is also scaled based on player count
+    local healMult = BASE_GIANT_HEALING / BASE_GIANT_PLAYER_COUNT.tofloat()
+    healMult = BASE_GIANT_HEALING * redPlayerCount
+    if(healMult == 0) {
+        healMult = 0.5
+    }
+    player.AddCustomAttribute("healing received penalty", healMult, -1)
+    debugPrint("\x05Giant healing scale is now " + healMult)
 
     //It's time to switch classes. It's not as simple as one func 
     player.SetPlayerClass(giantSpecifics.classId)

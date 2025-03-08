@@ -106,8 +106,10 @@
             local player = PlayerInstanceFromIndex(i)
             if (player == null) continue
             if (player.GetTeam() != 3) continue
-            //Find me in giant_mode.nut
-            becomeGiant(i)
+            local scope = player.GetScriptScope()
+            player.ValidateScriptScope()
+            scope.isBecomingGiant <- null
+            ClientPrint(player, 3, "\x05Everyone on your team rejected. You're the next giant now.")
             break
         }
     }
@@ -131,8 +133,8 @@
     ClientPrint(player, 3, "\x04" + giantProperties[chosenGiantThisRound].playerInfo)
     EntFireByHandle(rejectGiantHudHint, "ShowHudHint", null, 0, player, player)
 
-    player.ValidateScriptScope()
     local scope = player.GetScriptScope()
+    player.ValidateScriptScope()
     scope.isBecomingGiant <- null
     
     scope.promptGiantThink <- function() {
@@ -161,8 +163,8 @@
             NetProps.SetPropString(player, "m_iszScriptThinkFunction", "")
         }
         return -1
-        AddThinkToEnt(player, "promptGiantThink")
     }
+    AddThinkToEnt(player, "promptGiantThink")
 
 }
 

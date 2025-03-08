@@ -1,5 +1,6 @@
 ::tryDeployBomb <- function()
 {
+    debugPrint("Trying to")
     if(!activator.HasItem()) return
     activator.EndLongTaunt()
     activator.CancelTaunt()
