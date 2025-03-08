@@ -5,8 +5,8 @@
     roundTimer.AcceptInput("SetTime", BOMB_MISSION_LENGTH.tostring(), null, null)
 
     //Next time the timer runs out, red wins!
-    isIntermissionHappening = false
-    isBombMissionHappening = true
+    //Because this thing is prone to race condition, it's delayed
+    EntFire("gamerules", "CallScriptFunction", "endIntermissionStartBombMission", 1)
     
     //Adjust HUD to be CTF CP mode
     NetProps.SetPropInt(gamerules, "m_nHudType", 2)
@@ -28,6 +28,12 @@
         becomeGiant(i)
         break
     }
+}
+
+::endIntermissionStartBombMission <- function()
+{
+    isIntermissionHappening = false
+    isBombMissionHappening = true
 }
 
 ::becomeGiant <- function(playerIndex)

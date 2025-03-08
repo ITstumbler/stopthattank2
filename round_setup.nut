@@ -73,17 +73,21 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
 //Timer finishes 3 times, so we have to know which function we need to call
 ::callTimerFunction <- function()
 {
+    debugPrint("CALL TIMER FUNCTION IS CALLED")
     if(!isIntermissionHappening && !isBombMissionHappening)
     {
         spawnTank()
+        debugPrint("\x05Call timer: \x01Spawning tank")
     }
     else if(isIntermissionHappening && !isBombMissionHappening)
     {
         startGiantMode()
+        debugPrint("\x05Call timer: \x01Starting giant mode")
     }
     else if(isBombMissionHappening)
     {
         redWin.AcceptInput("RoundWin", null, null, null)
+        debugPrint("\x05Call timer: \x01Winning red")
     }
 }
 
@@ -115,12 +119,15 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
         local player = GetPlayerFromUserID(params.userid)
 
         //This is a chore that has to be done so that vscript doesn't break randomly
-        if (params.team == 0) player.ValidateScriptScope()
+        // if (params.team == 0) player.ValidateScriptScope()
 
-        if (!("isGiant" in player.GetScriptScope())) return
-        //After humiliation player health needs to be reset manually
-        player.ForceRegenerateAndRespawn()
-        player.SetCustomModelWithClassAnimations("")
+        // if (!("isGiant" in player.GetScriptScope())) return
+        // //After humiliation player health needs to be reset manually
+        // player.ForceRegenerateAndRespawn()
+        // player.SetCustomModelWithClassAnimations("")
+
+        // //Stop being giant
+        // delete scope.isGiant
     }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {
@@ -134,7 +141,8 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
         local scope = player.GetScriptScope()
         //No more giant privileges you are dead
         if ("isGiant" in scope) {
-            delete scope.isBecomingGiant
+            debugPrint("Giant privileges removed from dead giant")
+            delete scope.isGiant
         }
     }
 

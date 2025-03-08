@@ -133,8 +133,8 @@
     ClientPrint(player, 3, "\x04" + giantProperties[chosenGiantThisRound].playerInfo)
     EntFireByHandle(rejectGiantHudHint, "ShowHudHint", null, 0, player, player)
 
-    local scope = player.GetScriptScope()
     player.ValidateScriptScope()
+    local scope = player.GetScriptScope()
     scope.isBecomingGiant <- null
     
     scope.promptGiantThink <- function() {

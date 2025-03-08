@@ -2,7 +2,12 @@
 {
     //Don't apply these to giants!!
     local scope = activator.GetScriptScope()
-    if ("isGiant" in scope) return
+    if ("isGiant" in scope) {
+        debugPrint("Bomb carrier is giant, ignoring")
+        return
+    }
+
+    debugPrint("Bomb carrier is not giant, lets go give them conds and stuff")
     
     //Check if player is eligible for temporary conds
     local timePickedUp = Time()
