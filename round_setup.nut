@@ -16,11 +16,11 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::GIANT_TYPES_AMOUNT                <- 2            //Pick first x giant templates to choose from
 ::GIANT_SCALE                       <- 1.75         //Giant players will be scaled by this much
 ::INTERMISSION_ROLLBACK_SPEED       <- 400          //HUD tank rolls back during intermission - this determines its speed
-::BOMB_CARRIER_CONDS                <- {            //Conditions to apply to non-giant players carrying the bomb. Second parameter determines duration (-1: infinite)
-                                        TF_COND_OFFENSEBUFF = -1, 
-                                        TF_COND_DEFENSEBUFF_NO_CRIT_BLOCK = -1,
-                                        TF_COND_HALLOWEEN_QUICK_HEAL = 3
-                                       }   
+::BOMB_CARRIER_CONDS                <- {            //Conditions to apply to non-giant players carrying the bomb. Value determines duration (-1: infinite)
+                                        [TF_COND_OFFENSEBUFF]               = -1,
+                                        [TF_COND_DEFENSEBUFF_NO_CRIT_BLOCK] = -1,
+                                        [TF_COND_HALLOWEEN_QUICK_HEAL]      = 3
+                                       }
 ::BOMB_CARRIER_ATTRIBUTES           <- {            //Attributes to apply to non-giant players carrying the bomb
                                         "move speed penalty": 0.8
                                        }
@@ -122,7 +122,10 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
         if (params.team == 0) player.ValidateScriptScope()
 
         if (!("isGiant" in player.GetScriptScope())) return
+        //Make sure it doesnt fire when giant first spawns
+        if (isIntermissionHappening || isBombMissionHappening) return
         //After humiliation player health needs to be reset manually
+        debugPrint("Giant privileges removed on spawn")
         player.Regenerate(true)
         player.SetCustomModelWithClassAnimations("")
 
@@ -139,11 +142,6 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
     OnGameEvent_player_death = function(params) {
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()
-        //No more giant privileges you are dead
-        if ("isGiant" in scope) {
-            debugPrint("Giant privileges removed from dead giant")
-            delete scope.isGiant
-        }
     }
 
     OnGameEvent_player_disconnect = function(params) {

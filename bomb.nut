@@ -14,7 +14,8 @@
     local timePickedUp = Time()
     local eligibleForTempConds = true
     if ("lastBombDropTime" in scope) {
-        if((scope.lastBombDropTime - Time()) < BOMB_CARRIER_TEMP_CONDS_DELAY) {
+        debugPrint("Time between last bomb drop: " + (Time() - scope.lastBombDropTime))
+        if((Time() - scope.lastBombDropTime) < BOMB_CARRIER_TEMP_CONDS_DELAY) {
             //Did the player drop the bomb very recently? They're not getting those temp conds again.
             eligibleForTempConds = false
         }
@@ -36,6 +37,7 @@
 
 ::removeBombCarrierProperties <- function()
 {
+    debugPrint("Trying to remove bomb carrier properties")
     //If player is giant, revoke their giant privileges
     local scope = activator.GetScriptScope()
     if ("isGiant" in scope) {
