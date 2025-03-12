@@ -1,3 +1,12 @@
+//Allows us to reference constants by name so no need to remember the cringe out-of-order class ID e.g. TF_CLASS_SNIPER = 2
+::ROOT <- getroottable();
+if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done once
+{
+    foreach (a,b in Constants)
+        foreach (k,v in b)
+            ROOT[k] <- v != null ? v : 0;
+}
+
 //Balance-sensitive parameters
 ::TANK_SPEED                        <- 75
 ::POST_SETUP_LENGTH                 <- 5            //Time between setup ending and tank spawning
@@ -18,15 +27,6 @@
 ::BOMB_CARRIER_TEMP_CONDS_DELAY     <- 10           //Temporary conds will be blocked if a player recently dropped the bomb, this is the delay (seconds) that allows said player to get temp conds again
 ::BASE_GIANT_HEALING                <- 1            //Multiply ALL healing received by giant players by this much if player count is at BASE_GIANT_PLAYER_COUNT. Increased or decreased linearly if the amount of players on red is higher or lower than that.
 ::BASE_GIANT_PLAYER_COUNT           <- 12           //If there are this many players on red team, all giants have their base hp and all healing received is multiplied by BASE_GIANT_HEALING. Increased or decreased linearly if the amount of players on red is higher or lower than that. 
-
-//Allows us to reference constants by name so no need to remember the cringe out-of-order class ID e.g. TF_CLASS_SNIPER = 2
-::ROOT <- getroottable();
-if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done once
-{
-    foreach (a,b in Constants)
-        foreach (k,v in b)
-            ROOT[k] <- v != null ? v : 0;
-}
 
 //Find map entities
 ::startingPathTrack <- Entities.FindByName(null, "tank_path_1")
@@ -119,15 +119,15 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
         local player = GetPlayerFromUserID(params.userid)
 
         //This is a chore that has to be done so that vscript doesn't break randomly
-        // if (params.team == 0) player.ValidateScriptScope()
+        if (params.team == 0) player.ValidateScriptScope()
 
-        // if (!("isGiant" in player.GetScriptScope())) return
-        // //After humiliation player health needs to be reset manually
-        // player.ForceRegenerateAndRespawn()
-        // player.SetCustomModelWithClassAnimations("")
+        if (!("isGiant" in player.GetScriptScope())) return
+        //After humiliation player health needs to be reset manually
+        player.Regenerate(true)
+        player.SetCustomModelWithClassAnimations("")
 
-        // //Stop being giant
-        // delete scope.isGiant
+        //Stop being giant
+        delete scope.isGiant
     }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {

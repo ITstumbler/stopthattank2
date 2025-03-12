@@ -1,5 +1,6 @@
 ::applyBombCarrierProperties <- function()
 {
+    debugPrint("Trying to apply bomb carrier properties")
     //Don't apply these to giants!!
     local scope = activator.GetScriptScope()
     if ("isGiant" in scope) {
