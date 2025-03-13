@@ -21,8 +21,13 @@
     trainWatcherDummy.KeyValueFromInt("startspeed", INTERMISSION_ROLLBACK_SPEED)
     trainWatcherDummy.AcceptInput("SetSpeedDir", "-1", null, null)
     
+    //Update team respawn times
+    gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_INTERMISSION_RESPAWN_TIME.tostring(), null, null)
+    gamerules.AcceptInput("SetBlueTeamRespawnWaveTime", BLUE_INTERMISSION_RESPAWN_TIME.tostring(), null, null)
+    
     //Tell path tracks to stop the hud train,
     //and timer to execute the proper function OnFinished 
+    isTankMissionHappening = false
     isIntermissionHappening = true
 
     //Decide on which player gets giant privileges

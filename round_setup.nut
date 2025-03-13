@@ -8,7 +8,9 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 }
 
 //Balance-sensitive parameters
-::TANK_SPEED                        <- 75
+::TANK_SPEED                        <- 75           //The speed at which the tank goes. The fake_train in the map must be set to the same speed
+::BASE_TANK_HEALTH                  <- 12000        //Base tank health, will be increased or decreased if the amount of players on red is more or less than BASE_TANK_PLAYER_COUNT. Can be overriden using overrideBaseTankHealth(health)
+::BASE_TANK_PLAYER_COUNT            <- 12           //If there are this many players on red team, the tank will use BASE_TANK_HEALTH. Scaled linearly if there are more or less players on red team
 ::POST_SETUP_LENGTH                 <- 5            //Time between setup ending and tank spawning
 ::INTERMISSION_LENGTH               <- 5            //Time between tank dying and giant spawning   
 ::BOMB_MISSION_LENGTH               <- 150          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
@@ -22,17 +24,29 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                         [TF_COND_HALLOWEEN_QUICK_HEAL]      = 3
                                        }
 ::BOMB_CARRIER_ATTRIBUTES           <- {            //Attributes to apply to non-giant players carrying the bomb
-                                        "move speed penalty": 0.8
+                                        "move speed penalty": 0.8,
+                                        "self dmg push force decreased": 0.01
                                        }
+::MINIMUM_PLAYERS_FOR_BOMB_BUFFS    <- 5            //If there are less than this many players on red, do not apply any conds
 ::BOMB_CARRIER_TEMP_CONDS_DELAY     <- 10           //Temporary conds will be blocked if a player recently dropped the bomb, this is the delay (seconds) that allows said player to get temp conds again
 ::BASE_GIANT_HEALING                <- 1            //Multiply ALL healing received by giant players by this much if player count is at BASE_GIANT_PLAYER_COUNT. Increased or decreased linearly if the amount of players on red is higher or lower than that.
 ::BASE_GIANT_PLAYER_COUNT           <- 12           //If there are this many players on red team, all giants have their base hp and all healing received is multiplied by BASE_GIANT_HEALING. Increased or decreased linearly if the amount of players on red is higher or lower than that. 
+::RED_TANK_RESPAWN_TIME             <- 0.1          //Sets red's respawn time, in seconds, while tank is active 
+::BLUE_TANK_RESPAWN_TIME            <- 3            //Sets blu's respawn time, in seconds, while tank is active 
+::RED_INTERMISSION_RESPAWN_TIME     <- 0.1          //Sets red's respawn time, in seconds, during intermission
+::BLUE_INTERMISSION_RESPAWN_TIME    <- 0.1          //Sets blu's respawn time, in seconds, during intermission 
+::RED_GIANT_RESPAWN_TIME            <- 3            //Sets red's respawn time, in seconds, while giant is active 
+::BLUE_GIANT_RESPAWN_TIME           <- 9            //Sets blu's respawn time, in seconds, while giant is active. Overriden by respawnOverride in giant_attributes.nut if set. 
+::RED_POST_GIANT_RESPAWN_TIME       <- 3            //Sets red's respawn time, in seconds, after giant is dead 
+::BLUE_POST_GIANT_RESPAWN_TIME      <- 0.1          //Sets blu's respawn time, in seconds, after giant is dead 
+
 
 //Find map entities
 ::startingPathTrack <- Entities.FindByName(null, "tank_path_1")
 ::trainWatcherDummy <- Entities.FindByName(null, "fake_train")
 ::redWin <- Entities.FindByName(null, "Red_Win")
 ::tankHologram <- Entities.FindByName(null, "tank_hologram")
+::filterBoss <- Entities.FindByName(null, "tank_hologram")
 ::gamerules <- Entities.FindByClassname(null, "tf_gamerules")
 ::playerManager <- Entities.FindByClassname(null, "tf_player_manager")
 ::bombFlag <- Entities.FindByClassname(null, "item_teamflag")
@@ -47,6 +61,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::tank <- null
 ::bombSpawnOrigin <- startingPathTrack.GetOrigin()
 ::chosenGiantThisRound <- RandomInt(0, GIANT_TYPES_AMOUNT - 1)
+::isTankMissionHappening <- false       //Tracks whether or not tank is active
 ::isIntermissionHappening <- false      //28s break between tank dying and giant mode starting. This variable marks that phase
 ::isBombMissionHappening <- false       //Bomb is OUT and READY TO DEPLOY BY PLAYERS
 
@@ -70,6 +85,32 @@ IncludeScript("stopthattank2/giant_attributes.nut")
 Convars.SetValue("mp_tournament_redteamname", "HUMANS")
 Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
 
+//Precache garbage
+//Precache announcer sounds
+PrecacheSound("vo/announcer_begins_60sec.mp3")
+PrecacheSound("vo/announcer_begins_30sec.mp3")
+PrecacheSound("vo/announcer_begins_10sec.mp3")
+PrecacheSound("vo/announcer_begins_5sec.mp3")
+PrecacheSound("vo/announcer_begins_4sec.mp3")
+PrecacheSound("vo/announcer_begins_3sec.mp3")
+PrecacheSound("vo/announcer_begins_2sec.mp3")
+PrecacheSound("vo/announcer_begins_1sec.mp3")
+
+PrecacheSound("vo/announcer_ends_60sec.mp3")
+PrecacheSound("vo/announcer_ends_30sec.mp3")
+PrecacheSound("vo/announcer_ends_10sec.mp3")
+PrecacheSound("vo/announcer_ends_5sec.mp3")
+PrecacheSound("vo/announcer_ends_4sec.mp3")
+PrecacheSound("vo/announcer_ends_3sec.mp3")
+PrecacheSound("vo/announcer_ends_2sec.mp3")
+PrecacheSound("vo/announcer_ends_1sec.mp3")
+
+//Function for mapmakers to override base tank health
+::overrideBaseTankHealth <- function(health_input)
+{
+    BASE_TANK_HEALTH = health_input
+}
+
 //Timer finishes 3 times, so we have to know which function we need to call
 ::callTimerFunction <- function()
 {
@@ -88,7 +129,41 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
     {
         redWin.AcceptInput("RoundWin", null, null, null)
         debugPrint("\x05Call timer: \x01Winning red")
+        // isIntermissionHappening = false
+        // isBombMissionHappening = false
     }
+}
+
+//Handles countdown sounds (e.g. mission ends in 10 seconds!)
+::playCountdownSound <- function(secondsRemaining)
+{
+    //If bomb mission hasnt started yet, all countdown sounds should be mission begins in x seconds
+    if(!isBombMissionHappening)
+    {
+        // playSoundEx("vo/announcer_begins_" + secondsRemaining.tostring() + "sec.mp3")
+        gamerules.AcceptInput("PlayVO", "vo/announcer_begins_" + secondsRemaining.tostring() + "sec.mp3", null, null)
+    }
+    else
+    {
+        // playSoundEx("vo/announcer_ends_" + secondsRemaining.tostring() + "sec.mp3")
+        gamerules.AcceptInput("PlayVO", "vo/announcer_ends_" + secondsRemaining.tostring() + "sec.mp3", null, null)
+    }
+}
+
+::playSoundEx <- function(soundname)
+{
+    EmitSoundEx({
+        sound_name = soundname,
+        channel = 6,
+        origin = (0,0,0),
+        filter_type = RECIPIENT_FILTER_GLOBAL
+    })
+    EmitSoundEx({
+        sound_name = soundname,
+        channel = 6,
+        origin = (0,0,0),
+        filter_type = RECIPIENT_FILTER_GLOBAL
+    })
 }
 
 ::roundCallbacks <-
@@ -121,7 +196,11 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
         //This is a chore that has to be done so that vscript doesn't break randomly
         if (params.team == 0) player.ValidateScriptScope()
 
-        if (!("isGiant" in player.GetScriptScope())) return
+        if (!("isGiant" in player.GetScriptScope())) {
+            debugPrint("Spawned player is not giant")
+            return
+        }
+        debugPrint("Spawned player IS giant")
         //Make sure it doesnt fire when giant first spawns
         if (isIntermissionHappening || isBombMissionHappening) return
         //After humiliation player health needs to be reset manually
@@ -142,6 +221,8 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
     OnGameEvent_player_death = function(params) {
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()
+        if (!("isGiant" in player.GetScriptScope())) return
+        handleGiantDeath()
     }
 
     OnGameEvent_player_disconnect = function(params) {

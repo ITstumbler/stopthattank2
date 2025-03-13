@@ -27,6 +27,13 @@
     //No round timer during tank phase, we'll need it again once the tank dies
     //Refer to startIntermission in intermission.nut
     roundTimer.AcceptInput("Disable", null, null, null)
+
+    //Update team respawn times
+    gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_TANK_RESPAWN_TIME.tostring(), null, null)
+    gamerules.AcceptInput("SetBlueTeamRespawnWaveTime", BLUE_TANK_RESPAWN_TIME.tostring(), null, null)
+
+    //Mark phase change to be used by other parts of the script
+    isTankMissionHappening = true
 }
 
 //Input TANK_SPEED as speedInput to reset its speed

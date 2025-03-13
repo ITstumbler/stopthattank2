@@ -4,6 +4,19 @@
     //Might want to move this soon
     roundTimer.AcceptInput("SetTime", BOMB_MISSION_LENGTH.tostring(), null, null)
 
+    //Update team respawn times
+    gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_GIANT_RESPAWN_TIME.tostring(), null, null)
+
+    if(giantProperties[chosenGiantThisRound].respawnOverride)
+    {
+        debugPrint("Special giant type " + giantProperties[chosenGiantThisRound].giantName + " will override BLU's respawn time to " + giantProperties[chosenGiantThisRound].respawnOverride.tostring())
+        gamerules.AcceptInput("SetBlueTeamRespawnWaveTime", giantProperties[chosenGiantThisRound].respawnOverride.tostring(), null, null)
+    }
+    else
+    {
+        gamerules.AcceptInput("SetBlueTeamRespawnWaveTime", BLUE_GIANT_RESPAWN_TIME.tostring(), null, null)
+    }
+
     //Next time the timer runs out, red wins!
     //Because this thing is prone to race condition, it's delayed
     EntFire("gamerules", "CallScriptFunction", "endIntermissionStartBombMission", 1)
@@ -36,9 +49,71 @@
     isBombMissionHappening = true
 }
 
+::GivePlayerWeapon <- function(player, className, itemID, itemSlotToDestroy=0)
+{
+    //Setting itemID to null means that we dont want players to have anything in that slot
+    if(itemID == null)
+    {
+        // remove existing weapon in same slot
+        for (local i = 0; i < MaxWeapons; i++)
+        {
+            local heldWeapon = NetProps.GetPropEntityArray(player, "m_hMyWeapons", i)
+            if (heldWeapon == null)
+                continue
+            if (heldWeapon.GetSlot() != itemSlotToDestroy)
+                continue
+            heldWeapon.Destroy()
+            NetProps.SetPropEntityArray(player, "m_hMyWeapons", null, i)
+            break
+        }
+        return
+    }
+    
+    local weapon = Entities.CreateByClassname(className)
+    NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
+    NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
+    NetProps.SetPropBool(weapon, "m_bValidatedAttachedEntity", true)
+    weapon.SetTeam(player.GetTeam())
+    weapon.DispatchSpawn()
+
+    // remove existing weapon in same slot
+    for (local i = 0; i < MaxWeapons; i++)
+    {
+        local heldWeapon = NetProps.GetPropEntityArray(player, "m_hMyWeapons", i)
+        if (heldWeapon == null)
+            continue
+        if (heldWeapon.GetSlot() != weapon.GetSlot())
+            continue
+        heldWeapon.Destroy()
+        NetProps.SetPropEntityArray(player, "m_hMyWeapons", null, i)
+        break
+    }
+    
+    player.Weapon_Equip(weapon)
+    player.Weapon_Switch(weapon)
+
+    return weapon
+}
+
 ::becomeGiant <- function(playerIndex)
 {
     local player = PlayerInstanceFromIndex(playerIndex)
+
+    //If player is engineer, manually destroy all existing buildings they owned
+    if(player.GetPlayerClass() == TF_CLASS_ENGINEER)
+    {
+        local buildings = ["obj_sentrygun", "obj_dispenser", "obj_teleporter"]
+        local building_ent = null
+        for(local i = 0; i < buildings.len(); i++)
+        {
+            building_ent = null
+            while(building_ent = Entities.FindByClassname(building_ent, buildings[i]))
+            {
+                if(building_ent.GetOwner() != player) continue
+                building_ent.AcceptInput("RemoveHealth", "0", null, null)
+            }
+        }
+    }
 
     local scope = player.GetScriptScope()
     scope.isGiant <- null
@@ -146,4 +221,11 @@
 
     //We teleported the bomb already but just to be sure we also set its owner to the newly gigantified player
     bombFlag.SetOwner(player)
+}
+
+::handleGiantDeath <- function()
+{
+    //Update team respawn times
+    gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_POST_GIANT_RESPAWN_TIME.tostring(), null, null)
+    gamerules.AcceptInput("SetBlueTeamRespawnWaveTime", BLUE_POST_GIANT_RESPAWN_TIME.tostring(), null, null)
 }

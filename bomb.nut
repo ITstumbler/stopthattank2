@@ -9,7 +9,28 @@
     }
 
     debugPrint("Bomb carrier is not giant, lets go give them conds and stuff")
-    
+
+    //Apply the identifying bomb carrier cond - used by other map entities to identify bomb carrier
+    activator.AddCondEx(65, -1, null)
+
+    //Apply all bomb carrier atributes
+    foreach(attribute, value in BOMB_CARRIER_ATTRIBUTES)
+    {
+        activator.AddCustomAttribute(attribute, value, -1)
+    }
+
+    //Count red players - if the amount of players on red is less than MINIMUM_PLAYERS_FOR_BOMB_BUFFS, do not apply conds
+    local redPlayerCount = 0
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != 2) continue
+        redPlayerCount += 1
+    }
+
+    if(redPlayerCount < MINIMUM_PLAYERS_FOR_BOMB_BUFFS) return
+
     //Check if player is eligible for temporary conds
     local timePickedUp = Time()
     local eligibleForTempConds = true
@@ -26,12 +47,6 @@
     {
         if(duration != -1 && !eligibleForTempConds) continue //Blocks temp conds from getting re-applied if ineligible (see above)
         activator.AddCondEx(condition, duration, null)
-    }
-
-    //Apply all bomb carrier atributes
-    foreach(attribute, value in BOMB_CARRIER_ATTRIBUTES)
-    {
-        activator.AddCustomAttribute(attribute, value, -1)
     }
 }
 
