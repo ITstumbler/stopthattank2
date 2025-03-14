@@ -11,8 +11,8 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::TANK_SPEED                        <- 75           //The speed at which the tank goes. The fake_train in the map must be set to the same speed
 ::BASE_TANK_HEALTH                  <- 12000        //Base tank health, will be increased or decreased if the amount of players on red is more or less than BASE_TANK_PLAYER_COUNT. Can be overriden using overrideBaseTankHealth(health)
 ::BASE_TANK_PLAYER_COUNT            <- 12           //If there are this many players on red team, the tank will use BASE_TANK_HEALTH. Scaled linearly if there are more or less players on red team
-::POST_SETUP_LENGTH                 <- 5            //Time between setup ending and tank spawning
-::INTERMISSION_LENGTH               <- 15           //Time between tank dying and giant spawning   
+::POST_SETUP_LENGTH                 <- 15           //Time between setup ending and tank spawning
+::INTERMISSION_LENGTH               <- 28           //Time between tank dying and giant spawning   
 ::BOMB_MISSION_LENGTH               <- 150          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT    <- 5            //Pick from the first x top performing players in scoreboard to be giant
 ::GIANT_TYPES_AMOUNT                <- 2            //Pick first x giant templates to choose from
@@ -149,6 +149,7 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
     //If bomb mission hasnt started yet, all countdown sounds should be mission begins in x seconds
     local prefix = isBombMissionHappening == false ? "vo/announcer_begins_" : "vo/announcer_ends_"
     gamerules.AcceptInput("PlayVO", prefix + secondsRemaining.tostring() + "sec.mp3", null, null)
+    debugPrint("\x07AA44AAPlaying countdown sound for " + secondsRemaining)
 }
 
 ::playSoundEx <- function(soundname)
@@ -210,7 +211,7 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
         player.SetCustomModelWithClassAnimations("")
 
         //Stop being giant
-        delete scope.isGiant
+        delete player.GetScriptScope().isGiant
     }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {
@@ -218,7 +219,7 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
         startIntermission() //Find in intermission.nut
 
         //Delay the crit cash function to ensure that it happens after the cash entities spawn
-        EntFire("gamerules", "CallScriptFunction", "spawnCritCash()", -1) //Find in crit_cash.nut
+        EntFire("gamerules", "CallScriptFunction", "spawnCritCash", -1) //Find in crit_cash.nut
 
         //Mapmaker decides what else needs to happen using boss_dead_relay
     }

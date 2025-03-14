@@ -1,5 +1,6 @@
 ::spawnCritCash <- function()
 {
+    debugPrint("\x07CC8888Attempting to spawn crit cash")
     //First, delete all existing cash entities so we can spawn in our own
     local currencyPackClassnames = ["item_currencypack_small", "item_currencypack_medium", "item_currencypack_large", "item_currencypack_custom"]
     local currencyEnt = null
@@ -39,7 +40,7 @@
         local spawnedCashEnt = SpawnEntityFromTable("tf_ammo_pack", {
             targetname = "crit_cash_prop",
             origin = tankDiedOrigin,
-            TeamNum = 5,
+            TeamNum = 1,
             model = cashModel
         })
 
@@ -50,7 +51,7 @@
             targetname = "crit_cash_trigger",
             spawnflags = 1,
             origin = tankDiedOrigin,
-            filtername = filter_cash_eligible_red,
+            filtername = "filter_cash_eligible_red",
             StartDisabled = 1 //In mvm, money can't be picked up mid-air (some exceptions incl. instantly collecting tank money if you stand on top of it, but w/e)
         })
         spawnedCashTrigger.SetSize(triggerSize * -1, triggerSize)
@@ -71,19 +72,19 @@
 
         //Cash explode in random directions when a tank blows up, let's simulate that
         //First we'll decide what direction the cash will blow up to
-        impulseVecX = RandomFloat(-1, 1)
-        impulseVecY = RandomFloat(-1, 1)
-        impulseVecZ = RandomFloat(5, 20)
+        local impulseVecX = RandomFloat(-1, 1)
+        local impulseVecY = RandomFloat(-1, 1)
+        local impulseVecZ = RandomFloat(50, 200)
 
         //Normalize to get the angles we want to launch the cash to
-        impulseVec = Vector(impulseVecX, impulseVecY, impulseVecZ)
+        local impulseVec = Vector(impulseVecX, impulseVecY, impulseVecZ)
         impulseVec.Norm()
 
         //Now we decide the speed that we launch the cash with
         impulseVec = impulseVec * 250 * RandomFloat(1, 4)
 
         //And now we launch those money piles!!
-        spawnedCashEnt.ApplyAbsVelocityImpulse(impulseVec)
+        spawnedCashEnt.ApplyLocalAngularVelocityImpulse(impulseVec)
 
         //TODO: make custom models for cash with built-in particles so that we dont have to worry about attaching them via vscript (pain)
 
@@ -103,7 +104,7 @@
 //We gotta murder the trigger's parent as well (the cash prop)
 ::killCash <- function()
 {
-    local cashEnt = self.GetParent()
+    local cashEnt = self.GetMoveParent()
     self.Kill()
     cashEnt.Kill()
 }
