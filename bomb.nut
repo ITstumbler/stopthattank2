@@ -53,12 +53,7 @@
 ::removeBombCarrierProperties <- function()
 {
     debugPrint("Trying to remove bomb carrier properties")
-    //If player is giant, revoke their giant privileges
     local scope = activator.GetScriptScope()
-    if ("isGiant" in scope) {
-        delete scope.isGiant
-        return
-    }
     
     //Remove all bomb carrier conds
     foreach(condition, duration in BOMB_CARRIER_CONDS)
