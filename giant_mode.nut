@@ -103,14 +103,14 @@
     if(player.GetPlayerClass() == TF_CLASS_ENGINEER)
     {
         local buildings = ["obj_sentrygun", "obj_dispenser", "obj_teleporter"]
-        local building_ent = null
+        local buildingEnt = null
         for(local i = 0; i < buildings.len(); i++)
         {
-            building_ent = null
-            while(building_ent = Entities.FindByClassname(building_ent, buildings[i]))
+            buildingEnt = null
+            while(buildingEnt = Entities.FindByClassname(buildingEnt, buildings[i]))
             {
-                if(building_ent.GetOwner() != player) continue
-                building_ent.AcceptInput("RemoveHealth", "0", null, null)
+                if(buildingEnt.GetOwner() != player) continue
+                buildingEnt.AcceptInput("RemoveHealth", "0", null, null)
             }
         }
     }

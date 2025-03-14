@@ -17,9 +17,11 @@
     roundTimer.AcceptInput("Enable", null, null, null)
     roundTimer.AcceptInput("SetTime", INTERMISSION_LENGTH.tostring(), null, null)
 
+    //Also, when there's 5 seconds remaining on the intermission, start making cash blink and then burn them 5s later
+    EntityOutputs.AddOutput(roundTimer, "On5SecRemain", "gamerules", "CallScriptFunction", "blinkCash", -1, 1)
+
     //Roll back hud train to nearest cp
-    trainWatcherDummy.KeyValueFromInt("startspeed", INTERMISSION_ROLLBACK_SPEED)
-    trainWatcherDummy.AcceptInput("SetSpeedDir", "-1", null, null)
+    EntFire("gamerules", "CallScriptFunction", "rollbackTrainWatcherDummy", 0.1)
     
     //Update team respawn times
     gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_INTERMISSION_RESPAWN_TIME.tostring(), null, null)
@@ -118,6 +120,13 @@
             break
         }
     }
+}
+
+//Separated so that the rollback is delayed sufficiently enough so that crit cash func can do its job properly
+::rollbackTrainWatcherDummy <- function()
+{
+    trainWatcherDummy.KeyValueFromInt("startspeed", INTERMISSION_ROLLBACK_SPEED)
+    trainWatcherDummy.AcceptInput("SetSpeedDir", "-1", null, null)
 }
 
 ::stopTrainWatcherDummy <- function()

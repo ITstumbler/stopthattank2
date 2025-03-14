@@ -12,7 +12,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::BASE_TANK_HEALTH                  <- 12000        //Base tank health, will be increased or decreased if the amount of players on red is more or less than BASE_TANK_PLAYER_COUNT. Can be overriden using overrideBaseTankHealth(health)
 ::BASE_TANK_PLAYER_COUNT            <- 12           //If there are this many players on red team, the tank will use BASE_TANK_HEALTH. Scaled linearly if there are more or less players on red team
 ::POST_SETUP_LENGTH                 <- 5            //Time between setup ending and tank spawning
-::INTERMISSION_LENGTH               <- 5            //Time between tank dying and giant spawning   
+::INTERMISSION_LENGTH               <- 15           //Time between tank dying and giant spawning   
 ::BOMB_MISSION_LENGTH               <- 150          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT    <- 5            //Pick from the first x top performing players in scoreboard to be giant
 ::GIANT_TYPES_AMOUNT                <- 2            //Pick first x giant templates to choose from
@@ -39,7 +39,15 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::BLUE_GIANT_RESPAWN_TIME           <- 9            //Sets blu's respawn time, in seconds, while giant is active. Overriden by respawnOverride in giant_attributes.nut if set. 
 ::RED_POST_GIANT_RESPAWN_TIME       <- 3            //Sets red's respawn time, in seconds, after giant is dead 
 ::BLUE_POST_GIANT_RESPAWN_TIME      <- 0.1          //Sets blu's respawn time, in seconds, after giant is dead 
-
+::SMALL_CASH_DROP_AMOUNT            <- 7            //Amount of small cash dropped by the tank when it dies. Size is purely cosmetic
+::MEDIUM_CASH_DROP_AMOUNT           <- 4            //Amount of medium cash dropped by the tank when it dies. Size is purely cosmetic
+::LARGE_CASH_DROP_AMOUNT            <- 2            //Amount of large cash dropped by the tank when it dies. Size is purely cosmetic
+::CASH_CONDS                        <- {            //Conditions to apply to red players when they pick up cash. Value determines duration (-1: infinite)
+                                        [TF_COND_OFFENSEBUFF]               = 5,
+                                        [TF_COND_CRITBOOSTED_CTF_CAPTURE]   = 5, //If you remove this, be sure to also change the cond in filter_cash_eligible
+                                        [TF_COND_HALLOWEEN_QUICK_HEAL]      = 3
+                                       }
+::PROJECTILE_SHIELD_LENGTH          <- 10           //In seconds, the length red medics get projectile shield for when picking up cash
 
 //Find map entities
 ::startingPathTrack <- Entities.FindByName(null, "tank_path_1")
@@ -73,6 +81,7 @@ IncludeScript("stopthattank2/intermission.nut")
 IncludeScript("stopthattank2/bomb_deploy.nut")
 IncludeScript("stopthattank2/bomb.nut")
 IncludeScript("stopthattank2/tank_functions_callbacks.nut")
+IncludeScript("stopthattank2/crit_cash.nut")
 IncludeScript("stopthattank2/giant_mode.nut")
 IncludeScript("stopthattank2/giant_attributes.nut")
 
@@ -138,16 +147,8 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
 ::playCountdownSound <- function(secondsRemaining)
 {
     //If bomb mission hasnt started yet, all countdown sounds should be mission begins in x seconds
-    if(!isBombMissionHappening)
-    {
-        // playSoundEx("vo/announcer_begins_" + secondsRemaining.tostring() + "sec.mp3")
-        gamerules.AcceptInput("PlayVO", "vo/announcer_begins_" + secondsRemaining.tostring() + "sec.mp3", null, null)
-    }
-    else
-    {
-        // playSoundEx("vo/announcer_ends_" + secondsRemaining.tostring() + "sec.mp3")
-        gamerules.AcceptInput("PlayVO", "vo/announcer_ends_" + secondsRemaining.tostring() + "sec.mp3", null, null)
-    }
+    local prefix = isBombMissionHappening == false ? "vo/announcer_begins_" : "vo/announcer_ends_"
+    gamerules.AcceptInput("PlayVO", prefix + secondsRemaining.tostring() + "sec.mp3", null, null)
 }
 
 ::playSoundEx <- function(soundname)
@@ -214,7 +215,11 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {
         debugPrint("Intermission stuff happening now")
-        startIntermission()
+        startIntermission() //Find in intermission.nut
+
+        //Delay the crit cash function to ensure that it happens after the cash entities spawn
+        EntFire("gamerules", "CallScriptFunction", "spawnCritCash()", -1) //Find in crit_cash.nut
+
         //Mapmaker decides what else needs to happen using boss_dead_relay
     }
 
