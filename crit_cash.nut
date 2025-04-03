@@ -1,7 +1,7 @@
 ::spawnCritCash <- function()
 {
-    debugPrint("\x07CC8888Attempting to spawn crit cash")
-    //First, delete all existing cash entities so we can spawn in our own
+    debugPrint("\x07CC8888Attempting to spawn crit cash triggers")
+    //Iterate through all the cash entities
     local currencyPackClassnames = ["item_currencypack_small", "item_currencypack_medium", "item_currencypack_large", "item_currencypack_custom"]
     local currencyEnt = null
     for(local i = 0; i < currencyPackClassnames.len(); i++)
@@ -9,89 +9,49 @@
         currencyEnt = null
         while(currencyEnt = Entities.FindByClassname(currencyEnt, currencyPackClassnames[i]))
         {
-            currencyEnt.Kill()
+            //Cash cannot be picked up and can only be collected through trigger 
+            currencyEnt.SetTeam(4)
+
+            //Iterate through them more easily later
+            //Theyre not props but they used to be and i dont want to change it idk
+            currencyEnt.KeyValueFromString("targetname", "crit_cash_prop")
         }
     }
 
-    //Now we get the origin where the tank died - we do this by finding the origin of the train watcher dummy 
-    local tankDiedOrigin = trainWatcherDummy.GetOrigin()
-    
-    local cashSpawned = 0
-    local totalCashAmountToSpawn = SMALL_CASH_DROP_AMOUNT + MEDIUM_CASH_DROP_AMOUNT + LARGE_CASH_DROP_AMOUNT
+    //Iterate again - we'll add triggers next
+    //This is delayed so that the cash is on the ground before red can pick them up
+    EntFire("gamerules", "CallScriptFunction", "addCritCashTriggers", 3)
+}
 
-    while(cashSpawned < totalCashAmountToSpawn)
+::addCritCashTriggers <- function()
+{
+    local currencyEnt = null
+    while(currencyEnt = Entities.FindByName(currencyEnt, "crit_cash_prop"))
     {
-        //Set the cash model based on the amount desired to spawn
         //We'll need to set the bounding box size for the triggers
-        local cashModel = "models/items/currencypack_small.mdl"
-        local triggerSize = Vector(24, 24, 32)
-        if (cashSpawned >= MEDIUM_CASH_DROP_AMOUNT && cashSpawned < LARGE_CASH_DROP_AMOUNT)
-        {
-            cashModel = "models/items/currencypack_medium.mdl"
-            triggerSize = Vector(32, 32, 32)
-        }
-        else if (cashSpawned >= LARGE_CASH_DROP_AMOUNT)
-        {
-            cashModel = "models/items/currencypack_large.mdl"
-            triggerSize = Vector(48, 48, 48)
-        }
-
-        //Create the crit cash entity
-        local spawnedCashEnt = SpawnEntityFromTable("prop_physics_multiplayer", {
-            targetname = "crit_cash_prop",
-            origin = tankDiedOrigin,
-            model = cashModel,
-            nodamageforces = 1,
-            spawnflags = 6,
-            minhealthdmg = 999999,
-            disableshadows = 1
-        })
+        local triggerSize = Vector(20, 20, 20)
 
         //The crit cash model is intangible to players
         //We'll parent a trigger that does everything when a player touches it
         //This is done so that the same player cant pick up crit cash while still crit boosted from one
-         local spawnedCashTrigger = SpawnEntityFromTable("trigger_multiple", {
+        local spawnedCashTrigger = SpawnEntityFromTable("trigger_multiple", {
             targetname = "crit_cash_trigger",
             spawnflags = 1,
-            origin = tankDiedOrigin,
+            origin = currencyEnt.GetOrigin(),
             filtername = "filter_cash_eligible_red",
-            StartDisabled = 1 //In mvm, money can't be picked up mid-air (some exceptions incl. instantly collecting tank money if you stand on top of it, but w/e)
+            StartDisabled = 0
         })
         spawnedCashTrigger.SetSize(triggerSize * -1, triggerSize)
         spawnedCashTrigger.SetSolid(2) // SOLID_BBOX
 
         //Parent the trigger to the ammo pack
-        spawnedCashTrigger.AcceptInput("SetParent", "!activator", spawnedCashEnt, spawnedCashEnt)
+        spawnedCashTrigger.AcceptInput("SetParent", "!activator", currencyEnt, currencyEnt)
 
         //Now we need the trigger to do something when an eligible player touches it
         EntityOutputs.AddOutput(spawnedCashTrigger, "OnStartTouch", "!activator", "CallScriptFunction", "giveCritCashBuffs", -1, -1)
         
         //Also the cash piles should unalive themselves when triggered
         EntityOutputs.AddOutput(spawnedCashTrigger, "OnStartTouch", "!self", "CallScriptFunction", "killCash", -1, -1)
-
-        //Money will only be able to be picked up 2s after it spawns so that it has time to drop to the ground
-        //This isn't fully faithful to mvm (see above for one major exception) but simplest to implement + probably healthy for pvp
-        EntFireByHandle(spawnedCashTrigger, "Enable", null, 2, null, null)
-
-        //Cash explode in random directions when a tank blows up, let's simulate that
-        //First we'll decide what direction the cash will blow up to
-        local impulseVecX = RandomFloat(-1, 1)
-        local impulseVecY = RandomFloat(-1, 1)
-        local impulseVecZ = RandomFloat(50, 200)
-
-        //Normalize to get the angles we want to launch the cash to
-        local impulseVec = Vector(impulseVecX, impulseVecY, impulseVecZ)
-        impulseVec.Norm()
-
-        //Now we decide the speed that we launch the cash with
-        impulseVec = impulseVec * 250 * RandomFloat(1, 4)
-
-        //And now we launch those money piles!!
-        spawnedCashEnt.ApplyLocalAngularVelocityImpulse(impulseVec)
-
-        //TODO: make custom models for cash with built-in particles so that we dont have to worry about attaching them via vscript (pain)
-
-        cashSpawned++
     }
 }
 
@@ -104,26 +64,30 @@
     }
 }
 
-//We gotta murder the trigger's parent as well (the cash prop)
+//We gotta murder the trigger's parent as well
+//For now lets try making the cash collectible and see if anything messes up from there
 ::killCash <- function()
 {
     local cashEnt = self.GetMoveParent()
     self.Kill()
-    cashEnt.Kill()
+    cashEnt.SetTeam(2)
+    // cashEnt.Kill()
 }
 
-::blinkCash <- function()
-{
-    local currencyEnt = null
-    while(currencyEnt = Entities.FindByName(currencyEnt, "crit_cash_prop"))
-    {
-        currencyEnt.AcceptInput("AddOutput", "renderfx 2", null, null)
-    }
-    EntFire("gamerules", "CallScriptFunction", "expireCash", 5)
-}
+// ::blinkCash <- function()
+// {
+//     debugPrint("\x0744AAAABLINKING CASH")
+//     local currencyEnt = null
+//     while(currencyEnt = Entities.FindByName(currencyEnt, "crit_cash_prop"))
+//     {
+//         currencyEnt.AcceptInput("AddOutput", "renderfx 2", null, null)
+//     }
+//     EntFire("gamerules", "CallScriptFunction", "expireCash", 5)
+// }
 
 ::expireCash <- function()
 {
+    debugPrint("\x0744AAAAKILLING CASH")
     local currencyEnt = null
     while(currencyEnt = Entities.FindByName(currencyEnt, "crit_cash_prop"))
     {

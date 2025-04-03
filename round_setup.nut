@@ -13,7 +13,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::BASE_TANK_PLAYER_COUNT            <- 12           //If there are this many players on red team, the tank will use BASE_TANK_HEALTH. Scaled linearly if there are more or less players on red team
 ::SETUP_LENGTH                      <- 6           //Time between round starting and doors opening, like other gamemodes' setup. MUST match team_round_timer keyvalues.
 ::POST_SETUP_LENGTH                 <- 5           //Time between setup ending and tank spawning. MUST match team_round_timer keyvalues.
-::INTERMISSION_LENGTH               <- 5           //Time between tank dying and giant spawning   
+::INTERMISSION_LENGTH               <- 30           //Time between tank dying and giant spawning   
 ::BOMB_MISSION_LENGTH               <- 70          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT    <- 5            //Pick from the first x top performing players in scoreboard to be giant
 ::GIANT_TYPES_AMOUNT                <- 2            //Pick first x giant templates to choose from
@@ -85,7 +85,7 @@ IncludeScript("stopthattank2/bomb_deploy.nut")
 IncludeScript("stopthattank2/bomb.nut")
 IncludeScript("stopthattank2/overtime_and_bomb_alarm.nut")
 IncludeScript("stopthattank2/tank_functions_callbacks.nut")
-IncludeScript("stopthattank2/crit_cash_experimental.nut")
+IncludeScript("stopthattank2/crit_cash.nut")
 IncludeScript("stopthattank2/giant_mode.nut")
 IncludeScript("stopthattank2/giant_attributes.nut")
 

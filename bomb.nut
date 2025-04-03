@@ -60,7 +60,10 @@
 
         bombFlag.SetOwner(player)
         bombFlag.AcceptInput("SetParent", "!activator", player, player)
+        bombFlag.AcceptInput("SetParentAttachment", "flag", player, player)
+        // NetProps.SetPropEntity(bombFlag, "m_hPrevOwner", player)
         NetProps.SetPropEntity(player, "m_hItem", bombFlag)
+        NetProps.SetPropInt(bombFlag, "m_nFlagStatus", 1)
 
         return
     }

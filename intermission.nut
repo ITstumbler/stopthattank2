@@ -18,9 +18,6 @@
     roundTimer.AcceptInput("SetTime", INTERMISSION_LENGTH.tostring(), null, null)
     roundTimer.GetScriptScope().currentRoundTime <- INTERMISSION_LENGTH
 
-    //Also, when there's 5 seconds remaining on the intermission, start making cash blink and then burn them 5s later
-    EntityOutputs.AddOutput(roundTimer, "On5SecRemain", "gamerules", "CallScriptFunction", "blinkCash", -1, 1) //Find in crit_cash.nut
-
     //Impending teleportation! Show a particle that indicates where a giant will teleport to
     EntityOutputs.AddOutput(roundTimer, "On3SecRemain", "gamerules", "CallScriptFunction", "displayGiantTeleportParticle", -1, 1) //Find in giant_mode.nut
 
@@ -53,7 +50,7 @@
     //No blue players? Abandon everything return
     if(playerScoreTable.len() == 0)
     {
-        debugPrint("There are no blue players!")
+        debugPrint("There are no blue players! Here have the bomb")
         //Enable the bomb and teleport it to the most recent CP
         bombFlag.AcceptInput("Enable", null, null, null)
         bombFlag.SetAbsOrigin(bombSpawnOrigin)
@@ -104,7 +101,10 @@
             if (player == null) continue
             if (player.GetTeam() != 3) continue
             //Player has rejected before, dont ask them again
-            if (i in playersThatHaveRejectedGiant) continue
+            if (i in playersThatHaveRejectedGiant) {
+                debugPrint("Player index " + i + " has already rejected before, not asking again")
+                continue
+            }
             promptGiant(i)
             successfullyPickedAPlayer = true
             break
@@ -144,6 +144,8 @@
 ::promptGiant <- function(playerIndex)
 {
     local player = PlayerInstanceFromIndex(playerIndex)
+
+    debugPrint("Prompting " + playerIndex + " to be giant")
     
     //Temporary until HUD stuff has been worked on
     ClientPrint(player, 3, "\x01You are about to become a \x0799CCFFGIANT\x01!")

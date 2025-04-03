@@ -4,6 +4,9 @@
     //Might want to move this soon
     roundTimer.AcceptInput("SetTime", BOMB_MISSION_LENGTH.tostring(), null, null)
 
+    //Destroy existing cash on the field
+    expireCash()
+
     //Update team respawn times
     gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_GIANT_RESPAWN_TIME.tostring(), null, null)
 
@@ -222,7 +225,10 @@
     //We teleported the bomb already but just to be sure we also set its owner to the newly gigantified player
     bombFlag.SetOwner(player)
     bombFlag.AcceptInput("SetParent", "!activator", player, player)
+    bombFlag.AcceptInput("SetParentAttachment", "flag", player, player)
     NetProps.SetPropEntity(player, "m_hItem", bombFlag)
+    // NetProps.SetPropEntity(bombFlag, "m_hPrevOwner", player)
+    NetProps.SetPropInt(bombFlag, "m_nFlagStatus", 1)
 
     //You are an AWESOME GIANT you will LOOK AT YOURSELF when you spawn
     //Everything here is delayed to ensure that they get called after the player teleport
@@ -245,15 +251,8 @@
     ScreenShake(bombSpawnOrigin, 8, 2.5, 1, 700, 0, true)
     
     //Yell at red that there's a new threat they need to look at
-    EntFireByHandle(gamerules, "RunScriptCode", "SendGlobalGameEvent(`show_annotation`, {
-        worldPosX = bombSpawnOrigin.x
-        worldPosY = bombSpawnOrigin.y
-        worldPosZ = bombSpawnOrigin.z
-        text = giantProperties[chosenGiantThisRound].giantName + ` has the bomb!`
-        show_distance = false
-        play_sound = `mvm/mvm_warning.wav`
-        lifetime = 4.5
-    })", GIANT_CAMERA_DURATION, null, null)
+    //Im so sorry for no newlines the game doesnt like it when I do that :(
+    EntFireByHandle(gamerules, "RunScriptCode", "SendGlobalGameEvent(`show_annotation`, { worldPosX = bombSpawnOrigin.x, worldPosY = bombSpawnOrigin.y, worldPosZ = bombSpawnOrigin.z, text = giantProperties[chosenGiantThisRound].giantName + ` has the bomb!`, show_distance = false, play_sound = `mvm/mvm_warning.wav`, lifetime = 4.5 })", GIANT_CAMERA_DURATION, null, null)
 
     //Sounds to play when giant teleports in
     playSoundEx("mvm/giant_heavy/giant_heavy_entrance.wav")
