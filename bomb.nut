@@ -1,6 +1,6 @@
-::applyBombCarrierProperties <- function()
+::handleBombPickup <- function()
 {
-    debugPrint("Trying to apply bomb carrier properties")
+    debugPrint("Handling bomb pickup")
     //Don't apply these to giants!!
     local scope = activator.GetScriptScope()
     if ("isGiant" in scope) {
@@ -50,10 +50,20 @@
     }
 }
 
-::removeBombCarrierProperties <- function()
+::handleBombDrop <- function()
 {
-    debugPrint("Trying to remove bomb carrier properties")
+    debugPrint("Handling bomb drop")
     local scope = activator.GetScriptScope()
+
+    if ("isGiant" in scope) {
+        debugPrint("Giant just tried dropping the bomb, undo!")
+
+        bombFlag.SetOwner(player)
+        bombFlag.AcceptInput("SetParent", "!activator", player, player)
+        NetProps.SetPropEntity(player, "m_hItem", bombFlag)
+
+        return
+    }
     
     //Remove all bomb carrier conds
     foreach(condition, duration in BOMB_CARRIER_CONDS)
@@ -76,4 +86,5 @@
     //Bomb reset because blue left it on the ground for too long
     //This function resets it to the nearest captured point 
     bombFlag.SetAbsOrigin(bombSpawnOrigin)
+    EntFire("gamerules", "PlayVO", "Announcer.MVM_Bomb_Reset")
 }

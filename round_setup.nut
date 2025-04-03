@@ -11,9 +11,10 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::TANK_SPEED                        <- 75           //The speed at which the tank goes. The fake_train in the map must be set to the same speed
 ::BASE_TANK_HEALTH                  <- 12000        //Base tank health, will be increased or decreased if the amount of players on red is more or less than BASE_TANK_PLAYER_COUNT. Can be overriden using overrideBaseTankHealth(health)
 ::BASE_TANK_PLAYER_COUNT            <- 12           //If there are this many players on red team, the tank will use BASE_TANK_HEALTH. Scaled linearly if there are more or less players on red team
-::POST_SETUP_LENGTH                 <- 15           //Time between setup ending and tank spawning
-::INTERMISSION_LENGTH               <- 28           //Time between tank dying and giant spawning   
-::BOMB_MISSION_LENGTH               <- 150          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
+::SETUP_LENGTH                      <- 6           //Time between round starting and doors opening, like other gamemodes' setup. MUST match team_round_timer keyvalues.
+::POST_SETUP_LENGTH                 <- 5           //Time between setup ending and tank spawning. MUST match team_round_timer keyvalues.
+::INTERMISSION_LENGTH               <- 5           //Time between tank dying and giant spawning   
+::BOMB_MISSION_LENGTH               <- 70          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT    <- 5            //Pick from the first x top performing players in scoreboard to be giant
 ::GIANT_TYPES_AMOUNT                <- 2            //Pick first x giant templates to choose from
 ::GIANT_SCALE                       <- 1.75         //Giant players will be scaled by this much
@@ -29,6 +30,8 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                        }
 ::MINIMUM_PLAYERS_FOR_BOMB_BUFFS    <- 5            //If there are less than this many players on red, do not apply any conds
 ::BOMB_CARRIER_TEMP_CONDS_DELAY     <- 10           //Temporary conds will be blocked if a player recently dropped the bomb, this is the delay (seconds) that allows said player to get temp conds again
+::GIANT_CAMERA_DURATION             <- 3            //When a player becomes giant, they will enter third person and be unable to move for this long
+::GIANT_CAMERA_INVULN_DURATION      <- 5            //When a player becomes giant, they become invincible for this long
 ::BASE_GIANT_HEALING                <- 1            //Multiply ALL healing received by giant players by this much if player count is at BASE_GIANT_PLAYER_COUNT. Increased or decreased linearly if the amount of players on red is higher or lower than that.
 ::BASE_GIANT_PLAYER_COUNT           <- 12           //If there are this many players on red team, all giants have their base hp and all healing received is multiplied by BASE_GIANT_HEALING. Increased or decreased linearly if the amount of players on red is higher or lower than that. 
 ::RED_TANK_RESPAWN_TIME             <- 0.1          //Sets red's respawn time, in seconds, while tank is active 
@@ -39,9 +42,9 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::BLUE_GIANT_RESPAWN_TIME           <- 9            //Sets blu's respawn time, in seconds, while giant is active. Overriden by respawnOverride in giant_attributes.nut if set. 
 ::RED_POST_GIANT_RESPAWN_TIME       <- 3            //Sets red's respawn time, in seconds, after giant is dead 
 ::BLUE_POST_GIANT_RESPAWN_TIME      <- 0.1          //Sets blu's respawn time, in seconds, after giant is dead 
-::SMALL_CASH_DROP_AMOUNT            <- 7            //Amount of small cash dropped by the tank when it dies. Size is purely cosmetic
-::MEDIUM_CASH_DROP_AMOUNT           <- 4            //Amount of medium cash dropped by the tank when it dies. Size is purely cosmetic
-::LARGE_CASH_DROP_AMOUNT            <- 2            //Amount of large cash dropped by the tank when it dies. Size is purely cosmetic
+// ::SMALL_CASH_DROP_AMOUNT            <- 7            //Amount of small cash dropped by the tank when it dies. Size is purely cosmetic
+// ::MEDIUM_CASH_DROP_AMOUNT           <- 4            //Amount of medium cash dropped by the tank when it dies. Size is purely cosmetic
+// ::LARGE_CASH_DROP_AMOUNT            <- 2            //Amount of large cash dropped by the tank when it dies. Size is purely cosmetic
 ::CASH_CONDS                        <- {            //Conditions to apply to red players when they pick up cash. Value determines duration (-1: infinite)
                                         [TF_COND_OFFENSEBUFF]               = 5,
                                         [TF_COND_CRITBOOSTED_CTF_CAPTURE]   = 5, //If you remove this, be sure to also change the cond in filter_cash_eligible
@@ -80,8 +83,9 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 IncludeScript("stopthattank2/intermission.nut")
 IncludeScript("stopthattank2/bomb_deploy.nut")
 IncludeScript("stopthattank2/bomb.nut")
+IncludeScript("stopthattank2/overtime_and_bomb_alarm.nut")
 IncludeScript("stopthattank2/tank_functions_callbacks.nut")
-IncludeScript("stopthattank2/crit_cash.nut")
+IncludeScript("stopthattank2/crit_cash_experimental.nut")
 IncludeScript("stopthattank2/giant_mode.nut")
 IncludeScript("stopthattank2/giant_attributes.nut")
 
@@ -114,16 +118,46 @@ PrecacheSound("vo/announcer_ends_3sec.mp3")
 PrecacheSound("vo/announcer_ends_2sec.mp3")
 PrecacheSound("vo/announcer_ends_1sec.mp3")
 
+PrecacheSound("mvm/giant_heavy/giant_heavy_entrance.wav")
+PrecacheSound("misc/halloween/spell_mirv_explode_primary.wav")
+PrecacheSound("mvm/mvm_tele_activate.wav")
+PrecacheSound("mvm/mvm_warning.wav")
+
+//Giant intro voice lines
+PrecacheSound("vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3")
+PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
+
 //Function for mapmakers to override base tank health
 ::overrideBaseTankHealth <- function(health_input)
 {
     BASE_TANK_HEALTH = health_input
 }
 
+//Function for mapmakers to override round time
+::overrideRoundTime <- function(seconds, round_type)
+{
+    switch(round_type) {
+        case "Setup":
+            SETUP_LENGTH = seconds
+            break
+        case "PostSetup":
+            POST_SETUP_LENGTH = seconds
+            break
+        case "Intermission":
+            INTERMISSION_LENGTH = seconds
+            break
+        case "BombMission":
+            BOMB_MISSION_LENGTH = seconds
+            break
+        default:
+            break
+    }
+}
+
 //Timer finishes 3 times, so we have to know which function we need to call
 ::callTimerFunction <- function()
 {
-    debugPrint("CALL TIMER FUNCTION IS CALLED")
+    debugPrint("\x05Call timer: \x01Executing a function")
     if(!isIntermissionHappening && !isBombMissionHappening)
     {
         spawnTank()
@@ -133,6 +167,7 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
     {
         startGiantMode()
         debugPrint("\x05Call timer: \x01Starting giant mode")
+        roundTimer.GetScriptScope().currentRoundTime <- BOMB_MISSION_LENGTH
     }
     else if(isBombMissionHappening)
     {
@@ -141,6 +176,54 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
         // isIntermissionHappening = false
         // isBombMissionHappening = false
     }
+}
+
+//Other stuffs we need to do after setup finishes
+::handleSetupFinish <- function()
+{
+    roundTimer.GetScriptScope().currentRoundTime <- POST_SETUP_LENGTH
+}
+
+//We manually count down our own timer because outputs like On5SecRemain are off by 1 second for some reason
+::startCountdownSounds <- function()
+{
+    roundTimer.ValidateScriptScope()
+    local scope = roundTimer.GetScriptScope()
+    scope.currentRoundTime <- SETUP_LENGTH
+    scope.countdownThink <- function()
+    {
+        currentRoundTime--
+        switch(currentRoundTime) {
+            case 60:
+                playCountdownSound(60)
+                break
+            case 30:
+                playCountdownSound(30)
+                break
+            case 10:
+                playCountdownSound(10)
+                break
+            case 5:
+                playCountdownSound(5)
+                break
+            case 4:
+                playCountdownSound(4)
+                break
+            case 3:
+                playCountdownSound(3)
+                break
+            case 2:
+                playCountdownSound(2)
+                break
+            case 1:
+                playCountdownSound(1)
+                break
+            default:
+                break
+        }
+        return 1
+    }
+    AddThinkToEnt(roundTimer, "countdownThink")
 }
 
 //Handles countdown sounds (e.g. mission ends in 10 seconds!)
@@ -182,6 +265,9 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
         //Reroll chosen giant type
         chosenGiantThisRound = RandomInt(0, GIANT_TYPES_AMOUNT - 1)
 
+        //Cleanup timer countdown think so it doesn't stack
+        AddThinkToEnt(roundTimer, null)
+
         //Prevent callbacks from stacking
 		delete ::roundCallbacks
     }
@@ -207,7 +293,7 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
         if (isIntermissionHappening || isBombMissionHappening) return
         //After humiliation player health needs to be reset manually
         debugPrint("Giant privileges removed on spawn")
-        player.Regenerate(true)
+        player.ForceRegenerateAndRespawn(true)
         player.SetCustomModelWithClassAnimations("")
 
         //Stop being giant
@@ -228,7 +314,12 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()
         if (!("isGiant" in player.GetScriptScope())) return
-        handleGiantDeath()
+        handleGiantDeath() //Global events
+        debugPrint("Giant privileges removed on death")
+        player.SetCustomModelWithClassAnimations("")
+
+        //Stop being giant
+        delete player.GetScriptScope().isGiant
     }
 
     OnGameEvent_player_disconnect = function(params) {

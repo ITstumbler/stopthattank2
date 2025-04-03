@@ -37,11 +37,14 @@
         }
 
         //Create the crit cash entity
-        local spawnedCashEnt = SpawnEntityFromTable("tf_ammo_pack", {
+        local spawnedCashEnt = SpawnEntityFromTable("prop_physics_multiplayer", {
             targetname = "crit_cash_prop",
             origin = tankDiedOrigin,
-            TeamNum = 1,
-            model = cashModel
+            model = cashModel,
+            nodamageforces = 1,
+            spawnflags = 6,
+            minhealthdmg = 999999,
+            disableshadows = 1
         })
 
         //The crit cash model is intangible to players

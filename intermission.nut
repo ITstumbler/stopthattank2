@@ -16,9 +16,13 @@
     //Wake up round timer, count down the intermission time now
     roundTimer.AcceptInput("Enable", null, null, null)
     roundTimer.AcceptInput("SetTime", INTERMISSION_LENGTH.tostring(), null, null)
+    roundTimer.GetScriptScope().currentRoundTime <- INTERMISSION_LENGTH
 
     //Also, when there's 5 seconds remaining on the intermission, start making cash blink and then burn them 5s later
-    EntityOutputs.AddOutput(roundTimer, "On5SecRemain", "gamerules", "CallScriptFunction", "blinkCash", -1, 1)
+    EntityOutputs.AddOutput(roundTimer, "On5SecRemain", "gamerules", "CallScriptFunction", "blinkCash", -1, 1) //Find in crit_cash.nut
+
+    //Impending teleportation! Show a particle that indicates where a giant will teleport to
+    EntityOutputs.AddOutput(roundTimer, "On3SecRemain", "gamerules", "CallScriptFunction", "displayGiantTeleportParticle", -1, 1) //Find in giant_mode.nut
 
     //Roll back hud train to nearest cp
     EntFire("gamerules", "CallScriptFunction", "rollbackTrainWatcherDummy", 0.1)

@@ -34,6 +34,7 @@ local giantSoldier = {
     meleeWeaponClassName        = "tf_weapon_shovel",
     respawnOverride             = null, //If not null, sets blue respawn time to this number
     playerInfo                  = "-Increased explosion damage and radius.\n-Moves slower than most giants.",
+    introSound                  = "vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3", //ENSURE THIS IS PRECACHE'D
     playerAttributes            =
     {
         "move speed bonus"				: 0.43,
@@ -64,6 +65,7 @@ local giantHeavy = {
     meleeWeaponClassName        = "tf_weapon_fists",
     respawnOverride             = null, //If not null, sets blue respawn time to this number
     playerInfo                  = "-Minigun deals +60% more damage.\n-Moves slower than any other giant while attacking.",
+    introSound                  = "vo/mvm/mght/heavy_mvm_m_battlecry01.mp3", //ENSURE THIS IS PRECACHE'D
     playerAttributes            =
     {
         "move speed bonus"              : 0.5,

@@ -221,6 +221,54 @@
 
     //We teleported the bomb already but just to be sure we also set its owner to the newly gigantified player
     bombFlag.SetOwner(player)
+    bombFlag.AcceptInput("SetParent", "!activator", player, player)
+    NetProps.SetPropEntity(player, "m_hItem", bombFlag)
+
+    //You are an AWESOME GIANT you will LOOK AT YOURSELF when you spawn
+    //Everything here is delayed to ensure that they get called after the player teleport
+    EntFireByHandle(player, "RunScriptCode", "self.SetForcedTauntCam(1)", -1, player, player)
+    EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`SET BONUS: move speed set bonus`, 0.0001, GIANT_CAMERA_DURATION)", -1, player, player)
+
+    //Ok enough looking at yourself move it move it
+    EntFireByHandle(player, "RunScriptCode", "self.SetForcedTauntCam(0)", GIANT_CAMERA_DURATION, player, player)
+
+    //Giant player becomes invulnerable when posing for awesomeness and a short duration after
+    EntFireByHandle(player, "RunScriptCode", "self.AddCondEx(51, GIANT_CAMERA_INVULN_DURATION, null)", -1, player, player)
+
+    //STOP THE TIMER THE GIANT PLAYER IS FLEXING
+    roundTimer.AcceptInput("Pause", null, null, null)
+
+    //Giant player is done flexing, resume timer
+    EntFireByHandle(roundTimer, "Resume", null, GIANT_CAMERA_DURATION, null, null)
+
+    //Giant player teleporting in shakes nearby players for a little bit, just to hammer it in that he's a big boy
+    ScreenShake(bombSpawnOrigin, 8, 2.5, 1, 700, 0, true)
+    
+    //Yell at red that there's a new threat they need to look at
+    EntFireByHandle(gamerules, "RunScriptCode", "SendGlobalGameEvent(`show_annotation`, {
+        worldPosX = bombSpawnOrigin.x
+        worldPosY = bombSpawnOrigin.y
+        worldPosZ = bombSpawnOrigin.z
+        text = giantProperties[chosenGiantThisRound].giantName + ` has the bomb!`
+        show_distance = false
+        play_sound = `mvm/mvm_warning.wav`
+        lifetime = 4.5
+    })", GIANT_CAMERA_DURATION, null, null)
+
+    //Sounds to play when giant teleports in
+    playSoundEx("mvm/giant_heavy/giant_heavy_entrance.wav")
+    playSoundEx("misc/halloween/spell_mirv_explode_primary.wav")
+
+    EntFireByHandle(gamerules, "RunScriptCode", "playSoundEx(giantProperties[chosenGiantThisRound].introSound)", 3, null, null)
+    
+    //Also play a sound when giant starts moving
+    //Sound is currently handled by show_annotation above
+    // EntFireByHandle(gamerules, "RunScriptCode", "playSoundEx(`mvm/mvm_warning.wav`)", GIANT_CAMERA_DURATION, null, null) 
+
+    //Clean up the shaker and annotations
+    // EntFireByHandle(giantShaker,        "Kill", null, GIANT_CAMERA_DURATION + 1, null, null)
+    // EntFireByHandle(giantAnnotation,    "Kill", null, GIANT_CAMERA_DURATION + 1, null, null)
+
 }
 
 ::handleGiantDeath <- function()
@@ -228,4 +276,10 @@
     //Update team respawn times
     gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_POST_GIANT_RESPAWN_TIME.tostring(), null, null)
     gamerules.AcceptInput("SetBlueTeamRespawnWaveTime", BLUE_POST_GIANT_RESPAWN_TIME.tostring(), null, null)
+}
+
+::displayGiantTeleportParticle <- function()
+{
+    DispatchParticleEffect("stt_giant_teleport", bombSpawnOrigin, Vector(90, 0, 0))
+    playSoundEx("mvm/mvm_tele_activate.wav")
 }
