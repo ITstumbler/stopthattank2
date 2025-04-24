@@ -4,9 +4,6 @@
     //Might want to move this soon
     roundTimer.AcceptInput("SetTime", BOMB_MISSION_LENGTH.tostring(), null, null)
 
-    //Destroy existing cash on the field
-    expireCash()
-
     //Update team respawn times
     gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_GIANT_RESPAWN_TIME.tostring(), null, null)
 

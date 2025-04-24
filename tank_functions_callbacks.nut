@@ -34,6 +34,9 @@
 
     //Mark phase change to be used by other parts of the script
     isTankMissionHappening = true
+
+    //Need anything else to happen? Put it in here
+    EntFire("boss_spawn_relay", "trigger")
 }
 
 //Input TANK_SPEED as speedInput to reset its speed

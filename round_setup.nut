@@ -252,6 +252,12 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
     })
 }
 
+//Must be separated and delayed, or applying attributes wont work
+::applyAttributeOnSpawn <- function(attribute, value, duration)
+{
+    activator.AddCustomAttribute(attribute, value, duration)
+}
+
 ::roundCallbacks <-
 {
     Cleanup = function() {
@@ -289,14 +295,21 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             debugPrint("Spawned player is not giant")
             //If giant player is active, any blu player spawning in will be banned from picking up the bomb
             if(isBombMissionHappening && !isBombGiantDead && params.team == 3) {
-                player.AddCustomAttribute("cannot pick up intelligence", 1, -1)
+                EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`cannot pick up intelligence`, 1, -1)", 0.1, player, player)
+                
+                //This one is just to check if the attributes are applied properly
+                EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`fire rate bonus`, 0.1, -1)", 0.1, player, player)
+                
                 debugPrint("Newly spawned blu player has been banned from picking up the bomb")
             }
             return
         }
         debugPrint("Spawned player IS giant")
         //Make sure it doesnt fire when giant first spawns
-        if (isIntermissionHappening || isBombMissionHappening) return
+        if (isIntermissionHappening || isBombMissionHappening) {
+            debugPrint("\x05First giant spawn. Do not wipe giant privileges")
+            return
+        }
         //After humiliation player health needs to be reset manually
         debugPrint("Giant privileges removed on spawn")
         player.ForceRegenerateAndRespawn(true)
@@ -325,27 +338,40 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         player.SetCustomModelWithClassAnimations("")
 
         //Stop being giant
-        delete player.GetScriptScope().isGiant
+        delete scope.isGiant
     }
 
     OnGameEvent_player_disconnect = function(params) {
-        //For now, this only checks for when a jerk disconnects during intermission
-        if(!isIntermissionHappening) return
 
-        local player = GetPlayerFromUserID(params.userid)
-        local scope = player.GetScriptScope()
+        //Set of checks for when a jerk disconnects during intermission
+        if(isIntermissionHappening) {
+            local player = GetPlayerFromUserID(params.userid)
+            local scope = player.GetScriptScope()
 
-        //If they were top 5, also remove them from the list
-        //The player that rejected might not be in top 5 because top 5 all rejected already
-        if(params.userid in eligibleGiantPlayers)
-        {
-            if(params.userid in eligibleGiantPlayers) delete eligibleGiantPlayers[params.userid]
+            //If they were top 5, also remove them from the list
+            //The player that rejected might not be in top 5 because top 5 all rejected already
+            if(params.userid in eligibleGiantPlayers)
+            {
+                if(params.userid in eligibleGiantPlayers) delete eligibleGiantPlayers[params.userid]
+            }
+
+            //Player disconnected when they were prompted to be giant, so toss it to someone else
+            if ("isBecomingGiant" in scope) {
+                pickRandomPlayerToBeGiant(eligibleGiantPlayers)
+                delete scope.isBecomingGiant
+            }
+            return
         }
 
-        //Player disconnected when they were prompted to be giant, so toss it to someone else
-        if ("isBecomingGiant" in scope) {
-            pickRandomPlayerToBeGiant(eligibleGiantPlayers)
-            delete scope.isBecomingGiant
+        //Failsafe for when a jerk disconnects while giant
+        if(isBombMissionHappening) {
+            local player = GetPlayerFromUserID(params.userid)
+            local scope = player.GetScriptScope()
+
+            if ("isGiant" in scope) {
+                handleGiantDeath()
+                delete scope.isGiant
+            }
         }
         
     }

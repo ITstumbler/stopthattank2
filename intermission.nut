@@ -67,11 +67,20 @@
 
     debugPrint("There are " + playerScoreArrayTop.len() + " top scoring players")
 
+
+
     foreach (playerIndex, score in playerScoreTable)
     {
+
+        local eligiblePlayerEnt = PlayerInstanceFromIndex(playerIndex)
+
+        local eligiblePlayerName = Convars.GetClientConvarValue("name", eligiblePlayerEnt.GetEntityIndex())
+
+        debugPrint("Iterating through \x0799CCFF" + eligiblePlayerName)
+
         if(playerScoreArrayTop.find(score) != null)
         {
-            debugPrint("We found an eligible player!!")
+            debugPrint("We found an eligible player: \x0799CCFF" + eligiblePlayerName)
             eligibleGiantPlayers[playerIndex] <- null
         }
     }
@@ -125,9 +134,10 @@
 
 ::pickRandomPlayerToBeGiant <- function(eligibleTable)
 {
+    local randomGiantPlayerIndex = -1
     if(eligibleTable.len() > 0)
     {
-        local randomGiantPlayerIndex = eligibleTable.keys()[RandomInt(0, eligibleTable.len() - 1)]
+        randomGiantPlayerIndex = eligibleTable.keys()[RandomInt(0, eligibleTable.len() - 1)]
         debugPrint("Prompting player index " + randomGiantPlayerIndex + " to be giant")
         promptGiant(randomGiantPlayerIndex)
     }
@@ -166,7 +176,7 @@
         }
     }
 
-    return (randomGiantPlayerIndex || -1)
+    return randomGiantPlayerIndex
 }
 
 //Separated so that the rollback is delayed sufficiently enough so that crit cash func can do its job properly
@@ -188,7 +198,9 @@
 {
     local player = PlayerInstanceFromIndex(playerIndex)
 
-    debugPrint("Prompting " + playerIndex + " to be giant")
+    local playerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
+
+    debugPrint("\x01Prompting \x0799CCFF" + playerName + " \x01to be giant")
     
     //Temporary until HUD stuff has been worked on
     ClientPrint(player, 3, "\x01You are about to become a \x0799CCFFGIANT\x01!")
