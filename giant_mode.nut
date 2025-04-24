@@ -268,6 +268,18 @@
     // EntFireByHandle(giantShaker,        "Kill", null, GIANT_CAMERA_DURATION + 1, null, null)
     // EntFireByHandle(giantAnnotation,    "Kill", null, GIANT_CAMERA_DURATION + 1, null, null)
 
+    //While giant is alive, no one else on blu is allowed to pick up the bomb
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        //Don't apply this to the giant themselves
+        if (i == playerIndex) continue
+
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != 3) continue
+
+        player.AddCustomAttribute("cannot pick up intelligence", 1, -1)
+    }
 }
 
 ::handleGiantDeath <- function()
@@ -275,6 +287,18 @@
     //Update team respawn times
     gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_POST_GIANT_RESPAWN_TIME.tostring(), null, null)
     gamerules.AcceptInput("SetBlueTeamRespawnWaveTime", BLUE_POST_GIANT_RESPAWN_TIME.tostring(), null, null)
+
+    //Giant no longer active, allow all blu players to pick up the bomb
+    isBombGiantDead = true
+
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != 3) continue
+
+        player.RemoveCustomAttribute("cannot pick up intelligence")
+    }
 }
 
 ::displayGiantTeleportParticle <- function()

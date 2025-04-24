@@ -56,13 +56,15 @@
     local scope = activator.GetScriptScope()
 
     if ("isGiant" in scope) {
-        debugPrint("Giant just tried dropping the bomb, undo!")
+        debugPrint("Giant just tried dropping the bomb, yelling at them to get it back")
 
-        bombFlag.SetOwner(player)
-        bombFlag.AcceptInput("SetParent", "!activator", player, player)
-        bombFlag.AcceptInput("SetParentAttachment", "flag", player, player)
-        // NetProps.SetPropEntity(bombFlag, "m_hPrevOwner", player)
-        NetProps.SetPropEntity(player, "m_hItem", bombFlag)
+        ClientPrint(activator, 1, "Pick the bomb back up. No one else can pick up the bomb.")
+
+        bombFlag.SetOwner(activator)
+        bombFlag.AcceptInput("SetParent", "!activator", activator, activator)
+        bombFlag.AcceptInput("SetParentAttachment", "flag", activator, activator)
+        NetProps.SetPropEntity(bombFlag, "m_hPrevOwner", activator)
+        NetProps.SetPropEntity(activator, "m_hItem", bombFlag)
         NetProps.SetPropInt(bombFlag, "m_nFlagStatus", 1)
 
         return

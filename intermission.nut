@@ -76,10 +76,51 @@
         }
     }
 
-    pickRandomPlayerToBeGiant(eligibleGiantPlayers)
+    //2s delay, then go do start prompting giant stuff
+    EntFire("gamerules", "CallScriptFunction", "startGiantPickingProcess", 2)
 
-    //28s intermission, then go do giant stuff
+    //30s intermission, then go do giant stuff
     EntFire("gamerules", "CallScriptFunction", "startGiantMode", INTERMISSION_LENGTH)
+}
+
+::startGiantPickingProcess <- function()
+{
+    local giantPlayerIndex = pickRandomPlayerToBeGiant(eligibleGiantPlayers)
+
+    if(giantPlayerIndex == -1) return
+
+    local giantPlayer = PlayerInstanceFromIndex(i)
+
+    local giantPlayerName = Convars.GetClientConvarValue("name", giantPlayer.GetEntityIndex())
+
+    //Tell everyone else on blu about who's becoming what giant
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        if (i == giantPlayerIndex) continue //We don't need to tell the giant themselves
+
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != 3) continue
+
+        ClientPrint(player, 3, "\x0799CCFF============================")
+        ClientPrint(player, 3, "\x05" + giantPlayerName + " is about to become a \x0799CCFF" + giantProperties[chosenGiantThisRound].giantName + "\x01!")
+        ClientPrint(player, 3, "\x04" + giantProperties[chosenGiantThisRound].playerInfo)
+        ClientPrint(player, 3, "\x0799CCFF============================")
+        break
+    }
+
+    //Yell at everyone on red about incoming giant robot. They don't get details
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != 2) continue
+
+        ClientPrint(player, 3, "============================")
+        ClientPrint(player, 3, "\x01WARNING: \x07FF3F3FGIANT ROBOT INCOMING")
+        ClientPrint(player, 3, "============================")
+        break
+    }
 }
 
 ::pickRandomPlayerToBeGiant <- function(eligibleTable)
@@ -124,6 +165,8 @@
             break
         }
     }
+
+    return (randomGiantPlayerIndex || -1)
 }
 
 //Separated so that the rollback is delayed sufficiently enough so that crit cash func can do its job properly

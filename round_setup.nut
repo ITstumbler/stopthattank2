@@ -13,7 +13,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::BASE_TANK_PLAYER_COUNT            <- 12           //If there are this many players on red team, the tank will use BASE_TANK_HEALTH. Scaled linearly if there are more or less players on red team
 ::SETUP_LENGTH                      <- 6           //Time between round starting and doors opening, like other gamemodes' setup. MUST match team_round_timer keyvalues.
 ::POST_SETUP_LENGTH                 <- 5           //Time between setup ending and tank spawning. MUST match team_round_timer keyvalues.
-::INTERMISSION_LENGTH               <- 30           //Time between tank dying and giant spawning   
+::INTERMISSION_LENGTH               <- 30           //Time between tank dying and giant spawning. MUST be higher than 2 seconds. Avoid changing this since it lines up with cash expiring.
 ::BOMB_MISSION_LENGTH               <- 70          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT    <- 5            //Pick from the first x top performing players in scoreboard to be giant
 ::GIANT_TYPES_AMOUNT                <- 2            //Pick first x giant templates to choose from
@@ -75,6 +75,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::isTankMissionHappening <- false       //Tracks whether or not tank is active
 ::isIntermissionHappening <- false      //28s break between tank dying and giant mode starting. This variable marks that phase
 ::isBombMissionHappening <- false       //Bomb is OUT and READY TO DEPLOY BY PLAYERS
+::isBombGiantDead <- false              //Tracks whether or not a blu giant is active
 
 //Misc.
 ::MaxPlayers <- MaxClients().tointeger()
@@ -286,6 +287,11 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 
         if (!("isGiant" in player.GetScriptScope())) {
             debugPrint("Spawned player is not giant")
+            //If giant player is active, any blu player spawning in will be banned from picking up the bomb
+            if(isBombMissionHappening && !isBombGiantDead && params.team == 3) {
+                player.AddCustomAttribute("cannot pick up intelligence", 1, -1)
+                debugPrint("Newly spawned blu player has been banned from picking up the bomb")
+            }
             return
         }
         debugPrint("Spawned player IS giant")
