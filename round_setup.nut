@@ -291,8 +291,10 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         //This is a chore that has to be done so that vscript doesn't break randomly
         if (params.team == 0) player.ValidateScriptScope()
 
+        local spawnedPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
+
         if (!("isGiant" in player.GetScriptScope())) {
-            debugPrint("Spawned player is not giant")
+            debugPrint("\x01Spawned player \x0799CCFF" + spawnedPlayerName + " \x01is not giant")
             //If giant player is active, any blu player spawning in will be banned from picking up the bomb
             if(isBombMissionHappening && !isBombGiantDead && params.team == 3) {
                 EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`cannot pick up intelligence`, 1, -1)", 0.1, player, player)
@@ -304,14 +306,14 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             }
             return
         }
-        debugPrint("Spawned player IS giant")
+        debugPrint("\x01Spawned player \x0799CCFF" + spawnedPlayerName + " \x01is \x05GIANT")
         //Make sure it doesnt fire when giant first spawns
         if (isIntermissionHappening || isBombMissionHappening) {
-            debugPrint("\x05First giant spawn. Do not wipe giant privileges")
+            debugPrint("\x04First giant spawn. Do not wipe giant privileges")
             return
         }
         //After humiliation player health needs to be reset manually
-        debugPrint("Giant privileges removed on spawn")
+        debugPrint("\x01Giant privileges removed on spawn for player \x0799CCFF" + spawnedPlayerName)
         player.ForceRegenerateAndRespawn(true)
         player.SetCustomModelWithClassAnimations("")
 
@@ -332,9 +334,13 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
     OnGameEvent_player_death = function(params) {
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()
+        
         if (!("isGiant" in player.GetScriptScope())) return
         handleGiantDeath() //Global events
-        debugPrint("Giant privileges removed on death")
+
+        local deadPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
+        debugPrint("\x01Giant privileges removed on death for player \x0799CCFF" + deadPlayerName)
+
         player.SetCustomModelWithClassAnimations("")
 
         //Stop being giant
@@ -348,17 +354,20 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             local player = GetPlayerFromUserID(params.userid)
             local scope = player.GetScriptScope()
 
+            debugPrint("\x0788BB88Some jerk disconnected during intermission")
+
             //If they were top 5, also remove them from the list
             //The player that rejected might not be in top 5 because top 5 all rejected already
-            if(params.userid in eligibleGiantPlayers)
+            if(player.GetEntityIndex() in eligibleGiantPlayers)
             {
-                if(params.userid in eligibleGiantPlayers) delete eligibleGiantPlayers[params.userid]
+                debugPrint("\x0788BB88They were eligible to be giant")
+                delete eligibleGiantPlayers[player.GetEntityIndex()]
             }
 
             //Player disconnected when they were prompted to be giant, so toss it to someone else
             if ("isBecomingGiant" in scope) {
+                debugPrint("\x0788BB88They were prompted to be giant")
                 pickRandomPlayerToBeGiant(eligibleGiantPlayers)
-                delete scope.isBecomingGiant
             }
             return
         }
@@ -369,6 +378,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             local scope = player.GetScriptScope()
 
             if ("isGiant" in scope) {
+                debugPrint("\x0788BB88Some jerk disconnected while carrying the bomb as a giant. Failsafe triggered.")
                 handleGiantDeath()
                 delete scope.isGiant
             }

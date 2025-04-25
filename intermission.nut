@@ -37,7 +37,7 @@
     eligibleGiantPlayers.clear()
     playerScoreTable.clear()
     playersThatHaveRejectedGiant.clear()
-    debugPrint("There are " + playersThatHaveRejectedGiant.len() + " players that have rejected")
+    debugPrint("\x01There are \x04" + playersThatHaveRejectedGiant.len() + " \x01players that have rejected")
     for (local i = 1; i <= MaxPlayers ; i++)
     {
         local player = PlayerInstanceFromIndex(i)
@@ -50,14 +50,14 @@
     //No blue players? Abandon everything return
     if(playerScoreTable.len() == 0)
     {
-        debugPrint("There are no blue players! Here have the bomb")
+        debugPrint("\x07CC7777There are no blue players! Here have the bomb")
         //Enable the bomb and teleport it to the most recent CP
         bombFlag.AcceptInput("Enable", null, null, null)
         bombFlag.SetAbsOrigin(bombSpawnOrigin)
         return
     }
 
-    debugPrint("There are " + playerScoreTable.len() + " scoring players")
+    debugPrint("\x01There are \x05" + playerScoreTable.len() + " \x01scoring players")
 
     local playerScoreArrayTop = playerScoreTable.values()
     playerScoreArrayTop = playerScoreArrayTop.sort()
@@ -65,7 +65,7 @@
     playerScoreArrayTop = playerScoreArrayTop.slice(0,playerScoreArrayTop.len() < TOP_PLAYERS_ELIGIBLE_FOR_GIANT ?
                             playerScoreArrayTop.len() : TOP_PLAYERS_ELIGIBLE_FOR_GIANT)
 
-    debugPrint("There are " + playerScoreArrayTop.len() + " top scoring players")
+    debugPrint("\x01There are \x05" + playerScoreArrayTop.len() + " \x01top scoring players")
 
 
 
@@ -76,11 +76,11 @@
 
         local eligiblePlayerName = Convars.GetClientConvarValue("name", eligiblePlayerEnt.GetEntityIndex())
 
-        debugPrint("Iterating through \x0799CCFF" + eligiblePlayerName)
+        debugPrint("\x01Iterating through \x0799CCFF" + eligiblePlayerName)
 
         if(playerScoreArrayTop.find(score) != null)
         {
-            debugPrint("We found an eligible player: \x0799CCFF" + eligiblePlayerName)
+            debugPrint("\x01We found an eligible player: \x0799CCFF" + eligiblePlayerName)
             eligibleGiantPlayers[playerIndex] <- null
         }
     }
@@ -98,7 +98,7 @@
 
     if(giantPlayerIndex == -1) return
 
-    local giantPlayer = PlayerInstanceFromIndex(i)
+    local giantPlayer = PlayerInstanceFromIndex(giantPlayerIndex)
 
     local giantPlayerName = Convars.GetClientConvarValue("name", giantPlayer.GetEntityIndex())
 

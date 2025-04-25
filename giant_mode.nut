@@ -110,7 +110,7 @@
             while(buildingEnt = Entities.FindByClassname(buildingEnt, buildings[i]))
             {
                 if(buildingEnt.GetOwner() != player) continue
-                buildingEnt.AcceptInput("RemoveHealth", "0", null, null)
+                buildingEnt.AcceptInput("RemoveHealth", "9999", null, null)
             }
         }
     }

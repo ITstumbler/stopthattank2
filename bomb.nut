@@ -8,7 +8,7 @@
         return
     }
 
-    debugPrint("Bomb carrier is not giant, lets go give them conds and stuff")
+    debugPrint("\x079999FFBomb carrier is not giant, lets go give them conds and stuff")
 
     //Apply the identifying bomb carrier cond - used by other map entities to identify bomb carrier
     activator.AddCondEx(65, -1, null)
@@ -29,7 +29,10 @@
         redPlayerCount += 1
     }
 
-    if(redPlayerCount < MINIMUM_PLAYERS_FOR_BOMB_BUFFS) return
+    if(redPlayerCount < MINIMUM_PLAYERS_FOR_BOMB_BUFFS) {
+        debugPrint("\x07FF9999There are less than " + MINIMUM_PLAYERS_FOR_BOMB_BUFFS + " players on red team! No bomb buffs are given!")
+        return
+    }
 
     //Check if player is eligible for temporary conds
     local timePickedUp = Time()
