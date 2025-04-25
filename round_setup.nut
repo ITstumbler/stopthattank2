@@ -33,15 +33,15 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::GIANT_CAMERA_DURATION             <- 3            //When a player becomes giant, they will enter third person and be unable to move for this long
 ::GIANT_CAMERA_INVULN_DURATION      <- 5            //When a player becomes giant, they become invincible for this long
 ::BASE_GIANT_HEALING                <- 1            //Multiply ALL healing received by giant players by this much if player count is at BASE_GIANT_PLAYER_COUNT. Increased or decreased linearly if the amount of players on red is higher or lower than that.
-::BASE_GIANT_PLAYER_COUNT           <- 12           //If there are this many players on red team, all giants have their base hp and all healing received is multiplied by BASE_GIANT_HEALING. Increased or decreased linearly if the amount of players on red is higher or lower than that. 
-::RED_TANK_RESPAWN_TIME             <- 0.1          //Sets red's respawn time, in seconds, while tank is active 
-::BLUE_TANK_RESPAWN_TIME            <- 3            //Sets blu's respawn time, in seconds, while tank is active 
+::BASE_GIANT_PLAYER_COUNT           <- 12           //If there are this many players on red team, all giants have their base hp and all healing received is multiplied by BASE_GIANT_HEALING. Increased or decreased linearly if the amount of players on red is higher or lower than that.
+::RED_TANK_RESPAWN_TIME             <- 0.1          //Sets red's respawn time, in seconds, while tank is active
+::BLUE_TANK_RESPAWN_TIME            <- 3            //Sets blu's respawn time, in seconds, while tank is active
 ::RED_INTERMISSION_RESPAWN_TIME     <- 0.1          //Sets red's respawn time, in seconds, during intermission
-::BLUE_INTERMISSION_RESPAWN_TIME    <- 0.1          //Sets blu's respawn time, in seconds, during intermission 
-::RED_GIANT_RESPAWN_TIME            <- 3            //Sets red's respawn time, in seconds, while giant is active 
-::BLUE_GIANT_RESPAWN_TIME           <- 9            //Sets blu's respawn time, in seconds, while giant is active. Overriden by respawnOverride in giant_attributes.nut if set. 
-::RED_POST_GIANT_RESPAWN_TIME       <- 3            //Sets red's respawn time, in seconds, after giant is dead 
-::BLUE_POST_GIANT_RESPAWN_TIME      <- 0.1          //Sets blu's respawn time, in seconds, after giant is dead 
+::BLUE_INTERMISSION_RESPAWN_TIME    <- 0.1          //Sets blu's respawn time, in seconds, during intermission
+::RED_GIANT_RESPAWN_TIME            <- 3            //Sets red's respawn time, in seconds, while giant is active
+::BLUE_GIANT_RESPAWN_TIME           <- 9            //Sets blu's respawn time, in seconds, while giant is active. Overriden by respawnOverride in giant_attributes.nut if set.
+::RED_POST_GIANT_RESPAWN_TIME       <- 3            //Sets red's respawn time, in seconds, after giant is dead
+::BLUE_POST_GIANT_RESPAWN_TIME      <- 0.1          //Sets blu's respawn time, in seconds, after giant is dead
 // ::SMALL_CASH_DROP_AMOUNT            <- 7            //Amount of small cash dropped by the tank when it dies. Size is purely cosmetic
 // ::MEDIUM_CASH_DROP_AMOUNT           <- 4            //Amount of medium cash dropped by the tank when it dies. Size is purely cosmetic
 // ::LARGE_CASH_DROP_AMOUNT            <- 2            //Amount of large cash dropped by the tank when it dies. Size is purely cosmetic
@@ -286,7 +286,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
     OnGameEvent_scorestats_accumulated_update = function(_) {
 		if (GetRoundState() == 3) {
 			Cleanup()
-		} 
+		}
 	}
 
     OnGameEvent_player_spawn = function(params) {
@@ -297,13 +297,14 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         if (params.team == 0) {
 			//This is a chore that has to be done to ensure the scope exists
 			player.ValidateScriptScope()
-			
+
 			scope = player.GetScriptScope()
 			scope.isGiant <- false
 			scope.isBecomingGiant <- false
 		}
-		
+
         local spawnedPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
+
 
         if (!scope.isGiant) {
             debugPrint("\x01Spawned player \x0799CCFF" + spawnedPlayerName + " \x01is not giant")
@@ -314,6 +315,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             }
             return
         }
+
         debugPrint("\x01Spawned player \x0799CCFF" + spawnedPlayerName + " \x01is \x05GIANT")
         //Make sure it doesnt fire when giant first spawns
         if (isIntermissionHappening || isBombMissionHappening) {
@@ -323,11 +325,10 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         //After humiliation player model needs to be reset manually
         debugPrint("\x01Giant privileges removed on spawn for player \x0799CCFF" + spawnedPlayerName)
         player.SetCustomModelWithClassAnimations("")
+        //player.ForceRegenerateAndRespawn()
 
         //Stop being giant
         scope.isGiant = false
-
-        //player.ForceRegenerateAndRespawn()
     }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {
@@ -343,7 +344,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
     OnGameEvent_player_death = function(params) {
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()
-        
+
         if (!scope.isGiant) return
         handleGiantDeath() //Global events
 
@@ -359,7 +360,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
     OnGameEvent_player_disconnect = function(params) {
 		local player = GetPlayerFromUserID(params.userid)
 		local scope = player.GetScriptScope()
-		
+
         //Set of checks for when a jerk disconnects during intermission
         if(isIntermissionHappening) {
             debugPrint("\x0788BB88Some jerk disconnected during intermission")
@@ -387,7 +388,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
                 handleGiantDeath()
             }
         }
-        
+
     }
 }
 

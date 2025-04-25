@@ -111,7 +111,7 @@
             buildingEnt = null
             while(buildingEnt = Entities.FindByClassname(buildingEnt, buildings[i]))
             {
-                if(buildingEnt.GetOwner() != player) continue
+				if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") != player) continue
                 buildingEnt.TakeDamage(9999, 1, null)
             }
         }

@@ -172,7 +172,6 @@
             if (player == null) continue
             if (player.GetTeam() != TF_TEAM_BLUE) continue
             local scope = player.GetScriptScope()
-            player.ValidateScriptScope()
             scope.isBecomingGiant = true
             ClientPrint(player, 3, "\x05Everyone on your team rejected. You're the next giant now.")
             break
