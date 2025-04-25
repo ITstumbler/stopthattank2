@@ -310,10 +310,6 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             //If giant player is active, any blu player spawning in will be banned from picking up the bomb
             if(isBombMissionHappening && !isBombGiantDead && params.team == TF_TEAM_BLUE) {
                 EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`cannot pick up intelligence`, 1, -1)", 0.1, player, player)
-                
-                //This one is just to check if the attributes are applied properly
-                EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`fire rate bonus`, 0.1, -1)", 0.1, player, player)
-                
                 debugPrint("Newly spawned blu player has been banned from picking up the bomb")
             }
             return
@@ -324,13 +320,14 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             debugPrint("\x04First giant spawn. Do not wipe giant privileges")
             return
         }
-        //After humiliation player health needs to be reset manually
+        //After humiliation player model needs to be reset manually
         debugPrint("\x01Giant privileges removed on spawn for player \x0799CCFF" + spawnedPlayerName)
         player.SetCustomModelWithClassAnimations("")
-        player.ForceRegenerateAndRespawn(true)
 
         //Stop being giant
         scope.isGiant = false
+
+        //player.ForceRegenerateAndRespawn()
     }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {

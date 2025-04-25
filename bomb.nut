@@ -75,7 +75,7 @@
     if (scope.isGiant) {
         debugPrint("Giant just tried dropping the bomb, undo!")
 
-        ClientPrint(activator, 4, "Pick the bomb back up. No one else can pick up the bomb.")
+        ClientPrint(activator, 4, "You may not drop the bomb as a Giant Robot")
 
         bombFlag.AcceptInput("ForceResetSilent", null, null, null)
         bombFlag.SetAbsOrigin(activator.GetOrigin())

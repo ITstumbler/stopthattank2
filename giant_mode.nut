@@ -39,6 +39,7 @@
         if (!player.GetScriptScope().isBecomingGiant) continue
         debugPrint("Attempting to make player index " + i + " a giant")
         becomeGiant(i)
+        player.GetScriptScope().isBecomingGiant = false
         break
     }
 }
