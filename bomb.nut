@@ -3,7 +3,7 @@
     debugPrint("Handling bomb pickup")
     //Don't apply these to giants!!
     local scope = activator.GetScriptScope()
-    if ("isGiant" in scope) {
+    if (scope.isGiant) {
         debugPrint("Bomb carrier is giant, ignoring")
         return
     }
@@ -58,7 +58,7 @@
     debugPrint("Handling bomb drop")
     local scope = activator.GetScriptScope()
 
-    if ("isGiant" in scope) {
+    if (scope.isGiant) {
         debugPrint("Giant just tried dropping the bomb, undo!")
 
         ClientPrint(activator, 4, "Pick the bomb back up. No one else can pick up the bomb.")

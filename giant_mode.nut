@@ -35,8 +35,8 @@
     {
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
-        if (player.GetTeam() != 3) continue
-        if (!("isBecomingGiant" in player.GetScriptScope())) continue
+        if (player.GetTeam() != TF_TEAM_BLUE) continue
+        if (!player.GetScriptScope().isBecomingGiant) continue
         debugPrint("Attempting to make player index " + i + " a giant")
         becomeGiant(i)
         break
@@ -116,7 +116,7 @@
     }
 
     local scope = player.GetScriptScope()
-    scope.isGiant <- null
+    scope.isGiant = true
 
     local giantSpecifics = giantProperties[chosenGiantThisRound]
     
@@ -292,7 +292,7 @@
     {
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
-        if (player.GetTeam() != 3) continue
+        if (player.GetTeam() != TF_TEAM_BLUE) continue
 
         player.RemoveCustomAttribute("cannot pick up intelligence")
     }

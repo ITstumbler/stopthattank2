@@ -293,15 +293,22 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()
 
-        //This is a chore that has to be done so that vscript doesn't break randomly
-        if (params.team == 0) player.ValidateScriptScope()
-
+		//initial setup
+        if (params.team == 0) {
+			//This is a chore that has to be done to ensure the scope exists
+			player.ValidateScriptScope()
+			
+			scope = player.GetScriptScope()
+			scope.isGiant <- false
+			scope.isBecomingGiant <- false
+		}
+		
         local spawnedPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
 
-        if (!("isGiant" in scope)) {
+        if (!scope.isGiant) {
             debugPrint("\x01Spawned player \x0799CCFF" + spawnedPlayerName + " \x01is not giant")
             //If giant player is active, any blu player spawning in will be banned from picking up the bomb
-            if(isBombMissionHappening && !isBombGiantDead && params.team == 3) {
+            if(isBombMissionHappening && !isBombGiantDead && params.team == TF_TEAM_BLUE) {
                 EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`cannot pick up intelligence`, 1, -1)", 0.1, player, player)
                 
                 //This one is just to check if the attributes are applied properly
@@ -323,7 +330,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         player.ForceRegenerateAndRespawn(true)
 
         //Stop being giant
-        delete scope.isGiant
+        scope.isGiant = false
     }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {
@@ -340,7 +347,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()
         
-        if (!("isGiant" in player.GetScriptScope())) return
+        if (!scope.isGiant) return
         handleGiantDeath() //Global events
 
         local deadPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
@@ -349,16 +356,15 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         player.SetCustomModelWithClassAnimations("")
 
         //Stop being giant
-        delete scope.isGiant
+        scope.isGiant = false
     }
 
     OnGameEvent_player_disconnect = function(params) {
-
+		local player = GetPlayerFromUserID(params.userid)
+		local scope = player.GetScriptScope()
+		
         //Set of checks for when a jerk disconnects during intermission
         if(isIntermissionHappening) {
-            local player = GetPlayerFromUserID(params.userid)
-            local scope = player.GetScriptScope()
-
             debugPrint("\x0788BB88Some jerk disconnected during intermission")
 
             //If they were top 5, also remove them from the list
@@ -370,7 +376,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             }
 
             //Player disconnected when they were prompted to be giant, so toss it to someone else
-            if ("isBecomingGiant" in scope) {
+            if (scope.isBecomingGiant) {
                 debugPrint("\x0788BB88They were prompted to be giant")
                 pickRandomPlayerToBeGiant(eligibleGiantPlayers)
             }
@@ -379,13 +385,9 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 
         //Failsafe for when a jerk disconnects while giant
         if(isBombMissionHappening) {
-            local player = GetPlayerFromUserID(params.userid)
-            local scope = player.GetScriptScope()
-
-            if ("isGiant" in scope) {
+            if (scope.isGiant) {
                 debugPrint("\x0788BB88Some jerk disconnected while carrying the bomb as a giant. Failsafe triggered.")
                 handleGiantDeath()
-                delete scope.isGiant
             }
         }
         

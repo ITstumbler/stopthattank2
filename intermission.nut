@@ -167,10 +167,10 @@
         {
             local player = PlayerInstanceFromIndex(i)
             if (player == null) continue
-            if (player.GetTeam() != 3) continue
+            if (player.GetTeam() != TF_TEAM_BLUE) continue
             local scope = player.GetScriptScope()
             player.ValidateScriptScope()
-            scope.isBecomingGiant <- null
+            scope.isBecomingGiant = true
             ClientPrint(player, 3, "\x05Everyone on your team rejected. You're the next giant now.")
             break
         }
@@ -210,7 +210,7 @@
 
     player.ValidateScriptScope()
     local scope = player.GetScriptScope()
-    scope.isBecomingGiant <- null
+    scope.isBecomingGiant = true
     
     scope.promptGiantThink <- function() {
         //Cleanup on death
@@ -228,7 +228,7 @@
             //Player didn't want to be giant; remember that so that we don't pick them again
             playersThatHaveRejectedGiant[playerIndex] <- null
             delete eligibleGiantPlayers[playerIndex]
-            delete scope.isBecomingGiant
+            scope.isBecomingGiant = false
 
             //Pick another pleb to be giant
             pickRandomPlayerToBeGiant(eligibleGiantPlayers)
