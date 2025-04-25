@@ -168,7 +168,8 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
     {
         startGiantMode()
         debugPrint("\x05Call timer: \x01Starting giant mode")
-        roundTimer.GetScriptScope().currentRoundTime <- BOMB_MISSION_LENGTH
+        //Giant camera duration pauses the timer
+        roundTimer.GetScriptScope().currentRoundTime <- BOMB_MISSION_LENGTH + GIANT_CAMERA_DURATION
     }
     else if(isBombMissionHappening)
     {
@@ -275,6 +276,9 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         //Cleanup timer countdown think so it doesn't stack
         AddThinkToEnt(roundTimer, null)
 
+        //Reset overtime availability
+        SetOvertimeAllowedForCTF(false)
+
         //Prevent callbacks from stacking
 		delete ::roundCallbacks
     }
@@ -287,13 +291,14 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 
     OnGameEvent_player_spawn = function(params) {
         local player = GetPlayerFromUserID(params.userid)
+        local scope = player.GetScriptScope()
 
         //This is a chore that has to be done so that vscript doesn't break randomly
         if (params.team == 0) player.ValidateScriptScope()
 
         local spawnedPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
 
-        if (!("isGiant" in player.GetScriptScope())) {
+        if (!("isGiant" in scope)) {
             debugPrint("\x01Spawned player \x0799CCFF" + spawnedPlayerName + " \x01is not giant")
             //If giant player is active, any blu player spawning in will be banned from picking up the bomb
             if(isBombMissionHappening && !isBombGiantDead && params.team == 3) {
@@ -314,11 +319,11 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         }
         //After humiliation player health needs to be reset manually
         debugPrint("\x01Giant privileges removed on spawn for player \x0799CCFF" + spawnedPlayerName)
-        player.ForceRegenerateAndRespawn(true)
         player.SetCustomModelWithClassAnimations("")
+        player.ForceRegenerateAndRespawn(true)
 
         //Stop being giant
-        delete player.GetScriptScope().isGiant
+        delete scope.isGiant
     }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {
