@@ -96,7 +96,10 @@
 {
     local giantPlayerIndex = pickRandomPlayerToBeGiant(eligibleGiantPlayers)
 
-    if(giantPlayerIndex == -1) return
+    if(giantPlayerIndex == -1) {
+        debugPrint("\x07444444We're out of eligible giant players!")
+        return
+    }
 
     local giantPlayer = PlayerInstanceFromIndex(giantPlayerIndex)
 
@@ -112,7 +115,7 @@
         if (player.GetTeam() != 3) continue
 
         ClientPrint(player, 3, "\x0799CCFF============================")
-        ClientPrint(player, 3, "\x05" + giantPlayerName + " is about to become a \x0799CCFF" + giantProperties[chosenGiantThisRound].giantName + "\x01!")
+        ClientPrint(player, 3, "\x05" + giantPlayerName + " \x01is about to become a \x0799CCFF" + giantProperties[chosenGiantThisRound].giantName + "\x01!")
         ClientPrint(player, 3, "\x04" + giantProperties[chosenGiantThisRound].playerInfo)
         ClientPrint(player, 3, "\x0799CCFF============================")
         break
@@ -138,7 +141,7 @@
     if(eligibleTable.len() > 0)
     {
         randomGiantPlayerIndex = eligibleTable.keys()[RandomInt(0, eligibleTable.len() - 1)]
-        debugPrint("Prompting player index " + randomGiantPlayerIndex + " to be giant")
+        debugPrint("\x01Prompting player \x0799CCFF" + Convars.GetClientConvarValue("name", randomGiantPlayerIndex) + " \x01to be giant")
         promptGiant(randomGiantPlayerIndex)
     }
     else
@@ -153,7 +156,7 @@
             if (player.GetTeam() != 3) continue
             //Player has rejected before, dont ask them again
             if (i in playersThatHaveRejectedGiant) {
-                debugPrint("Player index " + i + " has already rejected before, not asking again")
+                debugPrint("\x01Player \x0799CCFF" + Convars.GetClientConvarValue("name", i) + " \x01has already rejected before, not asking again")
                 continue
             }
             promptGiant(i)
@@ -203,9 +206,11 @@
     debugPrint("\x01Prompting \x0799CCFF" + playerName + " \x01to be giant")
     
     //Temporary until HUD stuff has been worked on
+    ClientPrint(player, 3, "\x0799CCFF============================")
     ClientPrint(player, 3, "\x01You are about to become a \x0799CCFFGIANT\x01!")
     ClientPrint(player, 3, "\x01You will become a: \x0799CCFF" + giantProperties[chosenGiantThisRound].giantName)
     ClientPrint(player, 3, "\x04" + giantProperties[chosenGiantThisRound].playerInfo)
+    ClientPrint(player, 3, "\x0799CCFF============================")
     EntFireByHandle(rejectGiantHudHint, "ShowHudHint", null, 0, player, player)
 
     player.ValidateScriptScope()

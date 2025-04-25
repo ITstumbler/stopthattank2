@@ -1,6 +1,20 @@
 ::handleBombPickup <- function()
 {
     debugPrint("Handling bomb pickup")
+
+    //The administrator yells when someone picks up a bomb
+    local randomLine = RandomInt(0,1)
+    switch(randomLine) {
+        case 0:
+            playSoundEx("vo/mvm_another_bomb01.mp3")
+            break
+        case 1:
+            playSoundEx("vo/mvm_another_bomb03.mp3")
+            break
+        default:
+            break
+    }
+
     //Don't apply these to giants!!
     local scope = activator.GetScriptScope()
     if (scope.isGiant) {

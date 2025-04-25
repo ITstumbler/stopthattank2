@@ -102,6 +102,7 @@
     //If player is engineer, manually destroy all existing buildings they owned
     if(player.GetPlayerClass() == TF_CLASS_ENGINEER)
     {
+        debugPrint("\x07666666Player was engineer, destroy all previously owned buildings")
         local buildings = ["obj_sentrygun", "obj_dispenser", "obj_teleporter"]
         local buildingEnt = null
         for(local i = 0; i < buildings.len(); i++)
@@ -110,7 +111,7 @@
             while(buildingEnt = Entities.FindByClassname(buildingEnt, buildings[i]))
             {
                 if(buildingEnt.GetOwner() != player) continue
-                buildingEnt.AcceptInput("RemoveHealth", "9999", null, null)
+                buildingEnt.TakeDamage(9999, 1, null)
             }
         }
     }
@@ -218,14 +219,6 @@
 
     //Teleport giant to nearest CP
     player.Teleport(true, bombSpawnOrigin, false, QAngle(0,0,0), false, Vector(0,0,0))
-
-    //We teleported the bomb already but just to be sure we also set its owner to the newly gigantified player
-    bombFlag.SetOwner(player)
-    bombFlag.AcceptInput("SetParent", "!activator", player, player)
-    bombFlag.AcceptInput("SetParentAttachment", "flag", player, player)
-    NetProps.SetPropEntity(player, "m_hItem", bombFlag)
-    // NetProps.SetPropEntity(bombFlag, "m_hPrevOwner", player)
-    NetProps.SetPropInt(bombFlag, "m_nFlagStatus", 1)
 
     //You are an AWESOME GIANT you will LOOK AT YOURSELF when you spawn
     //Everything here is delayed to ensure that they get called after the player teleport
