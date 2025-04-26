@@ -170,6 +170,9 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         debugPrint("\x05Call timer: \x01Starting giant mode")
         //Giant camera duration pauses the timer
         roundTimer.GetScriptScope().currentRoundTime <- BOMB_MISSION_LENGTH + GIANT_CAMERA_DURATION
+        debugPrint("\x05Call timer function: \x01setting current round time to " + (BOMB_MISSION_LENGTH + GIANT_CAMERA_DURATION))
+        AddThinkToEnt(roundTimer, null)
+        AddThinkToEnt(roundTimer, "countdownThink")
     }
     else if(isBombMissionHappening)
     {
@@ -184,6 +187,8 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 ::handleSetupFinish <- function()
 {
     roundTimer.GetScriptScope().currentRoundTime <- POST_SETUP_LENGTH
+    AddThinkToEnt(roundTimer, null)
+    AddThinkToEnt(roundTimer, "countdownThink")
 }
 
 //We manually count down our own timer because outputs like On5SecRemain are off by 1 second for some reason
@@ -225,6 +230,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         }
         return 1
     }
+    AddThinkToEnt(roundTimer, null)
     AddThinkToEnt(roundTimer, "countdownThink")
 }
 
@@ -325,10 +331,13 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         //After humiliation player model needs to be reset manually
         debugPrint("\x01Giant privileges removed on spawn for player \x0799CCFF" + spawnedPlayerName)
         player.SetCustomModelWithClassAnimations("")
-        //player.ForceRegenerateAndRespawn()
-
+        
         //Stop being giant
         scope.isGiant = false
+
+        //Reset hp
+        player.SetHealth(1)
+        player.Regenerate(false)
     }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {

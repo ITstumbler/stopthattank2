@@ -30,6 +30,33 @@
     bombFlag.AcceptInput("Enable", null, null, null)
     bombFlag.SetAbsOrigin(bombSpawnOrigin)
 
+    //Nearby players will take 1 damage and get pushed back before giant spawns
+    local playersToPush = null
+    while(playersToPush = Entities.FindByClassnameWithin(playersToPush, "player", bombSpawnOrigin, 128))
+    {
+        //We don't push blu team
+        if(playersToPush.GetTeam == TF_TEAM_BLUE) continue
+        
+        //Do trigonometry homework to find the angle to launch the players to
+        local playerOrigin = playersToPush.GetOrigin()
+        local deltaX = bombSpawnOrigin.x - playerOrigin.x
+        local deltaY = bombSpawnOrigin.y - playerOrigin.y
+
+        local pushAngle = atan(deltaY / deltaX)
+        local pushPowerX = sin(pushAngle) * 200
+        local pushPowerY = cos(pushAngle) * 200
+
+        debugPrint("\x07FF2222Delta X: " + deltaX)
+        debugPrint("\x07FF2222Delta Y: " + deltaY)
+        debugPrint("\x07FF2222Arctan: " + pushAngle)
+        debugPrint("\x07FF2222Sin Theta: " + sin(pushAngle))
+        debugPrint("\x07FF2222Cos Theta: " + cos(pushAngle))
+        debugPrint("\x07FF2222Push power X: " + pushPowerX)
+        debugPrint("\x07FF2222Push power Y: " + pushPowerY)
+
+        playersToPush.ApplyAbsVelocityImpulse(Vector(pushPowerX, pushPowerY, 300))
+    }
+
     //Check which pleb has isBecomingGiant
     for (local i = 1; i <= MaxPlayers ; i++)
     {
@@ -111,8 +138,10 @@
             buildingEnt = null
             while(buildingEnt = Entities.FindByClassname(buildingEnt, buildings[i]))
             {
+                debugPrint("\x07666666Found a building!")
 				if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") != player) continue
-                buildingEnt.TakeDamage(9999, 1, null)
+                debugPrint("\x07666666It is owned by the giant player!")
+                buildingEnt.AcceptInput("RemoveHealth", "9999", null, null)
             }
         }
     }
@@ -225,12 +254,17 @@
     //Everything here is delayed to ensure that they get called after the player teleport
     EntFireByHandle(player, "RunScriptCode", "self.SetForcedTauntCam(1)", -1, player, player)
     EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`SET BONUS: move speed set bonus`, 0.0001, GIANT_CAMERA_DURATION)", -1, player, player)
+    EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`dmg taken increased`, 0.2, GIANT_CAMERA_DURATION)", -1, player, player)
+    EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`health regen`, 10000, GIANT_CAMERA_DURATION)", -1, player, player)
 
     //Ok enough looking at yourself move it move it
     EntFireByHandle(player, "RunScriptCode", "self.SetForcedTauntCam(0)", GIANT_CAMERA_DURATION, player, player)
 
     //Giant player becomes invulnerable when posing for awesomeness and a short duration after
-    EntFireByHandle(player, "RunScriptCode", "self.AddCondEx(51, GIANT_CAMERA_INVULN_DURATION, null)", -1, player, player)
+    //Delay is there to let giant pick up the bomb
+    //the dmg taken increased attribute a few lines above is the one actually giving invuln
+    //Cond 51 is mostly just there for visual confirmation so that blu players know why they arent doing damage
+    EntFireByHandle(player, "RunScriptCode", "self.AddCondEx(51, GIANT_CAMERA_INVULN_DURATION - 0.1, null)", 0.1, player, player)
 
     //STOP THE TIMER THE GIANT PLAYER IS FLEXING
     roundTimer.AcceptInput("Pause", null, null, null)

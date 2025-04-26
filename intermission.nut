@@ -17,6 +17,8 @@
     roundTimer.AcceptInput("Enable", null, null, null)
     roundTimer.AcceptInput("SetTime", INTERMISSION_LENGTH.tostring(), null, null)
     roundTimer.GetScriptScope().currentRoundTime <- INTERMISSION_LENGTH
+    AddThinkToEnt(roundTimer, null)
+    AddThinkToEnt(roundTimer, "countdownThink")
 
     //Impending teleportation! Show a particle that indicates where a giant will teleport to
     EntityOutputs.AddOutput(roundTimer, "On3SecRemain", "gamerules", "CallScriptFunction", "displayGiantTeleportParticle", -1, 1) //Find in giant_mode.nut
