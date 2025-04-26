@@ -32,7 +32,7 @@
 
     //Nearby players will take 1 damage and get pushed back before giant spawns
     local playersToPush = null
-    while(playersToPush = Entities.FindByClassnameWithin(playersToPush, "player", bombSpawnOrigin, 128))
+    while(playersToPush = Entities.FindByClassnameWithin(playersToPush, "player", bombSpawnOrigin, 256))
     {
         //We don't push blu team
         if(playersToPush.GetTeam == TF_TEAM_BLUE) continue
@@ -43,8 +43,8 @@
         local deltaY = bombSpawnOrigin.y - playerOrigin.y
 
         local pushAngle = atan(deltaY / deltaX)
-        local pushPowerX = sin(pushAngle) * 200
-        local pushPowerY = cos(pushAngle) * 200
+        local pushPowerX = sin(pushAngle) * -250
+        local pushPowerY = cos(pushAngle) * -250
 
         debugPrint("\x07FF2222Delta X: " + deltaX)
         debugPrint("\x07FF2222Delta Y: " + deltaY)
@@ -54,7 +54,7 @@
         debugPrint("\x07FF2222Push power X: " + pushPowerX)
         debugPrint("\x07FF2222Push power Y: " + pushPowerY)
 
-        playersToPush.ApplyAbsVelocityImpulse(Vector(pushPowerX, pushPowerY, 300))
+        playersToPush.ApplyAbsVelocityImpulse(Vector(pushPowerX, pushPowerY, 375))
     }
 
     //Check which pleb has isBecomingGiant
