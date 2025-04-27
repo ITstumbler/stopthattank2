@@ -53,6 +53,7 @@
     if(playerScoreTable.len() == 0)
     {
         debugPrint("\x07CC7777There are no blue players! Here have the bomb")
+        isBombGiantDead = true
         //Enable the bomb and teleport it to the most recent CP
         bombFlag.AcceptInput("Enable", null, null, null)
         bombFlag.SetAbsOrigin(bombSpawnOrigin)

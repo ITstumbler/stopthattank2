@@ -46,13 +46,13 @@
         local pushPowerX = sin(pushAngle) * -250
         local pushPowerY = cos(pushAngle) * -250
 
-        debugPrint("\x07FF2222Delta X: " + deltaX)
-        debugPrint("\x07FF2222Delta Y: " + deltaY)
-        debugPrint("\x07FF2222Arctan: " + pushAngle)
-        debugPrint("\x07FF2222Sin Theta: " + sin(pushAngle))
-        debugPrint("\x07FF2222Cos Theta: " + cos(pushAngle))
-        debugPrint("\x07FF2222Push power X: " + pushPowerX)
-        debugPrint("\x07FF2222Push power Y: " + pushPowerY)
+        // debugPrint("\x07FF2222Delta X: " + deltaX)
+        // debugPrint("\x07FF2222Delta Y: " + deltaY)
+        // debugPrint("\x07FF2222Arctan: " + pushAngle)
+        // debugPrint("\x07FF2222Sin Theta: " + sin(pushAngle))
+        // debugPrint("\x07FF2222Cos Theta: " + cos(pushAngle))
+        // debugPrint("\x07FF2222Push power X: " + pushPowerX)
+        // debugPrint("\x07FF2222Push power Y: " + pushPowerY)
 
         playersToPush.ApplyAbsVelocityImpulse(Vector(pushPowerX, pushPowerY, 375))
     }
@@ -254,8 +254,8 @@
     //Everything here is delayed to ensure that they get called after the player teleport
     EntFireByHandle(player, "RunScriptCode", "self.SetForcedTauntCam(1)", -1, player, player)
     EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`SET BONUS: move speed set bonus`, 0.0001, GIANT_CAMERA_DURATION)", -1, player, player)
-    EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`dmg taken increased`, 0.2, GIANT_CAMERA_DURATION)", -1, player, player)
-    EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`health regen`, 10000, GIANT_CAMERA_DURATION)", -1, player, player)
+    //EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`dmg taken increased`, 0.2, GIANT_CAMERA_DURATION)", -1, player, player)
+    //EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`health regen`, 10000, GIANT_CAMERA_DURATION)", -1, player, player)
 
     //Ok enough looking at yourself move it move it
     EntFireByHandle(player, "RunScriptCode", "self.SetForcedTauntCam(0)", GIANT_CAMERA_DURATION, player, player)

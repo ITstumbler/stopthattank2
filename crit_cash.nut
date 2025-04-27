@@ -29,7 +29,7 @@
     while(currencyEnt = Entities.FindByName(currencyEnt, "crit_cash_prop"))
     {
         //We'll need to set the bounding box size for the triggers
-        local triggerSize = Vector(20, 20, 20)
+        local triggerSize = Vector(12, 12, 12)
 
         //The crit cash model is intangible to players
         //We'll parent a trigger that does everything when a player touches it
@@ -62,10 +62,15 @@
     {
         activator.AddCondEx(condition, duration, null)
     }
+
+    //Restore all ammo but dont restore all health
+    local playerHealthOnPickup = activator.GetHealth()
+    activator.Regenerate(true)
+    activator.SetHealth(playerHealthOnPickup)
 }
 
 //We gotta murder the trigger's parent as well
-//For now lets try making the cash collectible and see if anything messes up from there
+//For now lets try making the cash collectible and teleporting it to the collector
 ::killCash <- function()
 {
     local cashEnt = self.GetMoveParent()
