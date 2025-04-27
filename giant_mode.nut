@@ -19,7 +19,7 @@
 
     //Next time the timer runs out, red wins!
     //Because this thing is prone to race condition, it's delayed
-    EntFire("gamerules", "CallScriptFunction", "endIntermissionStartBombMission", 1)
+    EntFire("gamerules", "RunScriptCode", "setSTTRoundState(STATE_BOMB)", 1)
     
     //Adjust HUD to be CTF CP mode
     NetProps.SetPropInt(gamerules, "m_nHudType", 2)
@@ -69,12 +69,6 @@
         player.GetScriptScope().isBecomingGiant = false
         break
     }
-}
-
-::endIntermissionStartBombMission <- function()
-{
-    isIntermissionHappening = false
-    isBombMissionHappening = true
 }
 
 ::GivePlayerWeapon <- function(player, className, itemID, itemSlotToDestroy=0)
@@ -131,19 +125,15 @@
     if(player.GetPlayerClass() == TF_CLASS_ENGINEER)
     {
         debugPrint("\x07666666Player was engineer, destroy all previously owned buildings")
-        local buildings = ["obj_sentrygun", "obj_dispenser", "obj_teleporter"]
-        local buildingEnt = null
-        for(local i = 0; i < buildings.len(); i++)
-        {
-            buildingEnt = null
-            while(buildingEnt = Entities.FindByClassname(buildingEnt, buildings[i]))
-            {
-                debugPrint("\x07666666Found a building!")
-				if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") != player) continue
-                debugPrint("\x07666666It is owned by the giant player!")
-                buildingEnt.AcceptInput("RemoveHealth", "9999", null, null)
-            }
-        }
+		local buildingEnt = null
+		while(buildingEnt = Entities.FindByClassname(buildingEnt, "obj_*)) //this does allow sappers but engies don't own sappers
+		{
+			debugPrint("\x07666666Found a building!")
+			if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") == player) {
+				debugPrint("\x07666666It is owned by the giant player!")
+				buildingEnt.AcceptInput("RemoveHealth", "9999", null, null)
+			}
+		}
     }
 
     local scope = player.GetScriptScope()

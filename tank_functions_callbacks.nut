@@ -33,7 +33,7 @@
     gamerules.AcceptInput("SetBlueTeamRespawnWaveTime", BLUE_TANK_RESPAWN_TIME.tostring(), null, null)
 
     //Mark phase change to be used by other parts of the script
-    isTankMissionHappening = true
+    setSTTRoundState(STATE_TANK)
 
     //Need anything else to happen? Put it in here
     EntFire("boss_spawn_relay", "trigger")
@@ -43,7 +43,7 @@
 ::setSpeedTank <- function(speedInput, dummyOnly=false)
 {
     //Intermission is happening and the command isnt to stop, ignore all previous instructions
-    if(isIntermissionHappening && speedInput != 0) return
+    if(getSTTRoundState() == STATE_INTERMISSION && speedInput != 0) return
     trainWatcherDummy.AcceptInput("SetSpeedDir", speedInput.tostring(), null, null)
     trainWatcherDummy.KeyValueFromInt("startspeed", speedInput)
     if(tank.IsValid() && !dummyOnly) tank.AcceptInput("SetSpeed", speedInput.tostring(), null, null)

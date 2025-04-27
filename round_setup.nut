@@ -52,6 +52,15 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                        }
 ::PROJECTILE_SHIELD_LENGTH          <- 10           //In seconds, the length red medics get projectile shield for when picking up cash
 
+//round states
+::STATE_SETUP <- 0
+::STATE_PRESPAWN_TANK <- 1 //period before the tank spawns in
+::STATE_TANK <- 2 //tank is active
+::STATE_INTERMISSION <- 3 //period between tank dying and giant mode/bomb mission starting
+::STATE_BOMB <- 4 //Bomb is OUT and READY TO DEPLOY BY PLAYERS
+
+::isBombGiantDead <- false              //Tracks whether or not a blu giant is active
+
 //Find map entities
 ::startingPathTrack <- Entities.FindByName(null, "tank_path_1")
 ::trainWatcherDummy <- Entities.FindByName(null, "fake_train")
@@ -65,17 +74,14 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 
 ::rejectGiantHudHint <- SpawnEntityFromTable("env_hudhint", {
     targetname = "reject_giant_hud_hint",
-    message = "%+attack3% reject becoming giant"
+    message = "%+attack3% Reject becoming a giant"
 })
 
 //Keep track of some things
 ::tank <- null
 ::bombSpawnOrigin <- startingPathTrack.GetOrigin()
 ::chosenGiantThisRound <- RandomInt(0, GIANT_TYPES_AMOUNT - 1)
-::isTankMissionHappening <- false       //Tracks whether or not tank is active
-::isIntermissionHappening <- false      //28s break between tank dying and giant mode starting. This variable marks that phase
-::isBombMissionHappening <- false       //Bomb is OUT and READY TO DEPLOY BY PLAYERS
-::isBombGiantDead <- false              //Tracks whether or not a blu giant is active
+::sttRoundState <- STATE_SETUP
 
 //Misc.
 ::MaxPlayers <- MaxClients().tointeger()
@@ -138,16 +144,16 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 ::overrideRoundTime <- function(seconds, round_type)
 {
     switch(round_type) {
-        case "Setup":
+        case STATE_SETUP:
             SETUP_LENGTH = seconds
             break
-        case "PostSetup":
+        case STATE_PRESPAWN_TANK:
             POST_SETUP_LENGTH = seconds
             break
-        case "Intermission":
+        case STATE_INTERMISSION:
             INTERMISSION_LENGTH = seconds
             break
-        case "BombMission":
+        case STATE_BOMB:
             BOMB_MISSION_LENGTH = seconds
             break
         default:
@@ -155,51 +161,59 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
     }
 }
 
+//returns current round state, general use for any other things that could happen at round state
+::getSTTRoundState <- function() {
+	return sttRoundState
+}
+
+::setSTTRoundState <- function(state) {
+	sttRoundState = state
+}
+
 //Timer finishes 3 times, so we have to know which function we need to call
 ::callTimerFunction <- function()
 {
     debugPrint("\x05Call timer: \x01Executing a function")
-    if(!isIntermissionHappening && !isBombMissionHappening)
-    {
-        spawnTank()
-        debugPrint("\x05Call timer: \x01Spawning tank")
-    }
-    else if(isIntermissionHappening && !isBombMissionHappening)
-    {
-        startGiantMode()
-        debugPrint("\x05Call timer: \x01Starting giant mode")
-        //Giant camera duration pauses the timer
-        //Giant being dead at this point means that theres no blu players
-        if(isBombGiantDead) {
-            roundTimer.GetScriptScope().currentRoundTime <- BOMB_MISSION_LENGTH
-        }
-        else {
-            roundTimer.GetScriptScope().currentRoundTime <- BOMB_MISSION_LENGTH + GIANT_CAMERA_DURATION
-        }
-        
-        debugPrint("\x05Call timer function: \x01setting current round time to " + (BOMB_MISSION_LENGTH + GIANT_CAMERA_DURATION))
-        AddThinkToEnt(roundTimer, null)
-        AddThinkToEnt(roundTimer, "countdownThink")
-    }
-    else if(isBombMissionHappening)
-    {
-        redWin.AcceptInput("RoundWin", null, null, null)
-        debugPrint("\x05Call timer: \x01Winning red")
-        //Resetting hp is a pain so instead giant hp becomes 50 during humiliation
-        for (local i = 1; i <= MaxPlayers ; i++)
-        {
-            local player = PlayerInstanceFromIndex(i)
-            if (player == null) continue
-            if (player.GetTeam() != TF_TEAM_BLUE) continue
-            if (!player.GetScriptScope().isGiant) continue
-            debugPrint("\x0799CCFFShame on blu giant. Its HP will become 50.")
-            player.SetHealth(50)
-            player.RemoveCustomAttribute("max health additive bonus")
-            break
-        }
-        // isIntermissionHappening = false
-        // isBombMissionHappening = false
-    }
+	switch(getSTTRoundState()) {
+		case STATE_TANK:
+			spawnTank()
+			debugPrint("\x05Call timer: \x01Spawning tank")
+			break;
+		case STATE_INTERMISSION:
+			startGiantMode()
+			debugPrint("\x05Call timer: \x01Starting giant mode")
+			//Giant camera duration pauses the timer
+			//Giant being dead at this point means that theres no blu players
+			if(isBombGiantDead) {
+				roundTimer.GetScriptScope().currentRoundTime <- BOMB_MISSION_LENGTH
+			}
+			else {
+				roundTimer.GetScriptScope().currentRoundTime <- BOMB_MISSION_LENGTH + GIANT_CAMERA_DURATION
+			}
+			
+			debugPrint("\x05Call timer function: \x01setting current round time to " + (BOMB_MISSION_LENGTH + GIANT_CAMERA_DURATION))
+			AddThinkToEnt(roundTimer, null)
+			AddThinkToEnt(roundTimer, "countdownThink")
+			break;
+		case STATE_BOMB:
+			redWin.AcceptInput("RoundWin", null, null, null)
+			debugPrint("\x05Call timer: \x01Winning red")
+			//Resetting hp is a pain so instead giant hp becomes 50 during humiliation
+			for (local i = 1; i <= MaxPlayers ; i++)
+			{
+				local player = PlayerInstanceFromIndex(i)
+				if (player == null) continue
+				if (player.GetTeam() != TF_TEAM_BLUE) continue
+				if (!player.GetScriptScope().isGiant) continue
+				debugPrint("\x0799CCFFShame on blu giant. Its HP will become 50.")
+				player.SetHealth(50)
+				player.RemoveCustomAttribute("max health additive bonus")
+				break
+			}
+			break;
+		default:
+			break;
+	}
 }
 
 //Other stuffs we need to do after setup finishes
@@ -257,7 +271,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 ::playCountdownSound <- function(secondsRemaining)
 {
     //If bomb mission hasnt started yet, all countdown sounds should be mission begins in x seconds
-    local prefix = isBombMissionHappening == false ? "vo/announcer_begins_" : "vo/announcer_ends_"
+    local prefix = getSTTRoundState() != STATE_BOMB ? "vo/announcer_begins_" : "vo/announcer_ends_"
     gamerules.AcceptInput("PlayVO", prefix + secondsRemaining.tostring() + "sec.mp3", null, null)
     debugPrint("\x07AA44AAPlaying countdown sound for " + secondsRemaining)
 }
@@ -291,11 +305,8 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         NetProps.SetPropInt(gamerules, "m_nHudType", 3)
         NetProps.SetPropBool(gamerules, "m_bPlayingHybrid_CTF_CP", false)
 
-        //Reset round states
-        isTankMissionHappening = false
-        isIntermissionHappening = false
-        isBombMissionHappening = false
-        isBombGiantDead = false
+        //Reset round state
+		setSTTRoundState(STATE_SETUP)
 
         //Reroll chosen giant type
         chosenGiantThisRound = RandomInt(0, GIANT_TYPES_AMOUNT - 1)
@@ -332,11 +343,10 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 
         local spawnedPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
 
-
         if (!scope.isGiant) {
             debugPrint("\x01Spawned player \x0799CCFF" + spawnedPlayerName + " \x01is not giant")
             //If giant player is active, any blu player spawning in will be banned from picking up the bomb
-            if(isBombMissionHappening && !isBombGiantDead && params.team == TF_TEAM_BLUE) {
+            if(getSTTRoundState() == STATE_BOMB && !isBombGiantDead && params.team == TF_TEAM_BLUE) {
                 EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`cannot pick up intelligence`, 1, -1)", 0.1, player, player)
                 debugPrint("Newly spawned blu player has been banned from picking up the bomb")
             }
@@ -345,7 +355,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 
         debugPrint("\x01Spawned player \x0799CCFF" + spawnedPlayerName + " \x01is \x05GIANT")
         //Make sure it doesnt fire when giant first spawns
-        if (isIntermissionHappening || isBombMissionHappening) {
+        if (getSTTRoundState() == STATE_INTERMISSION || getSTTRoundState() == STATE_BOMB) {
             debugPrint("\x04First giant spawn. Do not wipe giant privileges")
             return
         }
@@ -392,7 +402,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 		local scope = player.GetScriptScope()
 
         //Set of checks for when a jerk disconnects during intermission
-        if(isIntermissionHappening) {
+        if(getSTTRoundState() == STATE_INTERMISSION) {
             debugPrint("\x0788BB88Some jerk disconnected during intermission")
 
             //If they were top 5, also remove them from the list
@@ -410,9 +420,8 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             }
             return
         }
-
-        //Failsafe for when a jerk disconnects while giant
-        if(isBombMissionHappening) {
+        else if(getSTTRoundState() == STATE_BOMB) {
+			//Failsafe for when a jerk disconnects while giant
             if (scope.isGiant) {
                 debugPrint("\x0788BB88Some jerk disconnected while carrying the bomb as a giant. Failsafe triggered.")
                 handleGiantDeath()

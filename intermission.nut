@@ -32,8 +32,7 @@
     
     //Tell path tracks to stop the hud train,
     //and timer to execute the proper function OnFinished 
-    isTankMissionHappening = false
-    isIntermissionHappening = true
+    setSTTRoundState(STATE_INTERMISSION)
 
     //Decide on which player gets giant privileges
     eligibleGiantPlayers.clear()
@@ -193,7 +192,7 @@
 
 ::stopTrainWatcherDummy <- function()
 {
-    if(isIntermissionHappening) {
+    if(getSttRoundState() == STATE_INTERMISSION) {
         debugPrint("Attempting to stop train dummy")
         setSpeedTank(0, true)
     }
