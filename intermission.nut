@@ -69,14 +69,9 @@
 
     debugPrint("\x01There are \x05" + playerScoreArrayTop.len() + " \x01top scoring players")
 
-
-
     foreach (playerIndex, score in playerScoreTable)
     {
-
-        local eligiblePlayerEnt = PlayerInstanceFromIndex(playerIndex)
-
-        local eligiblePlayerName = Convars.GetClientConvarValue("name", eligiblePlayerEnt.GetEntityIndex())
+        local eligiblePlayerName = Convars.GetClientConvarValue("name", playerIndex)
 
         debugPrint("\x01Iterating through \x0799CCFF" + eligiblePlayerName)
 
@@ -89,9 +84,6 @@
 
     //2s delay, then go do start prompting giant stuff
     EntFire("gamerules", "CallScriptFunction", "startGiantPickingProcess", 2)
-
-    //30s intermission, then go do giant stuff
-    EntFire("gamerules", "CallScriptFunction", "startGiantMode", INTERMISSION_LENGTH)
 }
 
 ::startGiantPickingProcess <- function()
