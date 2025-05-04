@@ -26,28 +26,28 @@
 //also need to be precached
 ::giantModels <-
 {
-	TF_CLASS_SCOUT = 
+	TF_CLASS_SCOUT = null,
 	TF_CLASS_SOLDIER = "models/bots/soldier_boss/bot_soldier_boss.mdl",
 	TF_CLASS_PYRO = "models/bots/pyro_boss/bot_pyro_boss.mdl",
 	TF_CLASS_DEMOMAN = "models/bots/demo_boss/bot_demo_boss.mdl",
 	TF_CLASS_HEAVYWEAPONS = "models/bots/heavy_boss/bot_heavy_boss.mdl",
-	TF_CLASS_ENGINEER
-	TF_CLASS_MEDIC
-	TF_CLASS_SNIPER
-	TF_CLASS_SPY
+	TF_CLASS_ENGINEER = null,
+	TF_CLASS_MEDIC = null,
+	TF_CLASS_SNIPER = null,
+	TF_CLASS_SPY = null
 }
 
 //these need to be precached
 ::giantSounds <- {
-	TF_CLASS_SCOUT = 
+	TF_CLASS_SCOUT = null,
 	TF_CLASS_SOLDIER = "vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3",
-	TF_CLASS_PYRO
-	TF_CLASS_DEMOMAN
+	TF_CLASS_PYRO = null,
+	TF_CLASS_DEMOMAN = null,
 	TF_CLASS_HEAVYWEAPONS = "vo/mvm/mght/heavy_mvm_m_battlecry01.mp3",
-	TF_CLASS_ENGINEER
-	TF_CLASS_MEDIC
-	TF_CLASS_SNIPER
-	TF_CLASS_SPY
+	TF_CLASS_ENGINEER = null,
+	TF_CLASS_MEDIC = null,
+	TF_CLASS_SNIPER = null,
+	TF_CLASS_SPY = null
 }
 
 local giantSoldier = {
