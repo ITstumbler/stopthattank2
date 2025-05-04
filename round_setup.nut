@@ -327,6 +327,14 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 		}
 	}
 
+    OnGameEvent_player_hurt = function(_) {
+		local player = GetPlayerFromUserID(params.userid)
+        
+        //Flash giants when shot during invuln phase
+        if (player.GetCustomAttribute("dmg taken increased", 1) != 0.001) return
+        player.AddCondEx(5, 0.5, null)
+	}
+
     OnGameEvent_player_spawn = function(params) {
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()

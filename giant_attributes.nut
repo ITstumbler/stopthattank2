@@ -26,15 +26,15 @@
 //also need to be precached
 ::giantModels <-
 {
-	TF_CLASS_SCOUT = null,
+	TF_CLASS_SCOUT = "models/bots/scout_boss/bot_scout_boss.mdl",
 	TF_CLASS_SOLDIER = "models/bots/soldier_boss/bot_soldier_boss.mdl",
 	TF_CLASS_PYRO = "models/bots/pyro_boss/bot_pyro_boss.mdl",
 	TF_CLASS_DEMOMAN = "models/bots/demo_boss/bot_demo_boss.mdl",
 	TF_CLASS_HEAVYWEAPONS = "models/bots/heavy_boss/bot_heavy_boss.mdl",
-	TF_CLASS_ENGINEER = null,
-	TF_CLASS_MEDIC = null,
-	TF_CLASS_SNIPER = null,
-	TF_CLASS_SPY = null
+	TF_CLASS_ENGINEER = "models/bots/engineer/bot_engineer.mdl",
+	TF_CLASS_MEDIC = "models/bots/medic/bot_medic.mdl",
+	TF_CLASS_SNIPER = "models/bots/sniper/bot_sniper.mdl",
+	TF_CLASS_SPY = "models/bots/spy/bot_spy.mdl"
 }
 
 //these need to be precached
@@ -181,5 +181,80 @@ local giantPyro = {
     meleeAttributes             = null
 }
 
+local giantRapidFireHuntsman = {
+	classId 					= TF_CLASS_SNIPER,
+	giantName                   = "Giant Rapid Fire Huntsman",
+	baseHealth                  = 10000.0
+	playerModel                 = giantModels[TF_CLASS_PYRO],
+	primaryWeaponID             = 56,
+	primaryWeaponClassName      = "tf_weapon_compound_bow",
+	secondaryWeaponID           = 58,
+	secondaryWeaponClassName    = "tf_weapon_jar",
+	meleeWeaponID               = 232,
+	meleeWeaponClassName        = "tf_weapon_club",
+	respawnOverride             = null,
+	playerInfo                  = "-Increased arrow damage and reload speed.\n-Carries 5 Jarates at once.\n-Bushwacka doesn't increase damage taken.",
+	introSound                  = giantSounds[TF_CLASS_SNIPER],	
+	playerAttributes =
+	{
+		"move speed bonus"                 : 0.5,
+		"override footstep sound set"      : 4.0,
+		"damage force increase"            : 2.2
+	},
+	primaryAttributes =
+	{
+		"faster reload rate"          		: 0.3,
+		"aiming movespeed increased"        : 1.3,
+		"dmg penalty vs buildings"          : 0.85
+	}
+    secondaryAttributes = 
+	{
+		"effect bar recharge rate increased"   	: 0.3,
+		"maxammo grenades1 increased"   		: 5.0,
+		"deploy time decreased"   				: 0.35,
+	},
+    meleeAttributes = 
+	{
+		"dmg taken increased"   	: 1.0
+	}
+}
+
+local majorLeagueScout = {
+	classId 					= TF_CLASS_SCOUT,
+	giantName                   = "Major League Scout",
+	baseHealth                  = 6000.0
+	playerModel                 = giantModels[TF_CLASS_SCOUT],
+	primaryWeaponID             = 200,
+	primaryWeaponClassName      = "tf_weapon_scattergun",
+	secondaryWeaponID           = null,
+	secondaryWeaponClassName    = null,
+	meleeWeaponID               = 190,
+	meleeWeaponClassName        = "tf_weapon_bat",
+	respawnOverride             = 0.1,
+	playerInfo                  = "-Moves faster than most giants.\n-Captures control points twice as fast.\n-Teammates respawn much faster.\n-Low health compared to most giants.",
+	introSound                  = giantSounds[TF_CLASS_SCOUT],	
+	playerAttributes =
+	{
+		"move speed bonus"                 : 0.75,
+		"override footstep sound set"      : 5.0,
+		"damage force increase"            : 2.2
+	},
+	primaryAttributes =
+	{
+		"damage bonus"          		: 1.35
+	}
+    secondaryAttributes = null,
+    meleeAttributes = 
+	{
+		"melee attack rate bonus"   	: 0.7,
+		"deploy time decreased"		   	: 0.35,
+		"crit mod disabled"			   	: 0.0
+	}
+}
+
 ::giantProperties[0] <- giantHeavy
 ::giantProperties[1] <- giantSoldier
+::giantProperties[2] <- giantRapidFireDemo
+::giantProperties[3] <- giantPyro
+::giantProperties[4] <- giantRapidFireHuntsman
+::giantProperties[5] <- majorLeagueScout

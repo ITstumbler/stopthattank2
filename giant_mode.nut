@@ -30,6 +30,23 @@
     bombFlag.AcceptInput("Enable", null, null, null)
     bombFlag.SetAbsOrigin(bombSpawnOrigin)
 
+    //Check which pleb has isBecomingGiant
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != TF_TEAM_BLUE) continue
+        if (!player.GetScriptScope().isBecomingGiant) continue
+        debugPrint("Attempting to make player index " + i + " a giant")
+        becomeGiant(i)
+        player.GetScriptScope().isBecomingGiant = false
+        break
+    }
+}
+
+//Called 0.15s before giant spawns via intermission.nut
+::pushPlayersNearGiantSpawnPoint <- function()
+{
     //Nearby players will take 1 damage and get pushed back before giant spawns
     local playersToPush = null
     while(playersToPush = Entities.FindByClassnameWithin(playersToPush, "player", bombSpawnOrigin, 256))
@@ -55,19 +72,6 @@
         // debugPrint("\x07FF2222Push power Y: " + pushPowerY)
 
         playersToPush.ApplyAbsVelocityImpulse(Vector(pushPowerX, pushPowerY, 375))
-    }
-
-    //Check which pleb has isBecomingGiant
-    for (local i = 1; i <= MaxPlayers ; i++)
-    {
-        local player = PlayerInstanceFromIndex(i)
-        if (player == null) continue
-        if (player.GetTeam() != TF_TEAM_BLUE) continue
-        if (!player.GetScriptScope().isBecomingGiant) continue
-        debugPrint("Attempting to make player index " + i + " a giant")
-        becomeGiant(i)
-        player.GetScriptScope().isBecomingGiant = false
-        break
     }
 }
 
@@ -126,7 +130,7 @@
     {
         debugPrint("\x07666666Player was engineer, destroy all previously owned buildings")
 		local buildingEnt = null
-		while(buildingEnt = Entities.FindByClassname(buildingEnt, "obj_*)) //this does allow sappers but engies don't own sappers
+		while(buildingEnt = Entities.FindByClassname(buildingEnt, "obj_*")) //this does allow sappers but engies don't own sappers
 		{
 			debugPrint("\x07666666Found a building!")
 			if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") == player) {
@@ -244,17 +248,11 @@
     //Everything here is delayed to ensure that they get called after the player teleport
     EntFireByHandle(player, "RunScriptCode", "self.SetForcedTauntCam(1)", -1, player, player)
     EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`SET BONUS: move speed set bonus`, 0.0001, GIANT_CAMERA_DURATION)", -1, player, player)
-    //EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`dmg taken increased`, 0.2, GIANT_CAMERA_DURATION)", -1, player, player)
-    //EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`health regen`, 10000, GIANT_CAMERA_DURATION)", -1, player, player)
+    EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`dmg taken increased`, 0.001, GIANT_CAMERA_DURATION)", -1, player, player)
+    EntFireByHandle(player, "RunScriptCode", "self.AddCustomAttribute(`health regen`, 10000, GIANT_CAMERA_DURATION)", -1, player, player)
 
     //Ok enough looking at yourself move it move it
     EntFireByHandle(player, "RunScriptCode", "self.SetForcedTauntCam(0)", GIANT_CAMERA_DURATION, player, player)
-
-    //Giant player becomes invulnerable when posing for awesomeness and a short duration after
-    //Delay is there to let giant pick up the bomb
-    //the dmg taken increased attribute a few lines above is the one actually giving invuln
-    //Cond 51 is mostly just there for visual confirmation so that blu players know why they arent doing damage
-    EntFireByHandle(player, "RunScriptCode", "self.AddCondEx(51, GIANT_CAMERA_INVULN_DURATION - 0.1, null)", 0.1, player, player)
 
     //STOP THE TIMER THE GIANT PLAYER IS FLEXING
     roundTimer.AcceptInput("Pause", null, null, null)
