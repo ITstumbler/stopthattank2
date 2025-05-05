@@ -16,7 +16,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::INTERMISSION_LENGTH               <- 30           //Time between tank dying and giant spawning. MUST be higher than 2 seconds. Avoid changing this since it lines up with cash expiring.
 ::BOMB_MISSION_LENGTH               <- 70          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT    <- 5            //Pick from the first x top performing players in scoreboard to be giant
-::GIANT_TYPES_AMOUNT                <- 2            //Pick first x giant templates to choose from
+::GIANT_TYPES_AMOUNT                <- 6            //Pick first x giant templates to choose from
 ::GIANT_SCALE                       <- 1.75         //Giant players will be scaled by this much
 ::INTERMISSION_ROLLBACK_SPEED       <- 400          //HUD tank rolls back during intermission - this determines its speed
 ::BOMB_CARRIER_CONDS                <- {            //Conditions to apply to non-giant players carrying the bomb. Value determines duration (-1: infinite)
@@ -175,7 +175,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 {
     debugPrint("\x05Call timer: \x01Executing a function")
 	switch(getSTTRoundState()) {
-		case STATE_TANK:
+		case STATE_PRESPAWN_TANK:
 			spawnTank()
 			debugPrint("\x05Call timer: \x01Spawning tank")
 			break;
@@ -222,6 +222,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
     roundTimer.GetScriptScope().currentRoundTime <- POST_SETUP_LENGTH
     AddThinkToEnt(roundTimer, null)
     AddThinkToEnt(roundTimer, "countdownThink")
+    setSTTRoundState(STATE_PRESPAWN_TANK)
 }
 
 //We manually count down our own timer because outputs like On5SecRemain are off by 1 second for some reason
@@ -373,10 +374,6 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         
         //Stop being giant
         scope.isGiant = false
-
-        //Reset hp
-        player.SetHealth(1)
-        player.Regenerate(false)
     }
 
     OnGameEvent_mvm_tank_destroyed_by_players = function(params) {

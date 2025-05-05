@@ -24,31 +24,30 @@
 
 //TODO: replace these with trigger hurt's models
 //also need to be precached
-::giantModels <-
-{
-	TF_CLASS_SCOUT = "models/bots/scout_boss/bot_scout_boss.mdl",
-	TF_CLASS_SOLDIER = "models/bots/soldier_boss/bot_soldier_boss.mdl",
-	TF_CLASS_PYRO = "models/bots/pyro_boss/bot_pyro_boss.mdl",
-	TF_CLASS_DEMOMAN = "models/bots/demo_boss/bot_demo_boss.mdl",
-	TF_CLASS_HEAVYWEAPONS = "models/bots/heavy_boss/bot_heavy_boss.mdl",
-	TF_CLASS_ENGINEER = "models/bots/engineer/bot_engineer.mdl",
-	TF_CLASS_MEDIC = "models/bots/medic/bot_medic.mdl",
-	TF_CLASS_SNIPER = "models/bots/sniper/bot_sniper.mdl",
-	TF_CLASS_SPY = "models/bots/spy/bot_spy.mdl"
-}
+::giantModels <- {}
+
+::giantModels[TF_CLASS_SCOUT] 			<- "models/bots/scout_boss/bot_scout_boss.mdl"
+::giantModels[TF_CLASS_SOLDIER] 		<- "models/bots/soldier_boss/bot_soldier_boss.mdl"
+::giantModels[TF_CLASS_PYRO] 			<- "models/bots/pyro_boss/bot_pyro_boss.mdl"
+::giantModels[TF_CLASS_DEMOMAN] 		<- "models/bots/demo_boss/bot_demo_boss.mdl"
+::giantModels[TF_CLASS_HEAVYWEAPONS] 	<- "models/bots/heavy_boss/bot_heavy_boss.mdl"
+::giantModels[TF_CLASS_ENGINEER] 		<- "models/bots/engineer/bot_engineer.mdl"
+::giantModels[TF_CLASS_MEDIC] 			<- "models/bots/medic/bot_medic.mdl"
+::giantModels[TF_CLASS_SNIPER] 			<- "models/bots/sniper/bot_sniper.mdl"
+::giantModels[TF_CLASS_SPY]		 		<- "models/bots/spy/bot_spy.mdl"
 
 //these need to be precached
-::giantSounds <- {
-	TF_CLASS_SCOUT = null,
-	TF_CLASS_SOLDIER = "vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3",
-	TF_CLASS_PYRO = null,
-	TF_CLASS_DEMOMAN = null,
-	TF_CLASS_HEAVYWEAPONS = "vo/mvm/mght/heavy_mvm_m_battlecry01.mp3",
-	TF_CLASS_ENGINEER = null,
-	TF_CLASS_MEDIC = null,
-	TF_CLASS_SNIPER = null,
-	TF_CLASS_SPY = null
-}
+::giantSounds <- {}
+::giantSounds[TF_CLASS_SCOUT] <- null
+::giantSounds[TF_CLASS_SOLDIER] <- "vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3"
+::giantSounds[TF_CLASS_PYRO] <- null
+::giantSounds[TF_CLASS_DEMOMAN] <- null
+::giantSounds[TF_CLASS_HEAVYWEAPONS] <- "vo/mvm/mght/heavy_mvm_m_battlecry01.mp3"
+::giantSounds[TF_CLASS_ENGINEER] <- null
+::giantSounds[TF_CLASS_MEDIC] <- null
+::giantSounds[TF_CLASS_SNIPER] <- null
+::giantSounds[TF_CLASS_SPY] <- null
+
 
 local giantSoldier = {
     classId                     = TF_CLASS_SOLDIER,
@@ -185,7 +184,7 @@ local giantRapidFireHuntsman = {
 	classId 					= TF_CLASS_SNIPER,
 	giantName                   = "Giant Rapid Fire Huntsman",
 	baseHealth                  = 10000.0
-	playerModel                 = giantModels[TF_CLASS_PYRO],
+	playerModel                 = giantModels[TF_CLASS_SNIPER],
 	primaryWeaponID             = 56,
 	primaryWeaponClassName      = "tf_weapon_compound_bow",
 	secondaryWeaponID           = 58,
@@ -252,6 +251,7 @@ local majorLeagueScout = {
 	}
 }
 
+//Remember to update GIANT_TYPES_AMOUNT in round_setup.nut
 ::giantProperties[0] <- giantHeavy
 ::giantProperties[1] <- giantSoldier
 ::giantProperties[2] <- giantRapidFireDemo

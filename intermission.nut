@@ -187,7 +187,7 @@
 
 ::stopTrainWatcherDummy <- function()
 {
-    if(getSttRoundState() == STATE_INTERMISSION) {
+    if(getSTTRoundState() == STATE_INTERMISSION) {
         debugPrint("Attempting to stop train dummy")
         setSpeedTank(0, true)
     }
