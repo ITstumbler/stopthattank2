@@ -230,39 +230,46 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 {
     roundTimer.ValidateScriptScope()
     local scope = roundTimer.GetScriptScope()
-    scope.currentRoundTime <- SETUP_LENGTH
+    // scope.currentRoundTime <- SETUP_LENGTH
+    // scope.countdownThink <- function()
+    // {
+    //     currentRoundTime--
+    //     switch(currentRoundTime) {
+    //         case 60:
+    //             playCountdownSound(60)
+    //             break
+    //         case 30:
+    //             playCountdownSound(30)
+    //             break
+    //         case 10:
+    //             playCountdownSound(10)
+    //             break
+    //         case 5:
+    //             playCountdownSound(5)
+    //             break
+    //         case 4:
+    //             playCountdownSound(4)
+    //             break
+    //         case 3:
+    //             playCountdownSound(3)
+    //             break
+    //         case 2:
+    //             playCountdownSound(2)
+    //             break
+    //         case 1:
+    //             playCountdownSound(1)
+    //             break
+    //         default:
+    //             break
+    //     }
+    //     return 1
+    // }
+    scope.timeRemaining <- NetProps.GetPropFloat(roundTimer, "m_flTimeRemaining")
     scope.countdownThink <- function()
     {
-        currentRoundTime--
-        switch(currentRoundTime) {
-            case 60:
-                playCountdownSound(60)
-                break
-            case 30:
-                playCountdownSound(30)
-                break
-            case 10:
-                playCountdownSound(10)
-                break
-            case 5:
-                playCountdownSound(5)
-                break
-            case 4:
-                playCountdownSound(4)
-                break
-            case 3:
-                playCountdownSound(3)
-                break
-            case 2:
-                playCountdownSound(2)
-                break
-            case 1:
-                playCountdownSound(1)
-                break
-            default:
-                break
-        }
-        return 1
+        timeRemaining = NetProps.GetPropFloat(roundTimer, "m_flTimeRemaining")
+        debugPrint("\x077700FFTime remaining: " + timeRemaining.tostring())
+        return -1
     }
     AddThinkToEnt(roundTimer, null)
     AddThinkToEnt(roundTimer, "countdownThink")
@@ -328,7 +335,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 		}
 	}
 
-    OnGameEvent_player_hurt = function(_) {
+    OnGameEvent_player_hurt = function(params) {
 		local player = GetPlayerFromUserID(params.userid)
         
         //Flash giants when shot during invuln phase
