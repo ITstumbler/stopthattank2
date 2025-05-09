@@ -89,6 +89,9 @@
 
         return
     }
+
+    //Remove the identifying bomb carrier cond - used by other map entities to identify bomb carrier
+    activator.RemoveCond(65)
     
     //Remove all bomb carrier conds
     foreach(condition, duration in BOMB_CARRIER_CONDS)

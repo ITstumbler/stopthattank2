@@ -30,6 +30,30 @@
     bombFlag.AcceptInput("Enable", null, null, null)
     bombFlag.SetAbsOrigin(bombSpawnOrigin)
 
+    //For every red pleb that wouldve been inside the giant somehow despite the push, forcefully shove them aside
+    local playersToShove = null
+    while(playersToShove = Entities.FindByClassnameWithin(playersToShove, "player", bombSpawnOrigin, 163))
+    {
+        //We don't shove blu team
+        if(playersToShove.GetTeam == TF_TEAM_BLUE) continue
+
+        local playerOrigin = playersToShove.GetOrigin()
+
+        //Get them out of the giant by forcefully setting their origin outside, similar to tanks
+        if(playerOrigin.x >= bombSpawnOrigin.x) {
+            playersToShove.SetAbsOrigin(Vector(bombSpawnOrigin.x + 135, playerOrigin.y, playerOrigin.z))
+        }
+        if(playerOrigin.x < bombSpawnOrigin.x) {
+            playersToShove.SetAbsOrigin(Vector(bombSpawnOrigin.x - 135, playerOrigin.y, playerOrigin.z))
+        }
+        if(playerOrigin.y >= bombSpawnOrigin.y) {
+            playersToShove.SetAbsOrigin(Vector(playerOrigin.x, bombSpawnOrigin.y + 135, playerOrigin.z))
+        }
+        if(playerOrigin.y < bombSpawnOrigin.y) {
+            playersToShove.SetAbsOrigin(Vector(playerOrigin.x, bombSpawnOrigin.y - 135, playerOrigin.z))
+        }
+    }
+
     //Check which pleb has isBecomingGiant
     for (local i = 1; i <= MaxPlayers ; i++)
     {
@@ -44,7 +68,7 @@
     }
 }
 
-//Called 0.15s before giant spawns via intermission.nut
+//Called 0.4s before giant spawns via intermission.nut
 ::pushPlayersNearGiantSpawnPoint <- function()
 {
     //Nearby players will take 1 damage and get pushed back before giant spawns

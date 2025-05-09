@@ -34,6 +34,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::GIANT_CAMERA_INVULN_DURATION      <- 5            //When a player becomes giant, they become invincible for this long
 ::BASE_GIANT_HEALING                <- 1            //Multiply ALL healing received by giant players by this much if player count is at BASE_GIANT_PLAYER_COUNT. Increased or decreased linearly if the amount of players on red is higher or lower than that.
 ::BASE_GIANT_PLAYER_COUNT           <- 12           //If there are this many players on red team, all giants have their base hp and all healing received is multiplied by BASE_GIANT_HEALING. Increased or decreased linearly if the amount of players on red is higher or lower than that.
+::GIANT_SPAWN_PUSH_FORCE            <- 375          //Players near giant robot spawn point will be pushed by this much force shortly before the giant spawns. What's the measurements? idk
 ::RED_TANK_RESPAWN_TIME             <- 0.1          //Sets red's respawn time, in seconds, while tank is active
 ::BLUE_TANK_RESPAWN_TIME            <- 3            //Sets blu's respawn time, in seconds, while tank is active
 ::RED_INTERMISSION_RESPAWN_TIME     <- 0.1          //Sets red's respawn time, in seconds, during intermission
@@ -90,6 +91,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 IncludeScript("stopthattank2/intermission.nut")
 IncludeScript("stopthattank2/bomb_deploy.nut")
 IncludeScript("stopthattank2/bomb.nut")
+IncludeScript("stopthattank2/bomb_ubers.nut")
 IncludeScript("stopthattank2/overtime_and_bomb_alarm.nut")
 IncludeScript("stopthattank2/tank_functions_callbacks.nut")
 IncludeScript("stopthattank2/crit_cash.nut")
@@ -228,47 +230,55 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 //We manually count down our own timer because outputs like On5SecRemain are off by 1 second for some reason
 ::startCountdownSounds <- function()
 {
+    //For some reasons onsetupstart is fired during waiting for players phase 
+    if(IsInWaitingForPlayers()) return
+
     roundTimer.ValidateScriptScope()
     local scope = roundTimer.GetScriptScope()
-    // scope.currentRoundTime <- SETUP_LENGTH
-    // scope.countdownThink <- function()
-    // {
-    //     currentRoundTime--
-    //     switch(currentRoundTime) {
-    //         case 60:
-    //             playCountdownSound(60)
-    //             break
-    //         case 30:
-    //             playCountdownSound(30)
-    //             break
-    //         case 10:
-    //             playCountdownSound(10)
-    //             break
-    //         case 5:
-    //             playCountdownSound(5)
-    //             break
-    //         case 4:
-    //             playCountdownSound(4)
-    //             break
-    //         case 3:
-    //             playCountdownSound(3)
-    //             break
-    //         case 2:
-    //             playCountdownSound(2)
-    //             break
-    //         case 1:
-    //             playCountdownSound(1)
-    //             break
-    //         default:
-    //             break
-    //     }
-    //     return 1
-    // }
-    scope.timeRemaining <- NetProps.GetPropFloat(roundTimer, "m_flTimeRemaining")
+    scope.endTime <- NetProps.GetPropFloat(roundTimer, "m_flTimerEndTime")
+    scope.prevEndTime <- 99999
     scope.countdownThink <- function()
     {
-        timeRemaining = NetProps.GetPropFloat(roundTimer, "m_flTimeRemaining")
-        debugPrint("\x077700FFTime remaining: " + timeRemaining.tostring())
+        endTime = NetProps.GetPropFloat(roundTimer, "m_flTimerEndTime")
+
+        //Change fl time to i time, these don't tend to be ints
+        local realEndTime = floor(endTime - Time())
+
+        //Detect whenever the integer changes
+        if(realEndTime != prevEndTime) {
+            switch(realEndTime) {
+                case 60:
+                    playCountdownSound(60)
+                    break
+                case 30:
+                    playCountdownSound(30)
+                    break
+                case 10:
+                    playCountdownSound(10)
+                    break
+                case 5:
+                    playCountdownSound(5)
+                    break
+                case 4:
+                    playCountdownSound(4)
+                    break
+                case 3:
+                    playCountdownSound(3)
+                    break
+                case 2:
+                    playCountdownSound(2)
+                    break
+                case 1:
+                    playCountdownSound(1)
+                    break
+                default:
+                    break
+            }
+        }
+
+        prevEndTime = realEndTime
+
+        // debugPrint("\x077700FFTime remaining: " + realEndTime.tostring())
         return -1
     }
     AddThinkToEnt(roundTimer, null)
@@ -355,9 +365,33 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 			scope = player.GetScriptScope()
 			scope.isGiant <- false
 			scope.isBecomingGiant <- false
+            scope.isCarryingBombInAlarmZone <- false
 		}
 
+        //Blu medics with stock medi gun: add a think to make bomb carriers compatible with uber
+        //Find this function in bomb_ubers.nut
+        if(params.team == TF_TEAM_BLUE && player.GetPlayerClass() == TF_CLASS_MEDIC && !scope.isGiant) addBombUberThink(player)
+
         local spawnedPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
+
+        //Set of checks for when a blu jerk swaps to red team when prompted to be giant
+        if(getSTTRoundState() == STATE_INTERMISSION && params.team == TF_TEAM_RED) {
+            debugPrint("\x0788BB88Someone spawned on red during intermission")
+
+            //If they were top 5, also remove them from the list
+            //The player that rejected might not be in top 5 because top 5 all rejected already
+            if(player.GetEntityIndex() in eligibleGiantPlayers)
+            {
+                debugPrint("\x0788BB88They were eligible to be giant, handling leaving case")
+                delete eligibleGiantPlayers[player.GetEntityIndex()]
+            }
+
+            //Player disconnected when they were prompted to be giant, so toss it to someone else
+            if (scope.isBecomingGiant) {
+                debugPrint("\x0788BB88They were prompted to be giant, handling leaving case")
+                pickRandomPlayerToBeGiant(eligibleGiantPlayers)
+            }
+        }
 
         if (!scope.isGiant) {
             debugPrint("\x01Spawned player \x0799CCFF" + spawnedPlayerName + " \x01is not giant")
@@ -421,13 +455,13 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             //The player that rejected might not be in top 5 because top 5 all rejected already
             if(player.GetEntityIndex() in eligibleGiantPlayers)
             {
-                debugPrint("\x0788BB88They were eligible to be giant")
+                debugPrint("\x0788BB88They were eligible to be giant, handling leaving case")
                 delete eligibleGiantPlayers[player.GetEntityIndex()]
             }
 
             //Player disconnected when they were prompted to be giant, so toss it to someone else
             if (scope.isBecomingGiant) {
-                debugPrint("\x0788BB88They were prompted to be giant")
+                debugPrint("\x0788BB88They were prompted to be giant, handling leaving case")
                 pickRandomPlayerToBeGiant(eligibleGiantPlayers)
             }
             return

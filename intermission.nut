@@ -27,7 +27,7 @@
     EntFire("gamerules", "CallScriptFunction", "rollbackTrainWatcherDummy", 0.1)
 
     //Push players away from giant spawn point shortly before the giant comes in
-    EntFire("gamerules", "CallScriptFunction", "pushPlayersNearGiantSpawnPoint", INTERMISSION_LENGTH - 0.15)
+    // EntFire("gamerules", "CallScriptFunction", "pushPlayersNearGiantSpawnPoint", INTERMISSION_LENGTH - 0.4)
     
     //Update team respawn times
     gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_INTERMISSION_RESPAWN_TIME.tostring(), null, null)
