@@ -368,6 +368,9 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
             scope.isCarryingBombInAlarmZone <- false
 		}
 
+        //Reset status
+        scope.isCarryingBombInAlarmZone = false
+
         //Blu medics with stock medi gun: add a think to make bomb carriers compatible with uber
         //Find this function in bomb_ubers.nut
         if(params.team == TF_TEAM_BLUE && player.GetPlayerClass() == TF_CLASS_MEDIC && !scope.isGiant) addBombUberThink(player)

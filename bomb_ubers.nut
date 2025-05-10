@@ -6,6 +6,10 @@
 
     scope.uberedBombCarrier <- null
     scope.lastBombUberTime <- null
+
+    scope.medigun <- null
+    scope.isUbercharged <- false
+
     scope.bombUberThink <- function()
     {
         //Remove think on death
@@ -16,7 +20,7 @@
 
         //Don't think if the bomb is not out yet
         if(getSTTRoundState() != STATE_BOMB) {
-            debugPrint("\x04Not bomb round, don't do anything")
+            // debugPrint("\x04Not bomb round, don't do anything")
             return -1
         }
 
@@ -27,23 +31,47 @@
             if(healTarget.GetScriptScope().isCarryingBombInAlarmZone)
             {
                 healTarget.RemoveCond(57)
-                ClientPrint(medic, 1, "Bomb carriers cannot be Ubercharged near hatch")
-                ClientPrint(healTarget, 1, "Bomb carriers cannot be Ubercharged near hatch")
+                healTarget.RemoveCond(8)
+                ClientPrint(medic, 4, "Bomb carriers cannot be Ubercharged near hatch")
+                ClientPrint(healTarget, 4, "Bomb carriers cannot be Ubercharged near hatch")
                 return -1
             }
         }
 
+        for(local i = 0; i < NetProps.GetPropArraySize(self, "m_hMyWeapons"); i++) {
+            local wep = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i)
+        
+            if(wep && wep.GetClassname() == "tf_weapon_medigun") {
+                scope.medigun = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i);
+                break;
+            }
+        }
+
+        isUbercharged = NetProps.GetPropBool(medigun, "m_bChargeRelease") && self.InCond(5)
+
         //If medic is not ubered, or not healing anyone, or healing someone else other than bomb carrier,
         //make sure the bomb carrier isnt ubered if we have ubered them before
-        if(healTarget == null || !self.InCond(5)) {
-            debugPrint("\x04Medic is not healing, or not ubercharged")
+        if(healTarget != null && !isUbercharged) {
+            //debugPrint("\x04Medic is not healing, or not ubercharged")
             //If heal target doesnt have bomb, no special treatment needed, but...
             //If they WERE the bomb carrier, and dropped the bomb while ubered, forget them as the ubered bomb carrier
             if(!healTarget.HasItem()) {
-                debugPrint("\x04Heal target does not have bomb")
-                if(healTarget == uberedBombCarrier) uberedBombCarrier = null
+                //debugPrint("\x04Heal target does not have bomb")
+                //If they were a giant, refuse to get ubercharged until they picked up the bomb again
+                if(healTarget.GetScriptScope().isGiant) {
+                    uberedBombCarrier.RemoveCond(5)
+                }
+                if(healTarget == uberedBombCarrier) {
+                    uberedBombCarrier.RemoveCond(57)
+                    uberedBombCarrier.RemoveCond(8)
+                    uberedBombCarrier = null
+                } 
+                
                 return -1
             }
+        }
+
+        if(healTarget == null || !isUbercharged) {
             if(uberedBombCarrier == null) return -1
             
             //Remember when the uber beam was disconnected
@@ -63,14 +91,15 @@
 
             return -1
         }
+        
 
-        debugPrint("\x04Checking if ubered bomb carrier is null")
+        //debugPrint("\x04Checking if ubered bomb carrier is null")
         if(uberedBombCarrier == null) {
-            debugPrint("\x04Doing stuff to uber bomb carrier")
+            //debugPrint("\x04Doing stuff to uber bomb carrier")
             //If bomb carrier is currently near hatch, say no 
             if(healTarget.GetScriptScope().isCarryingBombInAlarmZone) {
-                ClientPrint(medic, 1, "Bomb carriers cannot be Ubercharged near hatch")
-                ClientPrint(healTarget, 1, "Bomb carriers cannot be Ubercharged near hatch")
+                ClientPrint(medic, 4, "Bomb carriers cannot be Ubercharged near hatch")
+                ClientPrint(healTarget, 4, "Bomb carriers cannot be Ubercharged near hatch")
                 return -1
             }
             //Bomb carriers normally can't get ubered, so we forcefully make them shiny
