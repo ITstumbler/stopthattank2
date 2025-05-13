@@ -52,6 +52,20 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                         [TF_COND_HALLOWEEN_QUICK_HEAL]      = 3
                                        }
 ::PROJECTILE_SHIELD_LENGTH          <- 10           //In seconds, the length red medics get projectile shield for when picking up cash
+::WEARABLE_IDS_TO_REMOVE            <-  {           //Weapons like razorback, booties etc. need to be removed manually when a player becomes giant. This determines the list of weapons to remove manually.
+                                            1101 = null, //BASE Jumper
+                                            444 = null, //Mantreads
+                                            133 = null, //Gunboats
+                                            131 = null, //Chargin' Targe
+                                            406 = null, //Splendid Screen
+                                            1099 = null, //Tide Turner
+                                            405 = null, //Ali Baba's Wee Booties
+                                            608 = null, //The Bootlegger
+                                            57 = null, //Razorback
+                                            231 = null, //Darwin's Danger Shield
+                                            642 = null, //Cozy Camper
+                                            1144 = null //Festive Targe
+                                        }
 
 //round states
 ::STATE_SETUP <- 0
@@ -212,6 +226,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 				player.RemoveCustomAttribute("max health additive bonus")
 				break
 			}
+            AddThinkToEnt(roundTimer, null)
 			break;
 		default:
 			break;

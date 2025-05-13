@@ -31,7 +31,7 @@
     SetMannVsMachineAlarmStatus(false)
     debugPrint("\x07CCFFAAStopping hatch alarm, disallowing overtime")
 
-    //For god knows why the activator for stop touch is the flagdetectionzone itself and not the player for god knows why
+    //For god knows why the activator for stop touch is the flagdetectionzone itself and not the player
     for (local i = 1; i <= MaxPlayers ; i++)
     {
         local player = PlayerInstanceFromIndex(i)

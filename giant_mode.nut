@@ -66,6 +66,19 @@
         player.GetScriptScope().isBecomingGiant = false
         break
     }
+
+    //Add special bomb uber thinks for blu medics that let them uber bomb carriers
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != TF_TEAM_BLUE) continue
+        if (player.GetPlayerClass() != TF_CLASS_MEDIC) continue
+        
+        addBombUberThink(player)
+        
+        break
+    }
 }
 
 //Called 0.4s before giant spawns via intermission.nut
@@ -145,6 +158,21 @@
     return weapon
 }
 
+//Internally, weapons like Razorback, Splendid Screen etc. are cosmetics with stats and not "weapons"
+//they need to be removed manually
+::removeWeaponWearables <- function(player)
+{
+    for (local wearable = player.FirstMoveChild(); wearable != null; wearable = wearable.NextMovePeer())
+    {
+        local itemId = NetProps.GetPropInt(wearable, "m_AttributeManager.m_Item.m_iItemDefinitionIndex")
+
+        //Check if item ID is no good, like Razorback
+        if(itemId not in WEARABLE_IDS_TO_REMOVE) continue
+
+        wearable.Destroy()
+    }
+}
+
 ::becomeGiant <- function(playerIndex)
 {
     local player = PlayerInstanceFromIndex(playerIndex)
@@ -210,6 +238,9 @@
     player.SetModelScale(GIANT_SCALE, 0)
     player.SetCustomModelWithClassAnimations(giantSpecifics.playerModel)
     player.AddCond(130)
+
+    //Remove weapon wearables such as Razorback
+    removeWeaponWearables(player)
 
     //Give player the giant's weapons and weapon attributes
     //These functions are separated and delayed to ensure that the players' default weapons don't override
@@ -317,6 +348,41 @@
 
         player.AddCustomAttribute("cannot pick up intelligence", 1, -1)
     }
+
+    //A bunch of think funcs, see the function below for the list of things it does
+    addGiantThink(player)
+
+    if(giantProperties[chosenGiantThisRound].conds != null)
+    {
+        foreach(condId in giantProperties[chosenGiantThisRound].conds)
+        {
+            player.AddCondEx(condId, -1, null)
+        }
+    }
+}
+
+::addGiantThink <- function(player)
+{
+    local scope = player.GetScriptScope()
+    scope.giantThink <- function()
+    {
+        //Delete nearby dropped weapons to ensure giants can never pick one up
+        local droppedWeapon = null
+        while(droppedWeapon = Entities.FindByClassnameWithin(droppedWeapon, "tf_dropped_weapon", player.GetOrigin(), 256)) //this does allow sappers but engies don't own sappers
+        {
+            droppedWeapon.Kill()
+        }
+
+        //If giant does not have bomb, and is not ubered, teleport the bomb back to them
+        if(!self.HasItem() && !self.InCond(5))
+        {
+            bombFlag.SetAbsOrigin(self.GetOrigin())
+        }
+
+        return -1
+    }
+    AddThinkToEnt(player, null)
+    AddThinkToEnt(player, "giantThink")
 }
 
 ::handleGiantDeath <- function()

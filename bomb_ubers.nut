@@ -26,8 +26,17 @@
 
         local healTarget = self.GetHealTarget()
 
-        //If ubered target gets near hatch, say no
+        for(local i = 0; i < NetProps.GetPropArraySize(self, "m_hMyWeapons"); i++) {
+            local wep = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i)
+        
+            if(wep && wep.GetClassname() == "tf_weapon_medigun") {
+                scope.medigun = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i);
+                break;
+            }
+        }
+        
         if(healTarget != null) {
+            //If ubered target gets near hatch, say no
             if(healTarget.GetScriptScope().isCarryingBombInAlarmZone)
             {
                 healTarget.RemoveCond(57)
@@ -36,14 +45,14 @@
                 ClientPrint(healTarget, 4, "Bomb carriers cannot be Ubercharged near hatch")
                 return -1
             }
-        }
-
-        for(local i = 0; i < NetProps.GetPropArraySize(self, "m_hMyWeapons"); i++) {
-            local wep = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i)
-        
-            if(wep && wep.GetClassname() == "tf_weapon_medigun") {
-                scope.medigun = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i);
-                break;
+            //If ubered target is a giant without a bomb (because dropped while ubered), disconnect the heal beam so that the giant can pick it up
+            if(!healTarget.HasItem() && healTarget.GetScriptScope().isGiant) {
+                // debugPrint("\x07FF2222GIANT WITHOUT BOMB IS BEING HEALED, DISCONNECTING BEAM RN")
+                if(medigun.IsValid()) {
+                    NetProps.SetPropEntity(medigun, "m_hHealingTarget", null);
+                    healTarget.RemoveCondEx(5, true)
+                }
+                return -1
             }
         }
 
@@ -58,7 +67,7 @@
             if(!healTarget.HasItem()) {
                 //debugPrint("\x04Heal target does not have bomb")
                 //If they were a giant, refuse to get ubercharged until they picked up the bomb again
-                if(healTarget.GetScriptScope().isGiant) {
+                if(healTarget.GetScriptScope().isGiant && uberedBombCarrier != null) {
                     uberedBombCarrier.RemoveCond(5)
                 }
                 if(healTarget == uberedBombCarrier) {

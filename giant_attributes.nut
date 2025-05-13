@@ -49,7 +49,7 @@
 ::giantSounds[TF_CLASS_SPY] <- null
 
 
-local giantSoldier = {
+local giantSoldier = { //TODO: Use giant attack sounds
     classId                     = TF_CLASS_SOLDIER,
     giantName                   = "Giant Soldier",
     baseHealth                  = 10000.0,
@@ -61,6 +61,7 @@ local giantSoldier = {
     meleeWeaponID               = 196,
     meleeWeaponClassName        = "tf_weapon_shovel",
     respawnOverride             = null, //If not null, sets blue respawn time to this number
+	conds						= null,
     playerInfo                  = "-Increased explosion damage and radius.\n-Moves slower than most giants.",
     introSound                  = giantSounds[TF_CLASS_SOLDIER],
     playerAttributes            =
@@ -79,7 +80,7 @@ local giantSoldier = {
     meleeAttributes             = null
 }
 
-local giantHeavy = {
+local giantHeavy = { //TODO: Custom minigun spin sounds
     classId                     = TF_CLASS_HEAVYWEAPONS,
     giantName                   = "Giant Heavy",
     baseHealth                  = 10000.0,
@@ -91,6 +92,7 @@ local giantHeavy = {
     meleeWeaponID               = 5,
     meleeWeaponClassName        = "tf_weapon_fists",
     respawnOverride             = null, //If not null, sets blue respawn time to this number
+	conds						= null, //If not null, list of conds to permanently apply to the giant
     playerInfo                  = "-Minigun deals +60% more damage.\n-Moves slower than any other giant while attacking.",
     introSound                  = giantSounds[TF_CLASS_HEAVYWEAPONS],
     playerAttributes            =
@@ -111,7 +113,7 @@ local giantHeavy = {
     meleeAttributes             = null
 }
 
-local giantRapidFireDemo = {
+local giantRapidFireDemo = { //TODO: Use giant attack sounds
 	classId 					= TF_CLASS_DEMOMAN,
 	giantName                   = "Giant Rapid Fire Demoman",
 	baseHealth                  = 10000.0
@@ -123,6 +125,7 @@ local giantRapidFireDemo = {
 	meleeWeaponID               = 1,
 	meleeWeaponClassName        = "tf_weapon_bottle",
 	respawnOverride             = null,
+	conds						= null,
 	playerInfo                  = "-Shoots and reloads grenades rapidly.\n-Moves slower than most giants.",
 	introSound                  = giantSounds[TF_CLASS_DEMOMAN],	
 	playerAttributes =
@@ -143,7 +146,7 @@ local giantRapidFireDemo = {
     meleeAttributes             = null
 }
 
-local giantPyro = {
+local giantPyro = { //TODO: Use giant attack sounds
 	classId 					= TF_CLASS_PYRO,
 	giantName                   = "Giant Pyro",
 	baseHealth                  = 10000.0
@@ -155,6 +158,7 @@ local giantPyro = {
 	meleeWeaponID               = 192,
 	meleeWeaponClassName        = "tf_weapon_fireaxe",
 	respawnOverride             = null,
+	conds						= null,
 	playerInfo                  = "-Increased direct flame damage and range.\n-Equipped with a high damage Flare Gun.\n-Reflected projectiles turn into crits.",
 	introSound                  = giantSounds[TF_CLASS_PYRO],	
 	playerAttributes =
@@ -180,7 +184,7 @@ local giantPyro = {
     meleeAttributes             = null
 }
 
-local giantRapidFireHuntsman = {
+local giantRapidFireHuntsman = { //TODO: make this guy spawn with 5 jarates
 	classId 					= TF_CLASS_SNIPER,
 	giantName                   = "Giant Rapid Fire Huntsman",
 	baseHealth                  = 10000.0
@@ -192,7 +196,8 @@ local giantRapidFireHuntsman = {
 	meleeWeaponID               = 232,
 	meleeWeaponClassName        = "tf_weapon_club",
 	respawnOverride             = null,
-	playerInfo                  = "-Increased arrow damage and reload speed.\n-Carries 5 Jarates at once.\n-Bushwacka doesn't increase damage taken.",
+	conds						= null,
+	playerInfo                  = "-Increased arrow damage and reload speed.\n-Can recharge and store up to 5 Jarates at once.\n-Bushwacka doesn't increase damage taken.",
 	introSound                  = giantSounds[TF_CLASS_SNIPER],	
 	playerAttributes =
 	{
@@ -230,6 +235,7 @@ local majorLeagueScout = {
 	meleeWeaponID               = 190,
 	meleeWeaponClassName        = "tf_weapon_bat",
 	respawnOverride             = 0.1,
+	conds						= null,
 	playerInfo                  = "-Moves faster than most giants.\n-Captures control points twice as fast.\n-Teammates respawn much faster.\n-Low health compared to most giants.",
 	introSound                  = giantSounds[TF_CLASS_SCOUT],	
 	playerAttributes =
@@ -251,6 +257,161 @@ local majorLeagueScout = {
 	}
 }
 
+local giantDemoknight = {
+	classId 					= TF_CLASS_DEMOMAN,
+	giantName                   = "Giant Demoknight",
+	baseHealth                  = 10000.0
+	playerModel                 = giantModels[TF_CLASS_DEMOMAN],
+	primaryWeaponID             = null,
+	primaryWeaponClassName      = null,
+	secondaryWeaponID           = 131,
+	secondaryWeaponClassName    = "tf_wearable_demoshield",
+	meleeWeaponID               = 132,
+	meleeWeaponClassName        = "tf_weapon_sword",
+	respawnOverride             = null,
+	conds						= null,
+	playerInfo                  = "-Gains crits and health on every kill.\n-Full turning control while charging.\n-Melee damage and range increased.\n-Resistant to explosive and fire damage.",
+	introSound                  = giantSounds[TF_CLASS_DEMOMAN],	
+	playerAttributes =
+	{
+		"move speed bonus"                 : 0.5,
+		"override footstep sound set"      : 4.0,
+		"damage force increase"            : 2.0
+	},
+	primaryAttributes = null,
+    secondaryAttributes = 
+	{
+		"charge recharge rate increased"   	: 1.25,
+		"full charge turn control"	   		: 50.0,
+		"charge impact damage increased"	: 2.0
+	},
+    meleeAttributes = 
+	{
+		"melee attack rate bonus"   	: 0.8,
+		"melee range multiplier"	   	: 1.5,
+		"critboost on kill"			   	: 3.0,
+		"damage bonus"			   		: 2.4,
+		"charge time increased"			: 0.5,
+		"heal on kill"					: 200.0,
+		"decapitate type"				: 0.0
+	}
+}
+
+local giant10ShotBazookaSoldier = {
+	classId 					= TF_CLASS_SOLDIER,
+	giantName                   = "Giant 10-shot Bazooka Soldier",
+	baseHealth                  = 10000.0
+	playerModel                 = giantModels[TF_CLASS_SOLDIER],
+	primaryWeaponID             = 730,
+	primaryWeaponClassName      = "tf_weapon_rocketlauncher",
+	secondaryWeaponID           = null,
+	secondaryWeaponClassName    = null,
+	meleeWeaponID               = 196,
+	meleeWeaponClassName        = "tf_weapon_shovel",
+	respawnOverride             = null,
+	conds						= null,
+	playerInfo                  = "-Loads up to 10 rockets rapidly.\n-Cannot overload.\n-6 degrees in random projectile deviation.",
+	introSound                  = giantSounds[TF_CLASS_SOLDIER],	
+	playerAttributes =
+	{
+		"move speed bonus"                 : 0.42,
+		"override footstep sound set"      : 3.0,
+		"damage force increase"            : 2.2
+	},
+	primaryAttributes = 
+	{
+		"crit mod disabled"   				: 0.0,
+		"clip size upgrade atomic"	   		: 7.0,
+		"damage penalty"					: 0.6,
+		"projectile spread angle penalty"	: 6.0,
+		"faster reload rate"				: 0.2,
+		"fire rate bonus"					: 0.2,
+		"can overload"						: 0.0,
+		"maxammo primary increased"			: 5.0,
+		"blast radius decreased"			: 1.0,
+		"blast dmg to self increased"		: 0.65
+	},
+    secondaryAttributes = null,	
+    meleeAttributes = null
+}
+
+local giantShotgunHeavy = {
+	classId 					= TF_CLASS_HEAVYWEAPONS,
+	giantName                   = "Giant Shotgun Heavy",
+	baseHealth                  = 10000.0
+	playerModel                 = giantModels[TF_CLASS_HEAVYWEAPONS],
+	primaryWeaponID             = null,
+	primaryWeaponClassName      = null,
+	secondaryWeaponID           = 199,
+	secondaryWeaponClassName    = "tf_weapon_shotgun",
+	meleeWeaponID               = 43,
+	meleeWeaponClassName        = "tf_weapon_fists",
+	respawnOverride             = null,
+	conds						= null,
+	playerInfo                  = "-Can one-shot almost every enemy in close range.\n-Melee weapon gives crits for 7s on kill.\n-Weak at longer ranges.",
+	introSound                  = giantSounds[TF_CLASS_HEAVYWEAPONS],	
+	playerAttributes =
+	{
+		"move speed bonus"                 : 0.61,
+		"override footstep sound set"      : 2.0,
+		"damage force increase"            : 2.2
+	},
+	primaryAttributes = null,
+    secondaryAttributes = 
+	{
+		"fire rate penalty"   				: 2.3,
+		"bullets per shot bonus"   			: 10.0,
+		"damage penalty"	   				: 0.5,
+		"faster reload rate"   				: 0.1,
+		"crit mod disabled"   				: 0.0
+	},	
+    meleeAttributes = 
+	{
+		"critboost on kill"   				: 7.0,
+		"melee range multiplier"   			: 1.5,
+		"melee attack rate bonus"   		: 0.65,
+		"deploy time decreased"   			: 0.35,
+		"crit mod disabled"   				: 0.0
+	}
+}
+
+local sirNukesalot = { //TODO: Use giant attack sounds
+	classId 					= TF_CLASS_DEMOMAN,
+	giantName                   = "Sir Nukesalot",
+	baseHealth                  = 10000.0
+	playerModel                 = giantModels[TF_CLASS_DEMOMAN],
+	primaryWeaponID             = 996,
+	primaryWeaponClassName      = "tf_weapon_cannon",
+	secondaryWeaponID           = null,
+	secondaryWeaponClassName    = null,
+	meleeWeaponID               = 1,
+	meleeWeaponClassName        = "tf_weapon_bottle",
+	respawnOverride             = null,
+	conds						= [44],
+	playerInfo                  = "-Can clear large groups of enemies with a single shot.\n-Explosions can be used as a smoke screen for your team.\n-Vulnerable in close range combat.",
+	introSound                  = giantSounds[TF_CLASS_DEMOMAN],	
+	playerAttributes =
+	{
+		"move speed bonus"            : 0.43,
+		"override footstep sound set" : 4.0,
+		"damage force increase"       : 2.2
+	},
+	primaryAttributes =
+	{
+		"grenade launcher mortar mode"          : 0.0,
+		"Projectile speed increased"            : 1.5,
+		"Reload time increased"    				: 1.8,
+		"fire rate penalty"   					: 2.0,
+		"clip size penalty"           			: 0.25,
+		"Projectile speed decreased"           	: 0.53333,
+		"damage bonus"           				: 100.0,
+		"damage causes airblast"           		: 1.0,
+		"blast radius increased"           		: 2.0,
+		"use large smoke explosion"           	: 1.0
+	}
+    secondaryAttributes         = null,
+    meleeAttributes             = null
+}
 //Remember to update GIANT_TYPES_AMOUNT in round_setup.nut
 ::giantProperties[0] <- giantHeavy
 ::giantProperties[1] <- giantSoldier
@@ -258,3 +419,7 @@ local majorLeagueScout = {
 ::giantProperties[3] <- giantPyro
 ::giantProperties[4] <- giantRapidFireHuntsman
 ::giantProperties[5] <- majorLeagueScout
+::giantProperties[6] <- giantDemoknight
+::giantProperties[7] <- giant10ShotBazookaSoldier
+::giantProperties[8] <- giantShotgunHeavy
+::giantProperties[9] <- sirNukesalot
