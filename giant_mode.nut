@@ -41,16 +41,16 @@
 
         //Get them out of the giant by forcefully setting their origin outside, similar to tanks
         if(playerOrigin.x >= bombSpawnOrigin.x) {
-            playersToShove.SetAbsOrigin(Vector(bombSpawnOrigin.x + 135, playerOrigin.y, playerOrigin.z))
+            playersToShove.SetAbsOrigin(Vector(bombSpawnOrigin.x + 69, playerOrigin.y, playerOrigin.z))
         }
         if(playerOrigin.x < bombSpawnOrigin.x) {
-            playersToShove.SetAbsOrigin(Vector(bombSpawnOrigin.x - 135, playerOrigin.y, playerOrigin.z))
+            playersToShove.SetAbsOrigin(Vector(bombSpawnOrigin.x - 69, playerOrigin.y, playerOrigin.z))
         }
         if(playerOrigin.y >= bombSpawnOrigin.y) {
-            playersToShove.SetAbsOrigin(Vector(playerOrigin.x, bombSpawnOrigin.y + 135, playerOrigin.z))
+            playersToShove.SetAbsOrigin(Vector(playerOrigin.x, bombSpawnOrigin.y + 69, playerOrigin.z))
         }
         if(playerOrigin.y < bombSpawnOrigin.y) {
-            playersToShove.SetAbsOrigin(Vector(playerOrigin.x, bombSpawnOrigin.y - 135, playerOrigin.z))
+            playersToShove.SetAbsOrigin(Vector(playerOrigin.x, bombSpawnOrigin.y - 69, playerOrigin.z))
         }
     }
 
@@ -166,10 +166,11 @@
     {
         local itemId = NetProps.GetPropInt(wearable, "m_AttributeManager.m_Item.m_iItemDefinitionIndex")
 
+        if(wearable == null) continue
         //Check if item ID is no good, like Razorback
-        if(itemId not in WEARABLE_IDS_TO_REMOVE) continue
+        if(!(itemId in WEARABLE_IDS_TO_REMOVE)) continue
 
-        wearable.Destroy()
+        if(wearable.IsValid()) wearable.Destroy()
     }
 }
 
@@ -240,7 +241,7 @@
     player.AddCond(130)
 
     //Remove weapon wearables such as Razorback
-    removeWeaponWearables(player)
+    EntFireByHandle(player, "RunScriptCode", "removeWeaponWearables(self)", 0.5, player, player)
 
     //Give player the giant's weapons and weapon attributes
     //These functions are separated and delayed to ensure that the players' default weapons don't override
@@ -366,6 +367,13 @@
     local scope = player.GetScriptScope()
     scope.giantThink <- function()
     {
+        //Remove think on death
+        if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
+            AddThinkToEnt(self, null)
+            NetProps.SetPropString(self, "m_iszScriptThinkFunction", "")
+            return -1
+        }
+
         //Delete nearby dropped weapons to ensure giants can never pick one up
         local droppedWeapon = null
         while(droppedWeapon = Entities.FindByClassnameWithin(droppedWeapon, "tf_dropped_weapon", player.GetOrigin(), 256)) //this does allow sappers but engies don't own sappers

@@ -343,7 +343,7 @@ local giantShotgunHeavy = {
 	primaryWeaponID             = null,
 	primaryWeaponClassName      = null,
 	secondaryWeaponID           = 199,
-	secondaryWeaponClassName    = "tf_weapon_shotgun",
+	secondaryWeaponClassName    = "tf_weapon_shotgun_hwg",
 	meleeWeaponID               = 43,
 	meleeWeaponClassName        = "tf_weapon_fists",
 	respawnOverride             = null,
@@ -399,11 +399,10 @@ local sirNukesalot = { //TODO: Use giant attack sounds
 	primaryAttributes =
 	{
 		"grenade launcher mortar mode"          : 0.0,
-		"Projectile speed increased"            : 1.5,
+		"Projectile speed increased"            : 0.8,
 		"Reload time increased"    				: 1.8,
 		"fire rate penalty"   					: 2.0,
 		"clip size penalty"           			: 0.25,
-		"Projectile speed decreased"           	: 0.53333,
 		"damage bonus"           				: 100.0,
 		"damage causes airblast"           		: 1.0,
 		"blast radius increased"           		: 2.0,

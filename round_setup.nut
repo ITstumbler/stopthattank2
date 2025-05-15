@@ -16,7 +16,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::INTERMISSION_LENGTH               <- 30           //Time between tank dying and giant spawning. MUST be higher than 2 seconds. Avoid changing this since it lines up with cash expiring.
 ::BOMB_MISSION_LENGTH               <- 70          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT    <- 5            //Pick from the first x top performing players in scoreboard to be giant
-::GIANT_TYPES_AMOUNT                <- 6            //Pick first x giant templates to choose from
+::GIANT_TYPES_AMOUNT                <- 10           //Pick first x giant templates to choose from
 ::GIANT_SCALE                       <- 1.75         //Giant players will be scaled by this much
 ::INTERMISSION_ROLLBACK_SPEED       <- 400          //HUD tank rolls back during intermission - this determines its speed
 ::BOMB_CARRIER_CONDS                <- {            //Conditions to apply to non-giant players carrying the bomb. Value determines duration (-1: infinite)
@@ -53,18 +53,18 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                        }
 ::PROJECTILE_SHIELD_LENGTH          <- 10           //In seconds, the length red medics get projectile shield for when picking up cash
 ::WEARABLE_IDS_TO_REMOVE            <-  {           //Weapons like razorback, booties etc. need to be removed manually when a player becomes giant. This determines the list of weapons to remove manually.
-                                            1101 = null, //BASE Jumper
-                                            444 = null, //Mantreads
-                                            133 = null, //Gunboats
-                                            131 = null, //Chargin' Targe
-                                            406 = null, //Splendid Screen
-                                            1099 = null, //Tide Turner
-                                            405 = null, //Ali Baba's Wee Booties
-                                            608 = null, //The Bootlegger
-                                            57 = null, //Razorback
-                                            231 = null, //Darwin's Danger Shield
-                                            642 = null, //Cozy Camper
-                                            1144 = null //Festive Targe
+                                            [1101] = null, //BASE Jumper
+                                            [444] = null, //Mantreads
+                                            [133] = null, //Gunboats
+                                            [131] = null, //Chargin' Targe
+                                            [406] = null, //Splendid Screen
+                                            [1099] = null, //Tide Turner
+                                            [405] = null, //Ali Baba's Wee Booties
+                                            [608] = null, //The Bootlegger
+                                            [57] = null, //Razorback
+                                            [231] = null, //Darwin's Danger Shield
+                                            [642] = null, //Cozy Camper
+                                            [1144] = null //Festive Targe
                                         }
 
 //round states

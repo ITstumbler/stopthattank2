@@ -34,5 +34,7 @@
         return
     }
     EntFire("bomb_deploy_relay", "trigger")
+    //Disable countdown sounds
+    AddThinkToEnt(roundTimer, null)
     bombFlag.AcceptInput("Disable", null, null, null)
 }

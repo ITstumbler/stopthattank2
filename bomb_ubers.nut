@@ -49,7 +49,7 @@
             if(!healTarget.HasItem() && healTarget.GetScriptScope().isGiant) {
                 // debugPrint("\x07FF2222GIANT WITHOUT BOMB IS BEING HEALED, DISCONNECTING BEAM RN")
                 if(medigun.IsValid()) {
-                    NetProps.SetPropEntity(medigun, "m_hHealingTarget", null);
+                    // NetProps.SetPropEntity(medigun, "m_hHealingTarget", null);
                     healTarget.RemoveCondEx(5, true)
                 }
                 return -1
