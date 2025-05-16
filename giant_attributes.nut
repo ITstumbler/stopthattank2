@@ -293,7 +293,8 @@ local giantDemoknight = {
 		"damage bonus"			   		: 2.4,
 		"charge time increased"			: 0.5,
 		"heal on kill"					: 200.0,
-		"decapitate type"				: 0.0
+		"decapitate type"				: 0.0,
+		"max health additive penalty"	: 0.0
 	}
 }
 

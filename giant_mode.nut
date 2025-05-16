@@ -131,13 +131,43 @@
         }
         return
     }
+
+    local weapon = null
+
+    //Set of workarounds for spawning wearables such as targes
+    if(className == "tf_weapon_demoshield") {
+        local parachute = Entities.CreateByClassname("tf_weapon_parachute")
+        NetProps.SetPropInt(parachute, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", 1101)
+        NetProps.SetPropBool(parachute, "m_AttributeManager.m_Item.m_bInitialized", true)
+        parachute.SetTeam(player.GetTeam())
+        parachute.DispatchSpawn()
+        player.Weapon_Equip(parachute)
+        weapon = NetProps.GetPropEntity(parachute, "m_hExtraWearable")
+        parachute.Kill()
+
+        NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
+        NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
+        NetProps.SetPropBool(weapon, "m_bValidatedAttachedEntity", true)
+        weapon.DispatchSpawn()
+
+        SendGlobalGameEvent("post_inventory_application", { userid = GetPlayerUserID(player) })
+
+        player.ValidateScriptScope()
+        local player_scope = player.GetScriptScope()
+        if (!("wearables" in player_scope))
+            player_scope.wearables <- []
+        player_scope.wearables.append(weapon)
+    }
     
-    local weapon = Entities.CreateByClassname(className)
-    NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
-    NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
-    NetProps.SetPropBool(weapon, "m_bValidatedAttachedEntity", true)
-    weapon.SetTeam(player.GetTeam())
-    weapon.DispatchSpawn()
+    //Regular weapon spawning protocol
+    else {
+        weapon = Entities.CreateByClassname(className)
+        NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
+        NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
+        NetProps.SetPropBool(weapon, "m_bValidatedAttachedEntity", true)
+        weapon.SetTeam(player.GetTeam())
+        weapon.DispatchSpawn()
+    }
 
     // remove existing weapon in same slot
     for (local i = 0; i < MaxWeapons; i++)
@@ -145,7 +175,7 @@
         local heldWeapon = NetProps.GetPropEntityArray(player, "m_hMyWeapons", i)
         if (heldWeapon == null)
             continue
-        if (heldWeapon.GetSlot() != weapon.GetSlot())
+        if (heldWeapon.GetSlot() != itemSlotToDestroy)
             continue
         heldWeapon.Destroy()
         NetProps.SetPropEntityArray(player, "m_hMyWeapons", null, i)
@@ -170,7 +200,8 @@
         //Check if item ID is no good, like Razorback
         if(!(itemId in WEARABLE_IDS_TO_REMOVE)) continue
 
-        if(wearable.IsValid()) wearable.Destroy()
+        debugPrint("Found valid wearable with the ID " + itemId)
+        EntFireByHandle(wearable, "Kill", null, -1, wearable, wearable)
     }
 }
 
@@ -241,15 +272,16 @@
     player.AddCond(130)
 
     //Remove weapon wearables such as Razorback
-    EntFireByHandle(player, "RunScriptCode", "removeWeaponWearables(self)", 0.5, player, player)
+    removeWeaponWearables(player)
 
     //Give player the giant's weapons and weapon attributes
     //These functions are separated and delayed to ensure that the players' default weapons don't override
     // EntFire("gamerules", "RunScriptCode", "applyGiantWeapons(" + playerIndex + ")", 1)
 
-    GivePlayerWeapon(player, giantSpecifics.primaryWeaponClassName,     giantSpecifics.primaryWeaponID,     0)
-    GivePlayerWeapon(player, giantSpecifics.secondaryWeaponClassName,   giantSpecifics.secondaryWeaponID,   1)
+    //Order is inverted so that primary then secondary weapons are prioritized to be equipped first
     GivePlayerWeapon(player, giantSpecifics.meleeWeaponClassName,       giantSpecifics.meleeWeaponID,       2)
+    GivePlayerWeapon(player, giantSpecifics.secondaryWeaponClassName,   giantSpecifics.secondaryWeaponID,   1)
+    GivePlayerWeapon(player, giantSpecifics.primaryWeaponClassName,     giantSpecifics.primaryWeaponID,     0)
 
     //Give each weapon the player has the giant weapon attributes
     for (local i = 0; i < MaxWeapons; i++)

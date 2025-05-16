@@ -67,6 +67,8 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                             [1144] = null //Festive Targe
                                         }
 
+::DEBUG_FORCE_GIANT_TYPE            <- 6            //If not null, always chooses this giant ID.
+
 //round states
 ::STATE_SETUP <- 0
 ::STATE_PRESPAWN_TANK <- 1 //period before the tank spawns in
@@ -97,6 +99,8 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::bombSpawnOrigin <- startingPathTrack.GetOrigin()
 ::chosenGiantThisRound <- RandomInt(0, GIANT_TYPES_AMOUNT - 1)
 ::sttRoundState <- STATE_SETUP
+
+if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
 
 //Misc.
 ::MaxPlayers <- MaxClients().tointeger()
@@ -343,6 +347,7 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 
         //Reroll chosen giant type
         chosenGiantThisRound = RandomInt(0, GIANT_TYPES_AMOUNT - 1)
+        if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
 
         //Cleanup timer countdown think so it doesn't stack
         AddThinkToEnt(roundTimer, null)
@@ -352,6 +357,15 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 
         //Prevent callbacks from stacking
 		delete ::roundCallbacks
+
+        //Reset all variables
+        for (local i = 1; i <= MaxPlayers ; i++)
+        {
+            local player = PlayerInstanceFromIndex(i)
+            if (player == null) continue
+            local scope = player.GetScriptScope()
+            scope.isBecomingGiant = false
+        }
     }
 
     OnGameEvent_scorestats_accumulated_update = function(_) {
@@ -385,6 +399,9 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 
         //Reset status
         scope.isCarryingBombInAlarmZone = false
+
+        //Reset thinks
+        AddThinkToEnt(player, null)
 
         //Blu medics with stock medi gun: add a think to make bomb carriers compatible with uber
         //Find this function in bomb_ubers.nut
