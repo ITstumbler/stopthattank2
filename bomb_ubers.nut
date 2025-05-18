@@ -14,8 +14,7 @@
     {
         //Remove think on death
         if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-            AddThinkToEnt(self, null)
-            NetProps.SetPropString(self, "m_iszScriptThinkFunction", "")
+            delete thinkFunctions["bombUberThink"]
         }
 
         //Don't think if the bomb is not out yet
@@ -123,6 +122,5 @@
         return -1
     }
 
-    AddThinkToEnt(medic, null)
-    AddThinkToEnt(medic, "bombUberThink")
+    scope.thinkFunctions["bombUberThink"] <- scope.bombUberThink
 }

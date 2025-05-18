@@ -61,7 +61,7 @@ local giantSoldier = { //TODO: Use giant attack sounds
     meleeWeaponID               = 196,
     meleeWeaponClassName        = "tf_weapon_shovel",
     respawnOverride             = null, //If not null, sets blue respawn time to this number
-	conds						= null,
+	tags						= null,
     playerInfo                  = "-Increased explosion damage and radius.\n-Moves slower than most giants.",
     introSound                  = giantSounds[TF_CLASS_SOLDIER],
     playerAttributes            =
@@ -92,7 +92,7 @@ local giantHeavy = { //TODO: Custom minigun spin sounds
     meleeWeaponID               = 5,
     meleeWeaponClassName        = "tf_weapon_fists",
     respawnOverride             = null, //If not null, sets blue respawn time to this number
-	conds						= null, //If not null, list of conds to permanently apply to the giant
+	tags						= null, //If not null, list of tags to permanently apply to the giant
     playerInfo                  = "-Minigun deals +60% more damage.\n-Moves slower than any other giant while attacking.",
     introSound                  = giantSounds[TF_CLASS_HEAVYWEAPONS],
     playerAttributes            =
@@ -125,7 +125,7 @@ local giantRapidFireDemo = { //TODO: Use giant attack sounds
 	meleeWeaponID               = 1,
 	meleeWeaponClassName        = "tf_weapon_bottle",
 	respawnOverride             = null,
-	conds						= null,
+	tags						= null,
 	playerInfo                  = "-Shoots and reloads grenades rapidly.\n-Moves slower than most giants.",
 	introSound                  = giantSounds[TF_CLASS_DEMOMAN],	
 	playerAttributes =
@@ -158,7 +158,7 @@ local giantPyro = { //TODO: Use giant attack sounds
 	meleeWeaponID               = 192,
 	meleeWeaponClassName        = "tf_weapon_fireaxe",
 	respawnOverride             = null,
-	conds						= null,
+	tags						= null,
 	playerInfo                  = "-Increased direct flame damage and range.\n-Equipped with a high damage Flare Gun.\n-Reflected projectiles turn into crits.",
 	introSound                  = giantSounds[TF_CLASS_PYRO],	
 	playerAttributes =
@@ -196,7 +196,7 @@ local giantRapidFireHuntsman = { //TODO: make this guy spawn with 5 jarates
 	meleeWeaponID               = 232,
 	meleeWeaponClassName        = "tf_weapon_club",
 	respawnOverride             = null,
-	conds						= null,
+	tags						= ["regenerate_on_spawn"], //Only spawns with 1 jarate for some reasons so this gives him 5 jarates
 	playerInfo                  = "-Increased arrow damage and reload speed.\n-Can recharge and store up to 5 Jarates at once.\n-Bushwacka doesn't increase damage taken.",
 	introSound                  = giantSounds[TF_CLASS_SNIPER],	
 	playerAttributes =
@@ -235,7 +235,7 @@ local majorLeagueScout = {
 	meleeWeaponID               = 190,
 	meleeWeaponClassName        = "tf_weapon_bat",
 	respawnOverride             = 0.1,
-	conds						= null,
+	tags						= null,
 	playerInfo                  = "-Moves faster than most giants.\n-Captures control points twice as fast.\n-Teammates respawn much faster.\n-Low health compared to most giants.",
 	introSound                  = giantSounds[TF_CLASS_SCOUT],	
 	playerAttributes =
@@ -257,7 +257,7 @@ local majorLeagueScout = {
 	}
 }
 
-local giantDemoknight = {
+local giantDemoknight = { //TODO: Futureproof the goddamn shield I hate the chargin targe
 	classId 					= TF_CLASS_DEMOMAN,
 	giantName                   = "Giant Demoknight",
 	baseHealth                  = 10000.0
@@ -269,22 +269,20 @@ local giantDemoknight = {
 	meleeWeaponID               = 132,
 	meleeWeaponClassName        = "tf_weapon_sword",
 	respawnOverride             = null,
-	conds						= null,
+	tags						= ["knight_shield"],
 	playerInfo                  = "-Gains crits and health on every kill.\n-Full turning control while charging.\n-Melee damage and range increased.\n-Resistant to explosive and fire damage.",
 	introSound                  = giantSounds[TF_CLASS_DEMOMAN],	
 	playerAttributes =
 	{
 		"move speed bonus"                 : 0.5,
 		"override footstep sound set"      : 4.0,
-		"damage force increase"            : 2.0
-	},
-	primaryAttributes = null,
-    secondaryAttributes = 
-	{
-		"charge recharge rate increased"   	: 1.25,
+		"damage force increase"            : 2.0,
+		"charge recharge rate increased"   	: 1.25, //Shield attributes in player attributes because damn adding shield attributes is hard
 		"full charge turn control"	   		: 50.0,
 		"charge impact damage increased"	: 2.0
 	},
+	primaryAttributes = null,
+    secondaryAttributes = null,
     meleeAttributes = 
 	{
 		"melee attack rate bonus"   	: 0.8,
@@ -310,7 +308,7 @@ local giant10ShotBazookaSoldier = {
 	meleeWeaponID               = 196,
 	meleeWeaponClassName        = "tf_weapon_shovel",
 	respawnOverride             = null,
-	conds						= null,
+	tags						= null,
 	playerInfo                  = "-Loads up to 10 rockets rapidly.\n-Cannot overload.\n-6 degrees in random projectile deviation.",
 	introSound                  = giantSounds[TF_CLASS_SOLDIER],	
 	playerAttributes =
@@ -348,7 +346,7 @@ local giantShotgunHeavy = {
 	meleeWeaponID               = 43,
 	meleeWeaponClassName        = "tf_weapon_fists",
 	respawnOverride             = null,
-	conds						= null,
+	tags						= null,
 	playerInfo                  = "-Can one-shot almost every enemy in close range.\n-Melee weapon gives crits for 7s on kill.\n-Weak at longer ranges.",
 	introSound                  = giantSounds[TF_CLASS_HEAVYWEAPONS],	
 	playerAttributes =
@@ -376,7 +374,7 @@ local giantShotgunHeavy = {
 	}
 }
 
-local sirNukesalot = { //TODO: Use giant attack sounds
+local sirNukesalot = {
 	classId 					= TF_CLASS_DEMOMAN,
 	giantName                   = "Sir Nukesalot",
 	baseHealth                  = 10000.0
@@ -388,7 +386,7 @@ local sirNukesalot = { //TODO: Use giant attack sounds
 	meleeWeaponID               = 1,
 	meleeWeaponClassName        = "tf_weapon_bottle",
 	respawnOverride             = null,
-	conds						= [44],
+	tags						= ["always_crit", "1_clip_primary"],
 	playerInfo                  = "-Can clear large groups of enemies with a single shot.\n-Explosions can be used as a smoke screen for your team.\n-Vulnerable in close range combat.",
 	introSound                  = giantSounds[TF_CLASS_DEMOMAN],	
 	playerAttributes =
@@ -412,6 +410,95 @@ local sirNukesalot = { //TODO: Use giant attack sounds
     secondaryAttributes         = null,
     meleeAttributes             = null
 }
+
+local giantEngineer = { //TODO: Ban tele entrance creation, force blu to spawn on exit 
+	classId 					= TF_CLASS_ENGINEER,
+	giantName                   = "Giant Engineer",
+	baseHealth                  = 6000.0
+	playerModel                 = giantModels[TF_CLASS_ENGINEER],
+	primaryWeaponID             = 141,
+	primaryWeaponClassName      = "tf_weapon_sentry_revenge",
+	secondaryWeaponID           = null,
+	secondaryWeaponClassName    = null,
+	meleeWeaponID               = 142,
+	meleeWeaponClassName        = "tf_weapon_robot_arm",
+	respawnOverride             = null,
+	tags						= ["giant_engineer"],
+	playerInfo                  = "-Builds Giant Mini-Sentries and Dispensers.\n-Dispenser range is greatly increased.\n-Teleporter Exit becomes your team's respawn point.\n-Low health compared to most giants.",
+	introSound                  = giantSounds[TF_CLASS_ENGINEER],	
+	playerAttributes =
+	{
+		"move speed bonus"            	: 0.65,
+		"override footstep sound set" 	: 4.0,
+		"damage force increase"       	: 2.2,
+		"metal regen"					: 75
+	},
+	primaryAttributes =
+	{
+		"damage bonus"          : 1.35,
+		"faster reload rate"    : 0.8,
+		"clip size penalty"     : 1.0
+	}
+    secondaryAttributes         = null,
+    meleeAttributes             = 
+	{
+		"melee attack rate bonus"						: 0.5,
+		"deploy time decreased"							: 0.35,
+		"Construction rate increased"					: 1.75,
+		"engineer sentry build rate multiplier"			: 2.75,
+		"engineer teleporter build rate multiplier"		: 2.0,
+		"Repair rate decreased"							: 0.22,
+		"engy building health bonus"					: 6.5, //PDA stats should be able to be applied to wrench
+		"engy sentry damage bonus"						: 0.22,
+		"engy sentry fire rate increased"				: 1.45,
+		"engy dispenser radius increased"				: 8
+	}
+}
+
+local giantKritzkriegMedic = { //TODO: Share ubercharge with nearby teammates
+	classId 					= TF_CLASS_MEDIC,
+	giantName                   = "Giant Kritzkrieg Medic",
+	baseHealth                  = 6000.0
+	playerModel                 = giantModels[TF_CLASS_MEDIC],
+	primaryWeaponID             = 305,
+	primaryWeaponClassName      = "tf_weapon_crossbow",
+	secondaryWeaponID           = 35,
+	secondaryWeaponClassName    = "tf_weapon_medigun",
+	meleeWeaponID               = 37,
+	meleeWeaponClassName        = "tf_weapon_bonesaw",
+	respawnOverride             = null,
+	tags						= ["aoe_ubercharge"],
+	playerInfo                  = "-Ubercharge build rate massively increased.\n-Nearby teammates gain the effects of the Ubercharge when deployed.\n-Nearby teammates recover health automatically.\n-Low health compared to most giants.",
+	introSound                  = giantSounds[TF_CLASS_MEDIC],	
+	playerAttributes =
+	{
+		"move speed bonus"            	: 0.58,
+		"damage force increase"       	: 2.2
+	},
+	primaryAttributes =
+	{
+		"clip size upgrade atomic"          : 19,
+		"faster reload rate"	          	: 0.1,
+		"projectile spread angle penalty"   : 1.0,
+		"dmg penalty vs buildings"          : 0.75,
+		"crit mod disabled"          		: 0,
+	}
+    secondaryAttributes         = 
+	{
+		"ubercharge rate bonus"				: 4.5,
+		"overheal bonus"					: 1.5,
+		"heal rate bonus"					: 1.4,
+		"uber duration bonus"				: -2
+	},
+    meleeAttributes             = 
+	{
+		"melee attack rate bonus"	: 0.4,
+		"deploy time decreased"		: 0.35,
+		"damage penalty"			: 0.75,
+		"crit mod disabled"			: 0
+	}
+}
+
 //Remember to update GIANT_TYPES_AMOUNT in round_setup.nut
 ::giantProperties[0] <- giantHeavy
 ::giantProperties[1] <- giantSoldier
@@ -423,3 +510,5 @@ local sirNukesalot = { //TODO: Use giant attack sounds
 ::giantProperties[7] <- giant10ShotBazookaSoldier
 ::giantProperties[8] <- giantShotgunHeavy
 ::giantProperties[9] <- sirNukesalot
+::giantProperties[10] <- giantEngineer
+::giantProperties[11] <- giantKritzkriegMedic

@@ -216,8 +216,7 @@
     scope.promptGiantThink <- function() {
         //Cleanup on death
         if(NetProps.GetPropInt(player, "m_lifeState") != 0) {
-            AddThinkToEnt(player, null)
-            NetProps.SetPropString(player, "m_iszScriptThinkFunction", "")
+            delete thinkFunctions["promptGiantThink"]
         }
         local buttons = NetProps.GetPropInt(self, "m_nButtons")
 
@@ -235,12 +234,11 @@
             pickRandomPlayerToBeGiant(eligibleGiantPlayers)
             
             //Think cleanup
-            AddThinkToEnt(player, null)
-            NetProps.SetPropString(player, "m_iszScriptThinkFunction", "")
+            delete thinkFunctions["promptGiantThink"]
         }
         return -1
     }
-    AddThinkToEnt(player, "promptGiantThink")
+    scope.thinkFunctions["promptGiantThink"] <- scope.promptGiantThink
 
 }
 

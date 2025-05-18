@@ -7,6 +7,14 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
             ROOT[k] <- v != null ? v : 0;
 }
 
+//Setup for stacking thinks
+::playerThink <- function() {
+	foreach(key, func in thinkFunctions) {
+		func()
+	}
+    return -1
+}
+
 //Balance-sensitive parameters
 ::TANK_SPEED                        <- 75           //The speed at which the tank goes. The fake_train in the map must be set to the same speed
 ::BASE_TANK_HEALTH                  <- 12000        //Base tank health, will be increased or decreased if the amount of players on red is more or less than BASE_TANK_PLAYER_COUNT. Can be overriden using overrideBaseTankHealth(health)
@@ -16,7 +24,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::INTERMISSION_LENGTH               <- 30           //Time between tank dying and giant spawning. MUST be higher than 2 seconds. Avoid changing this since it lines up with cash expiring.
 ::BOMB_MISSION_LENGTH               <- 70          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT    <- 5            //Pick from the first x top performing players in scoreboard to be giant
-::GIANT_TYPES_AMOUNT                <- 10           //Pick first x giant templates to choose from
+::GIANT_TYPES_AMOUNT                <- 12           //Pick first x giant templates to choose from
 ::GIANT_SCALE                       <- 1.75         //Giant players will be scaled by this much
 ::INTERMISSION_ROLLBACK_SPEED       <- 400          //HUD tank rolls back during intermission - this determines its speed
 ::BOMB_CARRIER_CONDS                <- {            //Conditions to apply to non-giant players carrying the bomb. Value determines duration (-1: infinite)
@@ -53,21 +61,23 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                        }
 ::PROJECTILE_SHIELD_LENGTH          <- 10           //In seconds, the length red medics get projectile shield for when picking up cash
 ::WEARABLE_IDS_TO_REMOVE            <-  {           //Weapons like razorback, booties etc. need to be removed manually when a player becomes giant. This determines the list of weapons to remove manually.
-                                            [1101] = null, //BASE Jumper
-                                            [444] = null, //Mantreads
-                                            [133] = null, //Gunboats
-                                            [131] = null, //Chargin' Targe
-                                            [406] = null, //Splendid Screen
-                                            [1099] = null, //Tide Turner
-                                            [405] = null, //Ali Baba's Wee Booties
-                                            [608] = null, //The Bootlegger
-                                            [57] = null, //Razorback
-                                            [231] = null, //Darwin's Danger Shield
-                                            [642] = null, //Cozy Camper
-                                            [1144] = null //Festive Targe
+                                            [1101] = "The B.A.S.E. Jumper",
+                                            [444] = "The Mantreads",
+                                            [133] = "The Gunboats",
+                                            [131] = "The Chargin' Targe",
+                                            [406] = "The Splendid Screen",
+                                            [1099] = "The Tide Turner",
+                                            [405] = "Ali Baba's Wee Booties",
+                                            [608] = "The Bootlegger",
+                                            [57] = "The Razorback",
+                                            [231] = "Darwin's Danger Shield",
+                                            [642] = "The Cozy Camper",
+                                            [1144] = "Festive Targe 2014"
                                         }
 
-::DEBUG_FORCE_GIANT_TYPE            <- 6            //If not null, always chooses this giant ID.
+::GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN   <- Vector(0,0,-376) //Must be somwhere out of bounds
+
+::DEBUG_FORCE_GIANT_TYPE            <- 10            //If not null, always chooses this giant ID.
 
 //round states
 ::STATE_SETUP <- 0
@@ -99,6 +109,9 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::bombSpawnOrigin <- startingPathTrack.GetOrigin()
 ::chosenGiantThisRound <- RandomInt(0, GIANT_TYPES_AMOUNT - 1)
 ::sttRoundState <- STATE_SETUP
+
+//Specifically for giant engineer, keep track whenever the giant builds something
+::giantEngineerPlayer <- null
 
 if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
 
@@ -395,13 +408,18 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 			scope.isGiant <- false
 			scope.isBecomingGiant <- false
             scope.isCarryingBombInAlarmZone <- false
+            scope.thinkFunctions <- {}
+            giantEngineerPlayer = null
+
+            AddThinkToEnt(player, null)
+            AddThinkToEnt(player, "playerThink")
 		}
 
         //Reset status
         scope.isCarryingBombInAlarmZone = false
 
         //Reset thinks
-        AddThinkToEnt(player, null)
+        scope.thinkFunctions.clear()
 
         //Blu medics with stock medi gun: add a think to make bomb carriers compatible with uber
         //Find this function in bomb_ubers.nut
@@ -460,6 +478,20 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         EntFire("gamerules", "CallScriptFunction", "spawnCritCash", -1) //Find in crit_cash.nut
 
         //Mapmaker decides what else needs to happen using boss_dead_relay
+    }
+
+    //These two handle giant engineer stuff if he's active
+    OnGameEvent_player_builtobject = function(params) {
+        if(giantEngineerPlayer == null) return
+
+        debugPrint("Object built! Type: " + params.object)
+
+    }
+
+    OnGameEvent_object_detonated = function(params) {
+        if(giantEngineerPlayer == null) return
+
+        debugPrint("Object detonated! Type: " + params.objecttype)
     }
 
     OnGameEvent_player_death = function(params) {

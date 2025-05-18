@@ -132,42 +132,13 @@
         return
     }
 
-    local weapon = null
+    local weapon = Entities.CreateByClassname(className)
+    NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
+    NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
+    NetProps.SetPropBool(weapon, "m_bValidatedAttachedEntity", true)
+    weapon.SetTeam(player.GetTeam())
+    weapon.DispatchSpawn()
 
-    //Set of workarounds for spawning wearables such as targes
-    if(className == "tf_weapon_demoshield") {
-        local parachute = Entities.CreateByClassname("tf_weapon_parachute")
-        NetProps.SetPropInt(parachute, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", 1101)
-        NetProps.SetPropBool(parachute, "m_AttributeManager.m_Item.m_bInitialized", true)
-        parachute.SetTeam(player.GetTeam())
-        parachute.DispatchSpawn()
-        player.Weapon_Equip(parachute)
-        weapon = NetProps.GetPropEntity(parachute, "m_hExtraWearable")
-        parachute.Kill()
-
-        NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
-        NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
-        NetProps.SetPropBool(weapon, "m_bValidatedAttachedEntity", true)
-        weapon.DispatchSpawn()
-
-        SendGlobalGameEvent("post_inventory_application", { userid = GetPlayerUserID(player) })
-
-        player.ValidateScriptScope()
-        local player_scope = player.GetScriptScope()
-        if (!("wearables" in player_scope))
-            player_scope.wearables <- []
-        player_scope.wearables.append(weapon)
-    }
-    
-    //Regular weapon spawning protocol
-    else {
-        weapon = Entities.CreateByClassname(className)
-        NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
-        NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
-        NetProps.SetPropBool(weapon, "m_bValidatedAttachedEntity", true)
-        weapon.SetTeam(player.GetTeam())
-        weapon.DispatchSpawn()
-    }
 
     // remove existing weapon in same slot
     for (local i = 0; i < MaxWeapons; i++)
@@ -385,13 +356,57 @@
     //A bunch of think funcs, see the function below for the list of things it does
     addGiantThink(player)
 
-    if(giantProperties[chosenGiantThisRound].conds != null)
-    {
-        foreach(condId in giantProperties[chosenGiantThisRound].conds)
-        {
-            player.AddCondEx(condId, -1, null)
+    //Miscellaneous actions to do if a giant has tags
+    if(giantSpecifics.tags == null) return
+
+    foreach(tag in giantSpecifics.tags) {
+        switch(tag) {
+
+            case "always_crit":
+                player.AddCondEx(44, -1, null)
+            break
+            
+            case "knight_shield":
+                EntFireByHandle(player, "RunScriptCode", "addGiantKnightShield(activator)", 0.1, player, player)
+            break
+
+            case "regenerate_on_spawn":
+                EntFireByHandle(player, "RunScriptCode", "self.Regenerate(true)", 0.1, player, player)
+                //EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 1, 5)", 0.1, player, player)
+            break
+
+            case "1_clip_primary":
+                EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 0, 1)", -1, player, player)
+            break
+
+            case "giant_engineer":
+                //Activates a set of callbacks for giant engineer
+                giantEngineerPlayer = player
+            break
+
+            default:
+            break
         }
     }
+}
+
+//Despite its general name it's only for Nukesalot to spawn with 1 clip kek
+::setWeaponClip <- function(player, weaponSlot, clipCount)
+{
+    for (local i = 0; i < MaxWeapons; i++)
+    {
+        local weapon = NetProps.GetPropEntityArray(player, "m_hMyWeapons", i)
+        if (weapon == null) continue
+        if (weapon.GetSlot() != weaponSlot) continue
+        weapon.SetClip1(clipCount)
+    }
+}
+
+//This stupid fucking weapon needs its own workaround kms
+::addGiantKnightShield <- function(player)
+{
+    debugPrint("ADDING CHARGIN TARGE")
+    CTFBot.GenerateAndWearItem.call(player, "The Chargin' Targe")
 }
 
 ::addGiantThink <- function(player)
@@ -401,8 +416,7 @@
     {
         //Remove think on death
         if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-            AddThinkToEnt(self, null)
-            NetProps.SetPropString(self, "m_iszScriptThinkFunction", "")
+            delete thinkFunctions["giantThink"]
             return -1
         }
 
@@ -421,8 +435,22 @@
 
         return -1
     }
-    AddThinkToEnt(player, null)
-    AddThinkToEnt(player, "giantThink")
+    
+    scope.thinkFunctions["giantThink"] <- scope.giantThink
+}
+
+//For giant engineers: ban the construction of a tele entrance by spawning one out of bounds
+::createIndestructibleTeleEntrance <- function(player)
+{
+    local tele_entrance = SpawnEntityFromTable("obj_teleporter", {
+        targetname = "indestructible_tele_entrance",
+        TeamNum = 3,
+        defaultupgrade = 2,
+        teleporterType = 1,
+        spawnflags = 2,
+        origin = GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN
+	})
+    EntFireByHandle(tele_entrance, "SetBuilder", null, -1, player, player)
 }
 
 ::handleGiantDeath <- function()
@@ -433,6 +461,9 @@
 
     //Giant no longer active, allow all blu players to pick up the bomb
     isBombGiantDead = true
+
+    //Forget all those things to be done if there's a giant engineer
+    giantEngineer = null
 
     for (local i = 1; i <= MaxPlayers ; i++)
     {
