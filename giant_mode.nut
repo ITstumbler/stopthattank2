@@ -364,28 +364,46 @@
 
             case "always_crit":
                 player.AddCondEx(44, -1, null)
-            break
+				break
             
             case "knight_shield":
                 EntFireByHandle(player, "RunScriptCode", "addGiantKnightShield(activator)", 0.1, player, player)
-            break
+				break
 
             case "regenerate_on_spawn":
                 EntFireByHandle(player, "RunScriptCode", "self.Regenerate(true)", 0.1, player, player)
                 //EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 1, 5)", 0.1, player, player)
-            break
+				break
 
             case "1_clip_primary":
                 EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 0, 1)", -1, player, player)
-            break
+				break
 
             case "giant_engineer":
                 //Activates a set of callbacks for giant engineer
                 giantEngineerPlayer = player
-            break
+				local scope = player.GetScriptScope()
+				scope.gengieThink <- function()
+				{
+					//based on main think's time of -1, so constantly spamming this might not be great
+					local sentry = null
+					while(sentry = Entities.FindByClassname(sentry, "obj_sentrygun"))
+					{
+						if(NetProps.GetPropEntity(sentry, "m_hBuilder") != self) continue
+						if(sentry.GetModelScale() == 1.5) continue
+						
+						//m_bCarried for sentries that were already placed
+						if(NetProps.GetPropBool(sentry, "m_bPlacing") && !NetProps.GetPropBool(sentry, "m_bCarried"))
+						{
+							sentry.SetModelScale(1.5, 0)
+						}
+					}
+				}
+				scope.thinkFunctions.gengieThink <- scope.gengieThink
+				break
 
             default:
-            break
+				break
         }
     }
 }
@@ -436,7 +454,7 @@
         return -1
     }
     
-    scope.thinkFunctions["giantThink"] <- scope.giantThink
+    scope.thinkFunctions.giantThink <- scope.giantThink
 }
 
 //For giant engineers: ban the construction of a tele entrance by spawning one out of bounds
