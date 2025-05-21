@@ -113,6 +113,7 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 //Specifically for giant engineer, keep track of a lot of the special things he has 
 ::giantEngineerPlayer <- null
 ::giantEngineerTeleExitOrigin <- null
+::giantEngineerTeleExitAngle <- null
 ::giantEngineerTeleExitParticle <- null
 
 if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
@@ -430,13 +431,16 @@ PrecacheSound("vo/Announcer_mvm_engbot_arrive03.mp3")
         if(params.team == TF_TEAM_BLUE && player.GetPlayerClass() == TF_CLASS_MEDIC && !scope.isGiant) addBombUberThink(player)
 
         //Giant engineer: if a teleporter exit is active, teleport all newly spawned blu players
-        if(giantEngineerTeleExitOrigin != null)
+        if(giantEngineerTeleExitOrigin != null && params.team == TF_TEAM_BLUE)
         {
-            player.Teleport(true, giantEngineerTeleExitOrigin, false, QAngle(0,0,0), false, Vector(0,0,0))
+            local playerTeleportOrigin = giantEngineerTeleExitOrigin
+            playerTeleportOrigin.z = giantEngineerTeleExitOrigin.z + 18
+
+            player.Teleport(true, playerTeleportOrigin, true, giantEngineerTeleExitAngle, false, Vector(0,0,0))
             player.AddCondEx(57, 1, giantEngineerPlayer)
             EmitSoundEx({
                 sound_name = "mvm/mvm_tele_deliver.wav",
-                origin = giantEngineerTeleExitOrigin
+                origin = playerTeleportOrigin
             })
         }
 
@@ -495,6 +499,24 @@ PrecacheSound("vo/Announcer_mvm_engbot_arrive03.mp3")
         //Mapmaker decides what else needs to happen using boss_dead_relay
     }
 
+    OnGameEvent_object_destroyed = function(params) {
+        if(giantEngineerPlayer == null) return
+
+        local owner = GetPlayerFromUserID(params.userid)
+
+        //Only execute for giant engis
+        if(owner != giantEngineerPlayer) return
+
+        //Check if destroyed object was a teleporter entrance
+        if(params.objecttype != 1) return
+
+        local tele = EntIndexToHScript(params.index)
+
+        if(tele.GetName() == "indestructible_tele_entrance") return
+            
+        stopTeleExit()
+    }
+
     OnGameEvent_object_detonated = function(params) {
         if(giantEngineerPlayer == null) return
 
@@ -508,10 +530,18 @@ PrecacheSound("vo/Announcer_mvm_engbot_arrive03.mp3")
 
         local tele = EntIndexToHScript(params.index)
 
-        if(tele.GetName() != "indestructible_tele_entrance") return
+        if(tele.GetName() != "indestructible_tele_entrance")
+        {
+            stopTeleExit()
+        }
 
-        //UNDO YOU MAY NOT BUILD TELE ENTRANCES
-        createIndestructibleTeleEntrance(detonator)
+        else
+        {
+            //UNDO YOU MAY NOT BUILD TELE ENTRANCES
+            createIndestructibleTeleEntrance(detonator)
+            ClientPrint(detonator, 4, "You may not build teleporter entrance as Giant Engineer; Just build an exit")
+        }
+        
     }
 
     OnGameEvent_player_death = function(params) {

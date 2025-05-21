@@ -400,7 +400,7 @@
 
                             if(teleState == 2)
                             {
-                                setTeleExitOrigin(building.GetOrigin())
+                                setTeleExitOrigin(building.GetOrigin(), building.GetAbsAngles())
 
                                 //Teleporters should be instantly set to level 3 if not already
                                 local teleLevel = NetProps.GetPropInt(building, "m_iHighestUpgradeLevel")
@@ -409,8 +409,7 @@
                             
                             else
                             {
-                                stopTeleExitParticles()
-                                giantEngineerTeleExitOrigin = null
+                                stopTeleExit()
                             }
                         }
 
@@ -422,6 +421,17 @@
 							building.SetModelScale(1.5, 0)
 						}
 					}
+
+                    //Dispenser screens are separate entities that need to be re-scaled fo g.engis
+					local dispscreen = null
+					while(dispscreen = Entities.FindByClassname(dispscreen, "vgui_screen"))
+					{
+                        if(NetProps.GetPropEntity(dispscreen, "m_hPlayerOwner") != self) continue
+                        if(NetProps.GetPropFloat(dispscreen, "m_flWidth") == 0.55) continue
+
+                        NetProps.SetPropFloat(dispscreen, "m_flWidth", 0.55)
+                        NetProps.SetPropFloat(dispscreen, "m_flHeight", 0.55)
+                    }
 				}
 				scope.thinkFunctions.gengieThink <- scope.gengieThink
 
@@ -497,15 +507,20 @@
     EntFireByHandle(tele_entrance, "SetBuilder", null, -1, player, player)
 }
 
-::setTeleExitOrigin <- function(origin)
+::setTeleExitOrigin <- function(origin, angles)
 {
     //Think is executed every tick but we dont want to do this if it didnt change
-    if(giantEngineerTeleExitOrigin == origin) continue
+    if(giantEngineerTeleExitOrigin == origin) return
 
     EmitSoundEx("mvm/mvm_tele_activate.wav")
 
     giantEngineerTeleExitOrigin = origin
-    giantEngineerTeleExitOrigin.z = giantEngineerTeleExitOrigin.z + 18
+    giantEngineerTeleExitOrigin.z = giantEngineerTeleExitOrigin.z
+
+    giantEngineerTeleExitAngle = angles
+
+    //Ensures particle doesnt stack
+    if(giantEngineerTeleExitParticle != null) return
 
     giantEngineerTeleExitParticle = SpawnEntityFromTable("info_particle_system", {
         targetname = "gengi_tele_particle",
@@ -515,9 +530,14 @@
 	})
 }
 
-::stopTeleExitParticles <- function()
+::stopTeleExit <- function()
 {
-    if(giantEngineerTeleExitParticle.IsValid()) giantEngineerTeleExitParticle.Kill()
+    if(giantEngineerTeleExitParticle != null) {
+        giantEngineerTeleExitParticle.Kill()
+        giantEngineerTeleExitParticle = null
+    } 
+    giantEngineerTeleExitOrigin = null
+    giantEngineerTeleExitAngle = null
 }
 
 ::handleGiantDeath <- function()
@@ -529,8 +549,7 @@
     //Giant no longer active, allow all blu players to pick up the bomb
     isBombGiantDead = true
 
-    //Forget all those things to be done if there's a giant engineer
-    giantEngineerPlayer = null
+    
 
     for (local i = 1; i <= MaxPlayers ; i++)
     {
@@ -543,17 +562,23 @@
 
     //On giant death: destroy all buildings that they owned.
     //Relevant for giant engineer
+    if(giantEngineerPlayer == null) return
+
     debugPrint("\x07666666Player was engineer, destroy all previously owned buildings")
     local buildingEnt = null
     while(buildingEnt = Entities.FindByClassname(buildingEnt, "obj_*")) //this does allow sappers but engies don't own sappers
     {
         debugPrint("\x07666666Found a building!")
-        if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") == player) {
+        if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") == giantEngineerPlayer) {
             debugPrint("\x07666666It is owned by the giant player!")
             buildingEnt.AcceptInput("RemoveHealth", "9999", null, null)
         }
     }
     giantEngineerTeleExitOrigin = null
+    giantEngineerTeleExitAngle = null
+
+    //Forget all those things to be done if there's a giant engineer
+    giantEngineerPlayer = null
 }
 
 ::displayGiantTeleportParticle <- function()

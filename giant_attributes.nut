@@ -411,7 +411,7 @@ local sirNukesalot = {
     meleeAttributes             = null
 }
 
-local giantEngineer = { //TODO: Ban tele entrance creation, force blu to spawn on exit 
+local giantEngineer = {
 	classId 					= TF_CLASS_ENGINEER,
 	giantName                   = "Giant Engineer",
 	baseHealth                  = 6000.0
