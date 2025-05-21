@@ -163,11 +163,13 @@ PrecacheSound("vo/announcer_ends_1sec.mp3")
 PrecacheSound("mvm/giant_heavy/giant_heavy_entrance.wav")
 PrecacheSound("misc/halloween/spell_mirv_explode_primary.wav")
 PrecacheSound("mvm/mvm_tele_activate.wav")
+PrecacheSound("mvm/mvm_tele_deliver.wav")
 PrecacheSound("mvm/mvm_warning.wav")
 
 //Giant intro voice lines
 PrecacheSound("vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3")
 PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
+PrecacheSound("vo/Announcer_mvm_engbot_arrive03.mp3")
 
 //Function for mapmakers to override base tank health
 ::overrideBaseTankHealth <- function(health_input)
