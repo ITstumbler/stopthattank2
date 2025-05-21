@@ -43,7 +43,7 @@
 ::giantSounds[TF_CLASS_PYRO] <- null
 ::giantSounds[TF_CLASS_DEMOMAN] <- null
 ::giantSounds[TF_CLASS_HEAVYWEAPONS] <- "vo/mvm/mght/heavy_mvm_m_battlecry01.mp3"
-::giantSounds[TF_CLASS_ENGINEER] <- null
+::giantSounds[TF_CLASS_ENGINEER] <- "vo/Announcer_mvm_engbot_arrive03.mp3"
 ::giantSounds[TF_CLASS_MEDIC] <- null
 ::giantSounds[TF_CLASS_SNIPER] <- null
 ::giantSounds[TF_CLASS_SPY] <- null

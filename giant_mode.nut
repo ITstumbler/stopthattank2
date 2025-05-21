@@ -386,20 +386,46 @@
 				scope.gengieThink <- function()
 				{
 					//based on main think's time of -1, so constantly spamming this might not be great
-					local sentry = null
-					while(sentry = Entities.FindByClassname(sentry, "obj_sentrygun"))
+					local building = null
+					while(building = Entities.FindByClassname(building, "obj_*"))
 					{
-						if(NetProps.GetPropEntity(sentry, "m_hBuilder") != self) continue
-						if(sentry.GetModelScale() == 1.5) continue
+						if(NetProps.GetPropEntity(building, "m_hBuilder") != self) continue
+
+                        //Check if teleporter and is exit
+                        if(building.GetClassname() == "obj_teleporter" && building.GetName() != "indestructible_tele_entrance")
+                        {
+                            //If teleporter state is ready, set the origin of tele exit
+                            //This will cause player_spawn callback to teleport all blu players here and give temp uber
+                            local teleState = NetProps.GetPropInt(building ,"m_iState")
+
+                            if(teleState == 2)
+                            {
+                                setTeleExitOrigin(building.GetOrigin())
+
+                                //Teleporters should be instantly set to level 3 if not already
+                                local teleLevel = NetProps.GetPropInt(building, "m_iHighestUpgradeLevel")
+                                if(teleLevel != 3) NetProps.SetPropInt(building, "m_iHighestUpgradeLevel", 3)
+                            }
+                            
+                            else
+                            {
+                                stopTeleExitParticles()
+                                giantEngineerTeleExitOrigin = null
+                            }
+                        }
+
+						if(building.GetModelScale() == 1.5) continue
 						
-						//m_bCarried for sentries that were already placed
-						if(NetProps.GetPropBool(sentry, "m_bPlacing") && !NetProps.GetPropBool(sentry, "m_bCarried"))
+						//m_bCarried for buildings that were already placed
+						if(NetProps.GetPropBool(building, "m_bPlacing") && !NetProps.GetPropBool(building, "m_bCarried"))
 						{
-							sentry.SetModelScale(1.5, 0)
+							building.SetModelScale(1.5, 0)
 						}
 					}
 				}
 				scope.thinkFunctions.gengieThink <- scope.gengieThink
+
+                createIndestructibleTeleEntrance(player)
 				break
 
             default:
@@ -471,6 +497,29 @@
     EntFireByHandle(tele_entrance, "SetBuilder", null, -1, player, player)
 }
 
+::setTeleExitOrigin <- function(origin)
+{
+    //Think is executed every tick but we dont want to do this if it didnt change
+    if(giantEngineerTeleExitOrigin == origin) continue
+
+    EmitSoundEx("mvm/mvm_tele_activate.wav")
+
+    giantEngineerTeleExitOrigin = origin
+    giantEngineerTeleExitOrigin.z = giantEngineerTeleExitOrigin.z + 18
+
+    giantEngineerTeleExitParticle = SpawnEntityFromTable("info_particle_system", {
+        targetname = "gengi_tele_particle",
+        origin = giantEngineerTeleExitOrigin,
+        effect_name = "teleporter_mvm_bot_persist",
+        start_active = 1
+	})
+}
+
+::stopTeleExitParticles <- function()
+{
+    if(giantEngineerTeleExitParticle.IsValid()) giantEngineerTeleExitParticle.Kill()
+}
+
 ::handleGiantDeath <- function()
 {
     //Update team respawn times
@@ -481,7 +530,7 @@
     isBombGiantDead = true
 
     //Forget all those things to be done if there's a giant engineer
-    giantEngineer = null
+    giantEngineerPlayer = null
 
     for (local i = 1; i <= MaxPlayers ; i++)
     {
@@ -491,6 +540,20 @@
 
         player.RemoveCustomAttribute("cannot pick up intelligence")
     }
+
+    //On giant death: destroy all buildings that they owned.
+    //Relevant for giant engineer
+    debugPrint("\x07666666Player was engineer, destroy all previously owned buildings")
+    local buildingEnt = null
+    while(buildingEnt = Entities.FindByClassname(buildingEnt, "obj_*")) //this does allow sappers but engies don't own sappers
+    {
+        debugPrint("\x07666666Found a building!")
+        if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") == player) {
+            debugPrint("\x07666666It is owned by the giant player!")
+            buildingEnt.AcceptInput("RemoveHealth", "9999", null, null)
+        }
+    }
+    giantEngineerTeleExitOrigin = null
 }
 
 ::displayGiantTeleportParticle <- function()

@@ -110,8 +110,10 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::chosenGiantThisRound <- RandomInt(0, GIANT_TYPES_AMOUNT - 1)
 ::sttRoundState <- STATE_SETUP
 
-//Specifically for giant engineer, keep track whenever the giant builds something
+//Specifically for giant engineer, keep track of a lot of the special things he has 
 ::giantEngineerPlayer <- null
+::giantEngineerTeleExitOrigin <- null
+::giantEngineerTeleExitParticle <- null
 
 if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
 
@@ -425,6 +427,17 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         //Find this function in bomb_ubers.nut
         if(params.team == TF_TEAM_BLUE && player.GetPlayerClass() == TF_CLASS_MEDIC && !scope.isGiant) addBombUberThink(player)
 
+        //Giant engineer: if a teleporter exit is active, teleport all newly spawned blu players
+        if(giantEngineerTeleExitOrigin != null)
+        {
+            player.Teleport(true, giantEngineerTeleExitOrigin, false, QAngle(0,0,0), false, Vector(0,0,0))
+            player.AddCondEx(57, 1, giantEngineerPlayer)
+            EmitSoundEx({
+                sound_name = "mvm/mvm_tele_deliver.wav",
+                origin = giantEngineerTeleExitOrigin
+            })
+        }
+
         local spawnedPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
 
         //Set of checks for when a blu jerk swaps to red team when prompted to be giant
@@ -480,18 +493,23 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
         //Mapmaker decides what else needs to happen using boss_dead_relay
     }
 
-    //These two handle giant engineer stuff if he's active
-    OnGameEvent_player_builtobject = function(params) {
-        if(giantEngineerPlayer == null) return
-
-        debugPrint("Object built! Type: " + params.object)
-
-    }
-
     OnGameEvent_object_detonated = function(params) {
         if(giantEngineerPlayer == null) return
 
-        debugPrint("Object detonated! Type: " + params.objecttype)
+        local detonator = GetPlayerFromUserID(params.userid)
+
+        //Only execute for giant engis
+        if(detonator != giantEngineerPlayer) return
+
+        //Check if detonated object was a teleporter entrance
+        if(params.objecttype != 1) return
+
+        local tele = EntIndexToHScript(params.index)
+
+        if(tele.GetName() != "indestructible_tele_entrance") return
+
+        //UNDO YOU MAY NOT BUILD TELE ENTRANCES
+        createIndestructibleTeleEntrance(detonator)
     }
 
     OnGameEvent_player_death = function(params) {
