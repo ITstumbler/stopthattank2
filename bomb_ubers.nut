@@ -23,8 +23,6 @@
             return -1
         }
 
-        local healTarget = self.GetHealTarget()
-
         for(local i = 0; i < NetProps.GetPropArraySize(self, "m_hMyWeapons"); i++) {
             local wep = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i)
         
@@ -33,6 +31,16 @@
                 break;
             }
         }
+
+        local medigunType = NetProps.GetPropInt(medigun, "m_AttributeManager.m_Item.m_iItemDefinitionIndex");
+
+        //If medi gun does not provide stock ubercharge, don't bother
+        //Think is NOT removed because medics can switch medi guns mid life via picking up dropped ones
+        if(medigunType in NON_STOCK_MEDIGUN_IDS) {
+            return -1
+        }
+
+        local healTarget = self.GetHealTarget()
         
         if(healTarget != null) {
             //If ubered target gets near hatch, say no

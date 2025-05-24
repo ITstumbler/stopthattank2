@@ -74,10 +74,15 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                             [642] = "The Cozy Camper",
                                             [1144] = "Festive Targe 2014"
                                         }
+::NON_STOCK_MEDIGUN_IDS             <-  { //Needed so that the script knows which medi guns give stock ubercharge and which ones don't
+                                            [35] = "The Kritzkrieg",
+                                            [411] = "The Quick-Fix",
+                                            [998] = "The Vaccinator"
+                                        }
 
 ::GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN   <- Vector(0,0,-376) //Must be somwhere out of bounds
 
-::DEBUG_FORCE_GIANT_TYPE            <- 10            //If not null, always chooses this giant ID.
+::DEBUG_FORCE_GIANT_TYPE            <- 11            //If not null, always chooses this giant ID.
 
 //round states
 ::STATE_SETUP <- 0
@@ -166,6 +171,9 @@ PrecacheSound("misc/halloween/spell_mirv_explode_primary.wav")
 PrecacheSound("mvm/mvm_tele_activate.wav")
 PrecacheSound("mvm/mvm_tele_deliver.wav")
 PrecacheSound("mvm/mvm_warning.wav")
+PrecacheSound("weapons/weapon_crit_charged_on.wav")
+PrecacheSound("weapons/weapon_crit_charged_off.wav")
+PrecacheSound("vo/mvm/norm/medic_mvm_specialcompleted05.mp3")
 
 //Giant intro voice lines
 PrecacheSound("vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3")
@@ -177,6 +185,8 @@ PrecacheSound("vo/Announcer_mvm_engbot_arrive03.mp3")
 {
     BASE_TANK_HEALTH = health_input
 }
+
+roundTimer.ValidateScriptScope()
 
 //Function for mapmakers to override round time
 ::overrideRoundTime <- function(seconds, round_type)
@@ -344,6 +354,19 @@ PrecacheSound("vo/Announcer_mvm_engbot_arrive03.mp3")
         channel = 6,
         origin = (0,0,0),
         filter_type = RECIPIENT_FILTER_GLOBAL
+    })
+}
+
+::playSoundOnePlayer <- function(soundname, player, soundflags=0)
+{
+    local soundfilter = (soundflags == 4) ? RECIPIENT_FILTER_GLOBAL : RECIPIENT_FILTER_SINGLE_PLAYER
+    
+    EmitSoundEx({
+        sound_name = soundname,
+        flags = soundflags,
+        origin = player.GetCenter(),
+        filter_type = soundfilter,
+        entity = player
     })
 }
 

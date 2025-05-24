@@ -427,16 +427,91 @@
 					while(dispscreen = Entities.FindByClassname(dispscreen, "vgui_screen"))
 					{
                         if(NetProps.GetPropEntity(dispscreen, "m_hPlayerOwner") != self) continue
-                        if(NetProps.GetPropFloat(dispscreen, "m_flWidth") == 0.55) continue
+                        if(NetProps.GetPropFloat(dispscreen, "m_flWidth") == 29.25) continue
 
-                        NetProps.SetPropFloat(dispscreen, "m_flWidth", 0.55)
-                        NetProps.SetPropFloat(dispscreen, "m_flHeight", 0.55)
+                        NetProps.SetPropFloat(dispscreen, "m_flWidth", 30.375)
+                        NetProps.SetPropFloat(dispscreen, "m_flHeight", 16.70625)
                     }
 				}
 				scope.thinkFunctions.gengieThink <- scope.gengieThink
 
                 createIndestructibleTeleEntrance(player)
+                //Set g.engi FJ to start with 6 shots
+                EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 0, 6)", -1, player, player)
 				break
+
+            case "giant_medic":
+
+                //Amputator effect
+                player.AddCondEx(55, -1, null)
+
+                local scope = player.GetScriptScope()
+
+                //Only need to be done once since giants have a dropped weapon deletion aura
+                //bomb_ubers.nut's think runs it every tick since other medics can switch medi guns mid life via dropped weapons
+                for(local i = 0; i < NetProps.GetPropArraySize(self, "m_hMyWeapons"); i++) {
+                    local wep = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i)
+                
+                    if(wep && wep.GetClassname() == "tf_weapon_medigun") {
+                        scope.medigun = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i);
+                        break;
+                    }
+                }
+
+                //Keeps track of medics deploying ubercharges for the first time
+                scope.hasDeployedUbercharge <- false
+
+				scope.gmedicThink <- function()
+				{
+                    //If medic doesnt have medi gun out, dont do any of these stuffs
+                    local activeWeapon = self.GetActiveWeapon()
+                    if(activeWeapon != medigun) {
+                        if(hasDeployedUbercharge) {
+                            hasDeployedUbercharge = false
+                            debugPrint("Stopping kritz uber sound")
+                            //Stops the kritz uber sound
+                            playSoundOnePlayer("weapons/weapon_crit_charged_on.wav", self, SND_STOP)
+
+                            playSoundOnePlayer("weapons/weapon_crit_charged_off.wav", self)
+                        }
+                        return -1
+                    }
+
+                    //For god knows why kritzkrieg cant ubercharge if medic is carrying the flag so we need to do it ourselves
+                    local buttons = NetProps.GetPropInt(self, "m_nButtons")
+                    local uberMeter = NetProps.GetPropFloat(medigun, "m_flChargeLevel") //Only be able to activate uber if you're full of course
+                    if((buttons & IN_ATTACK2) && uberMeter >= 1) {
+                        NetProps.SetPropBool(medigun, "m_bChargeRelease", true)
+                    }
+
+                    local isUbercharged = NetProps.GetPropBool(medigun, "m_bChargeRelease")
+
+                    if(!isUbercharged) {
+                        hasDeployedUbercharge = false
+                        return -1
+                    }
+
+                    if(!hasDeployedUbercharge) {
+                        debugPrint("Starting kritz uber sound and voiceline")
+                        playSoundOnePlayer("weapons/weapon_crit_charged_on.wav", self)
+
+                        //This one is global
+                        playSoundEx("vo/mvm/norm/medic_mvm_specialcompleted05.mp3")
+                        hasDeployedUbercharge = true
+                    }
+                    
+                    local radialKritzPlayer = null
+					while(radialKritzPlayer = Entities.FindByClassnameWithin(radialKritzPlayer, "player", self.GetOrigin(), 450))
+					{
+                        //Cond 39 to not override other crits or have the dumb conditions 11 has
+                        radialKritzPlayer.AddCondEx(39, 0.045, null)
+                    }
+				}
+				scope.thinkFunctions.gmedicThink <- scope.gmedicThink
+
+                //Set g.medic crossbow to start with 20 shots
+                EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 0, 20)", -1, player, player)
+                break
 
             default:
 				break
