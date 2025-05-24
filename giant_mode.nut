@@ -487,7 +487,13 @@
                     local isUbercharged = NetProps.GetPropBool(medigun, "m_bChargeRelease")
 
                     if(!isUbercharged) {
-                        hasDeployedUbercharge = false
+                        if(hasDeployedUbercharge = true) {
+                            hasDeployedUbercharge = false
+                            debugPrint("Uber ran out, stopping kritz uber sound")
+                            //Stops the kritz uber sound
+                            playSoundOnePlayer("weapons/weapon_crit_charged_on.wav", self, SND_STOP)
+                        }
+                       
                         return -1
                     }
 
