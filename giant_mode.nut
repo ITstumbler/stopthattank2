@@ -449,11 +449,11 @@
 
                 //Only need to be done once since giants have a dropped weapon deletion aura
                 //bomb_ubers.nut's think runs it every tick since other medics can switch medi guns mid life via dropped weapons
-                for(local i = 0; i < NetProps.GetPropArraySize(self, "m_hMyWeapons"); i++) {
-                    local wep = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i)
+                for(local i = 0; i < NetProps.GetPropArraySize(player, "m_hMyWeapons"); i++) {
+                    local wep = NetProps.GetPropEntityArray(player, "m_hMyWeapons", i)
                 
                     if(wep && wep.GetClassname() == "tf_weapon_medigun") {
-                        scope.medigun = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i);
+                        scope.medigun <- NetProps.GetPropEntityArray(player, "m_hMyWeapons", i);
                         break;
                     }
                 }
@@ -474,7 +474,7 @@
 
                             playSoundOnePlayer("weapons/weapon_crit_charged_off.wav", self)
                         }
-                        return -1
+                        return
                     }
 
                     //For god knows why kritzkrieg cant ubercharge if medic is carrying the flag so we need to do it ourselves
@@ -487,31 +487,30 @@
                     local isUbercharged = NetProps.GetPropBool(medigun, "m_bChargeRelease")
 
                     if(!isUbercharged) {
-                        if(hasDeployedUbercharge = true) {
+                        if(hasDeployedUbercharge) {
                             hasDeployedUbercharge = false
                             debugPrint("Uber ran out, stopping kritz uber sound")
                             //Stops the kritz uber sound
                             playSoundOnePlayer("weapons/weapon_crit_charged_on.wav", self, SND_STOP)
                         }
-                       
-                        return -1
                     }
+					else {
+						if(!hasDeployedUbercharge) {
+							debugPrint("Starting kritz uber sound and voiceline")
+							playSoundOnePlayer("weapons/weapon_crit_charged_on.wav", self)
 
-                    if(!hasDeployedUbercharge) {
-                        debugPrint("Starting kritz uber sound and voiceline")
-                        playSoundOnePlayer("weapons/weapon_crit_charged_on.wav", self)
-
-                        //This one is global
-                        playSoundEx("vo/mvm/norm/medic_mvm_specialcompleted05.mp3")
-                        hasDeployedUbercharge = true
-                    }
-                    
-                    local radialKritzPlayer = null
-					while(radialKritzPlayer = Entities.FindByClassnameWithin(radialKritzPlayer, "player", self.GetOrigin(), 450))
-					{
-                        //Cond 39 to not override other crits or have the dumb conditions 11 has
-                        radialKritzPlayer.AddCondEx(39, 0.045, null)
-                    }
+							//This one is global
+							playSoundEx("vo/mvm/norm/medic_mvm_specialcompleted05.mp3")
+							hasDeployedUbercharge = true
+						}
+						
+						local radialKritzPlayer = null
+						while(radialKritzPlayer = Entities.FindByClassnameWithin(radialKritzPlayer, "player", self.GetOrigin(), 450))
+						{
+							//Cond 39 to not override other crits or have the dumb conditions 11 has
+							radialKritzPlayer.AddCondEx(39, 0.045, null)
+						}
+					}
 				}
 				scope.thinkFunctions.gmedicThink <- scope.gmedicThink
 

@@ -7,6 +7,8 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
             ROOT[k] <- v != null ? v : 0;
 }
 
+::SND_STOP <- 4 //flag for emitsoundex
+
 //Setup for stacking thinks
 ::playerThink <- function() {
 	foreach(key, func in thinkFunctions) {
