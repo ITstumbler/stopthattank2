@@ -567,6 +567,24 @@
             bombFlag.SetAbsOrigin(self.GetOrigin())
         }
 
+        //Everything below handles giant speed cap
+        //Do not do anything if it's giant demoknight charging
+        if(self.InCond(17)) return -1
+
+        local vel = self.GetAbsVelocity()
+        
+        local scalarVel = pow(pow(vel.x, 2) + pow(vel.y, 2), 0.5).tofloat()
+        // debugPrint("Scalar vel: " + scalarVel)
+
+        if(scalarVel <= giantProperties[chosenGiantThisRound].speedCap) return -1
+
+        //Because of acceleration and allat just going for speedCap / scalarVel doesnt seem to work nicely, so i added 0.9 scale
+        //It's not perfect but it's close enough that any speed boost that actually happens will be less than 5% at most
+        local speedScale = (giantProperties[chosenGiantThisRound].speedCap / scalarVel) * 0.9
+        self.SetAbsVelocity(Vector(vel.x * speedScale, vel.y * speedScale, vel.z))
+
+        return -1
+
         return -1
     }
     

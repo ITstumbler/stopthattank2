@@ -199,7 +199,7 @@
 
     local playerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
 
-    debugPrint("\x01Prompting \x0799CCFF" + playerName + " \x01to be giant")
+    // debugPrint("\x01Prompting \x0799CCFF" + playerName + " \x01to be giant")
     
     //Temporary until HUD stuff has been worked on
     ClientPrint(player, 3, "\x0799CCFF============================")
@@ -227,7 +227,8 @@
             debugPrint("\x04Current candidate has rejected to become a giant!")
             //Player didn't want to be giant; remember that so that we don't pick them again
             playersThatHaveRejectedGiant[playerIndex] <- null
-            delete eligibleGiantPlayers[playerIndex]
+            if(playerIndex in eligibleGiantPlayers) delete eligibleGiantPlayers[playerIndex]
+            
             scope.isBecomingGiant = false
 
             //Pick another pleb to be giant

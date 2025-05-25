@@ -81,10 +81,11 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                             [411] = "The Quick-Fix",
                                             [998] = "The Vaccinator"
                                         }
-
-::GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN   <- Vector(0,0,-376) //Must be somwhere out of bounds
+::RED_REANIMATORS                   <-  true //Enables reanimators for red players
+::GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN   <- Vector(0,0,-376) //Must be somwhere out of bounds. Used to spawn an indestructible tele entrance
 
 ::DEBUG_FORCE_GIANT_TYPE            <- 11            //If not null, always chooses this giant ID.
+
 
 //round states
 ::STATE_SETUP <- 0
@@ -117,6 +118,10 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::chosenGiantThisRound <- RandomInt(0, GIANT_TYPES_AMOUNT - 1)
 ::sttRoundState <- STATE_SETUP
 
+//Reanimators don't automatically destroy themselves when the player they're reviving for spawns,
+//So we need to keep track of the reanimators each player has
+::reanimTable <- {}
+
 //Specifically for giant engineer, keep track of a lot of the special things he has 
 ::giantEngineerPlayer <- null
 ::giantEngineerTeleExitOrigin <- null
@@ -136,6 +141,7 @@ IncludeScript("stopthattank2/bomb_ubers.nut")
 IncludeScript("stopthattank2/overtime_and_bomb_alarm.nut")
 IncludeScript("stopthattank2/tank_functions_callbacks.nut")
 IncludeScript("stopthattank2/crit_cash.nut")
+IncludeScript("stopthattank2/reanimators.nut")
 IncludeScript("stopthattank2/giant_mode.nut")
 IncludeScript("stopthattank2/giant_attributes.nut")
 
@@ -400,6 +406,12 @@ roundTimer.ValidateScriptScope()
 
         //Prevent callbacks from stacking
 		delete ::roundCallbacks
+        
+        //Flush out reanim list
+        reanimTable.clear()
+
+        //Stop keeping track of who the giant engi is because they dont exist anymore
+        giantEngineerPlayer = null
 
         //Reset all variables
         for (local i = 1; i <= MaxPlayers ; i++)
@@ -439,7 +451,7 @@ roundTimer.ValidateScriptScope()
 			scope.isBecomingGiant <- false
             scope.isCarryingBombInAlarmZone <- false
             scope.thinkFunctions <- {}
-            giantEngineerPlayer = null
+            scope.reanimCount <- 0 //The amount of times a player has been revived; each reanimation increases the hp cost by 10
 
             AddThinkToEnt(player, null)
             AddThinkToEnt(player, "playerThink")
@@ -455,6 +467,9 @@ roundTimer.ValidateScriptScope()
         //Find this function in bomb_ubers.nut
         if(params.team == TF_TEAM_BLUE && player.GetPlayerClass() == TF_CLASS_MEDIC && !scope.isGiant) addBombUberThink(player)
 
+        //Lets players about to become giant reject if they die during intermission
+        if(getSTTRoundState() == STATE_INTERMISSION && scope.isBecomingGiant && !(player.entindex() in playersThatHaveRejectedGiant)) promptGiant(player.entindex())
+
         //Giant engineer: if a teleporter exit is active, teleport all newly spawned blu players
         if(giantEngineerTeleExitOrigin != null && params.team == TF_TEAM_BLUE)
         {
@@ -467,6 +482,12 @@ roundTimer.ValidateScriptScope()
                 sound_name = "mvm/mvm_tele_deliver.wav",
                 origin = playerTeleportOrigin
             })
+        }
+
+        //If spawned player had a reanimator on the field, kill it
+        if(params.userid in reanimTable) {
+            reanimTable[params.userid].Kill()
+            delete reanimTable[params.userid]
         }
 
         local spawnedPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
@@ -573,6 +594,12 @@ roundTimer.ValidateScriptScope()
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()
 
+        //If a red player dies, create reanimators for them
+        if(player.GetTeam() == TF_TEAM_RED && RED_REANIMATORS) {
+            spawnReanim(player, params.userid) //Find in reanimators.nut
+        }
+
+        //Below handles giant death events
         if (!scope.isGiant) return
         handleGiantDeath() //Global events
 
@@ -585,9 +612,27 @@ roundTimer.ValidateScriptScope()
         scope.isGiant = false
     }
 
+    OnGameEvent_revive_player_notify = function(params) {
+        debugPrint("\x07FF4444Revive player notify event!")
+    }
+
+    OnGameEvent_revive_player_stopped = function(params) {
+        debugPrint("\x0744FF44Revive player stopped event!")
+    }
+
+    OnGameEvent_revive_player_complete = function(params) {
+        debugPrint("\x074444FFRevive player complete event!")
+    }
+
     OnGameEvent_player_disconnect = function(params) {
 		local player = GetPlayerFromUserID(params.userid)
 		local scope = player.GetScriptScope()
+
+        //Disconnected while you have a reanim up? KILL IT
+        if(params.userid in reanimTable) {
+            reanimTable[userid].Kill()
+            delete reanimTable[userid]
+        }
 
         //Set of checks for when a jerk disconnects during intermission
         if(getSTTRoundState() == STATE_INTERMISSION) {
