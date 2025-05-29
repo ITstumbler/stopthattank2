@@ -35,6 +35,9 @@
     //Mark phase change to be used by other parts of the script
     setSTTRoundState(STATE_TANK)
 
+    //Have red mercs yell about the tank
+    globalSpeakResponseConcept("ConceptMvMTankCallout:1", "TLK_MVM_TANK_CALLOUT IsMvMDefender:1")
+
     //Need anything else to happen? Put it in here
     EntFire("boss_spawn_relay", "trigger")
 }

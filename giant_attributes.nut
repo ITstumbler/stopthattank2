@@ -38,15 +38,16 @@
 
 //these need to be precached
 ::giantSounds <- {}
-::giantSounds[TF_CLASS_SCOUT] <- null
-::giantSounds[TF_CLASS_SOLDIER] <- "vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3"
-::giantSounds[TF_CLASS_PYRO] <- null
-::giantSounds[TF_CLASS_DEMOMAN] <- null
-::giantSounds[TF_CLASS_HEAVYWEAPONS] <- "vo/mvm/mght/heavy_mvm_m_battlecry01.mp3"
-::giantSounds[TF_CLASS_ENGINEER] <- "vo/Announcer_mvm_engbot_arrive03.mp3"
-::giantSounds[TF_CLASS_MEDIC] <- null
-::giantSounds[TF_CLASS_SNIPER] <- null
-::giantSounds[TF_CLASS_SPY] <- null
+
+::giantSounds[TF_CLASS_SCOUT] 			<- "vo/mvm/mght/scout_mvm_m_apexofjump03.mp3"
+::giantSounds[TF_CLASS_SOLDIER] 		<- "vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3"
+::giantSounds[TF_CLASS_PYRO] 			<- "vo/mvm/mght/pyro_mvm_m_incoming01.mp3"
+::giantSounds[TF_CLASS_DEMOMAN] 		<- "vo/mvm/mght/demoman_mvm_m_eyelandertaunt01.mp3"
+::giantSounds[TF_CLASS_HEAVYWEAPONS] 	<- "vo/mvm/mght/heavy_mvm_m_battlecry01.mp3"
+::giantSounds[TF_CLASS_ENGINEER] 		<- "vo/Announcer_mvm_engbot_arrive03.mp3"
+::giantSounds[TF_CLASS_MEDIC] 			<- "vo/mvm/norm/medic_mvm_autocappedcontrolpoint03.mp3"
+::giantSounds[TF_CLASS_SNIPER] 			<- "vo/mvm/norm/sniper_mvm_award09.mp3"
+::giantSounds[TF_CLASS_SPY] 			<- "vo/mvm/norm/spy_mvm_laughevil01.mp3"
 
 
 local giantSoldier = { //TODO: Use giant attack sounds

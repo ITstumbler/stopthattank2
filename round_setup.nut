@@ -81,10 +81,10 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                             [411] = "The Quick-Fix",
                                             [998] = "The Vaccinator"
                                         }
-::RED_REANIMATORS                   <-  true //Enables reanimators for red players
+::RED_REANIMATORS                   <-  false //Enables reanimators for red players
 ::GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN   <- Vector(0,0,-376) //Must be somwhere out of bounds. Used to spawn an indestructible tele entrance
 
-::DEBUG_FORCE_GIANT_TYPE            <- 11            //If not null, always chooses this giant ID.
+::DEBUG_FORCE_GIANT_TYPE            <- null            //If not null, always chooses this giant ID.
 
 
 //round states
@@ -134,6 +134,8 @@ if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
 ::MaxPlayers <- MaxClients().tointeger()
 ::MaxWeapons <- 8
 
+IncludeScript("stopthattank2/precaches.nut")
+IncludeScript("stopthattank2/giant_kill_responses.nut")
 IncludeScript("stopthattank2/intermission.nut")
 IncludeScript("stopthattank2/bomb_deploy.nut")
 IncludeScript("stopthattank2/bomb.nut")
@@ -153,40 +155,6 @@ IncludeScript("stopthattank2/giant_attributes.nut")
 //Set team names
 Convars.SetValue("mp_tournament_redteamname", "HUMANS")
 Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
-
-//Precache garbage
-//Precache announcer sounds
-PrecacheSound("vo/announcer_begins_60sec.mp3")
-PrecacheSound("vo/announcer_begins_30sec.mp3")
-PrecacheSound("vo/announcer_begins_10sec.mp3")
-PrecacheSound("vo/announcer_begins_5sec.mp3")
-PrecacheSound("vo/announcer_begins_4sec.mp3")
-PrecacheSound("vo/announcer_begins_3sec.mp3")
-PrecacheSound("vo/announcer_begins_2sec.mp3")
-PrecacheSound("vo/announcer_begins_1sec.mp3")
-
-PrecacheSound("vo/announcer_ends_60sec.mp3")
-PrecacheSound("vo/announcer_ends_30sec.mp3")
-PrecacheSound("vo/announcer_ends_10sec.mp3")
-PrecacheSound("vo/announcer_ends_5sec.mp3")
-PrecacheSound("vo/announcer_ends_4sec.mp3")
-PrecacheSound("vo/announcer_ends_3sec.mp3")
-PrecacheSound("vo/announcer_ends_2sec.mp3")
-PrecacheSound("vo/announcer_ends_1sec.mp3")
-
-PrecacheSound("mvm/giant_heavy/giant_heavy_entrance.wav")
-PrecacheSound("misc/halloween/spell_mirv_explode_primary.wav")
-PrecacheSound("mvm/mvm_tele_activate.wav")
-PrecacheSound("mvm/mvm_tele_deliver.wav")
-PrecacheSound("mvm/mvm_warning.wav")
-PrecacheSound("weapons/weapon_crit_charged_on.wav")
-PrecacheSound("weapons/weapon_crit_charged_off.wav")
-PrecacheSound("vo/mvm/norm/medic_mvm_specialcompleted05.mp3")
-
-//Giant intro voice lines
-PrecacheSound("vo/mvm/mght/soldier_mvm_m_autodejectedtie02.mp3")
-PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
-PrecacheSound("vo/Announcer_mvm_engbot_arrive03.mp3")
 
 //Function for mapmakers to override base tank health
 ::overrideBaseTankHealth <- function(health_input)
@@ -340,6 +308,28 @@ roundTimer.ValidateScriptScope()
     AddThinkToEnt(roundTimer, "countdownThink")
 }
 
+//Prevent dead and currently being revived players from being revived by constantly setting their state to 2
+::addReanimatorThink <- function()
+{
+    gamerules.ValidateScriptScope()
+    local scope = gamerules.GetScriptScope()
+    scope.reanimatorThink <- function()
+    {
+        foreach(userid, reanim in reanimTable) {
+            local player = GetPlayerFromUserID(userid)
+            local playerScope = player.GetScriptScope()
+            // if(playerScope.isReviving) NetProps.SetPropInt(player, "mShared.m_nPlayerState", 3)
+            NetProps.SetPropInt(player, "mShared.m_nPlayerState", 3)
+        }
+        return -1
+    }
+
+    AddThinkToEnt(gamerules, null)
+    AddThinkToEnt(gamerules, "reanimatorThink")
+}
+
+// addReanimatorThink()
+
 //Handles countdown sounds (e.g. mission ends in 10 seconds!)
 ::playCountdownSound <- function(secondsRemaining)
 {
@@ -384,6 +374,36 @@ roundTimer.ValidateScriptScope()
     activator.AddCustomAttribute(attribute, value, duration)
 }
 
+//Trigger merc voicelines e.g. THE TANK IS DEPLOYING THE BOMB!!
+::globalSpeakResponseConcept <- function(p_context, p_response, p_team=TF_TEAM_RED, overrideFlags=" IsMvMDefender:1")
+{
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != p_team) continue
+        
+        EntFireByHandle(player, "AddContext", p_context, -1, null, null)
+        EntFireByHandle(player, "SpeakResponseConcept", p_response + overrideFlags, -1, null, null)
+    }
+}
+
+//Do it for one player only
+::playerSpeakResponseConcept <- function(p_context, p_response, player, overrideFlags=" IsMvMDefender:1")
+{
+    EntFireByHandle(player, "AddContext", p_context, -1, null, null)
+    EntFireByHandle(player, "SpeakResponseConcept", p_response + overrideFlags, -1, null, null)
+}
+
+//Handles what responses players should say a few seconds after they spawn
+::handleSpawnResponse <- function(player)
+{
+    if(getSTTRoundState() == STATE_TANK) playerSpeakResponseConcept("ConceptMvMAttackTheTank:1", "TLK_MVM_ATTACK_THE_TANK", player)
+    if(getSTTRoundState() == STATE_BOMB && !isBombGiantDead) playerSpeakResponseConcept("ConceptMvMGiantHasBomb:1", "TLK_MVM_GIANT_HAS_BOMB", player)
+    if(getSTTRoundState() == STATE_BOMB && isBombGiantDead) playerSpeakResponseConcept("ConceptMvMFirstBombPickup:1", "TLK_MVM_FIRST_BOMB_PICKUP", player)
+    if(getSTTRoundState() == STATE_INTERMISSION) playerSpeakResponseConcept("ConceptMvMEncourageMoney:1", "TLK_MVM_ENCOURAGE_MONEY", player)
+}
+
 ::roundCallbacks <-
 {
     Cleanup = function() {
@@ -409,6 +429,7 @@ roundTimer.ValidateScriptScope()
         
         //Flush out reanim list
         reanimTable.clear()
+        addReanimatorThink()
 
         //Stop keeping track of who the giant engi is because they dont exist anymore
         giantEngineerPlayer = null
@@ -452,6 +473,8 @@ roundTimer.ValidateScriptScope()
             scope.isCarryingBombInAlarmZone <- false
             scope.thinkFunctions <- {}
             scope.reanimCount <- 0 //The amount of times a player has been revived; each reanimation increases the hp cost by 10
+            scope.isReviving <- false
+            scope.projShield <- null
 
             AddThinkToEnt(player, null)
             AddThinkToEnt(player, "playerThink")
@@ -466,6 +489,9 @@ roundTimer.ValidateScriptScope()
         //Blu medics with stock medi gun: add a think to make bomb carriers compatible with uber
         //Find this function in bomb_ubers.nut
         if(params.team == TF_TEAM_BLUE && player.GetPlayerClass() == TF_CLASS_MEDIC && !scope.isGiant) addBombUberThink(player)
+
+        //Red players should say something a few seconds after spawning
+        EntFireByHandle(player, "RunScriptCode", "handleSpawnResponse(activator)", 4, player, player)
 
         //Lets players about to become giant reject if they die during intermission
         if(getSTTRoundState() == STATE_INTERMISSION && scope.isBecomingGiant && !(player.entindex() in playersThatHaveRejectedGiant)) promptGiant(player.entindex())
@@ -543,6 +569,9 @@ roundTimer.ValidateScriptScope()
         EntFire("gamerules", "CallScriptFunction", "spawnCritCash", -1) //Find in crit_cash.nut
 
         //Mapmaker decides what else needs to happen using boss_dead_relay
+
+        //Red mercs celebrate with voicelines
+        globalSpeakResponseConcept("ConceptMvMTankDead:1", "TLK_MVM_TANK_DEAD")
     }
 
     OnGameEvent_object_destroyed = function(params) {
@@ -592,16 +621,27 @@ roundTimer.ValidateScriptScope()
 
     OnGameEvent_player_death = function(params) {
         local player = GetPlayerFromUserID(params.userid)
+        local killer = GetPlayerFromUserID(params.attacker)
         local scope = player.GetScriptScope()
+        local killerScope = killer.GetScriptScope()
 
         //If a red player dies, create reanimators for them
+        //CURRENTLY DISABLED because a lot of reanimator aspects are beyond the reach of vscript
         if(player.GetTeam() == TF_TEAM_RED && RED_REANIMATORS) {
             spawnReanim(player, params.userid) //Find in reanimators.nut
+        }
+
+        //If a giant killed a red player, have red heavies scream METAL GIANT IS KILLING US
+        if(killer != null) {
+            if(player.GetTeam() == TF_TEAM_RED && killerScope.isGiant) {
+                globalSpeakResponseConcept("ConceptMvMGiantKilledTeammate:1", "TLK_MVM_GIANT_KILLED_TEAMMATE")
+            }
         }
 
         //Below handles giant death events
         if (!scope.isGiant) return
         handleGiantDeath() //Global events
+        speakGiantKillResponse(killer) //Have the killer say something cool, find in giant_kill_responses.nut
 
         local deadPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
         debugPrint("\x01Giant privileges removed on death for player \x0799CCFF" + deadPlayerName)
@@ -612,25 +652,32 @@ roundTimer.ValidateScriptScope()
         scope.isGiant = false
     }
 
+    //Whenever a revive starts: force players to remain dead and unable to respawn
     OnGameEvent_revive_player_notify = function(params) {
-        debugPrint("\x07FF4444Revive player notify event!")
+        local player = EntIndexToHScript(params.entindex)
+        local scope = player.GetScriptScope()
+        scope.isReviving = true
     }
 
+    //Whenever a revive stops: they may revive is ok
     OnGameEvent_revive_player_stopped = function(params) {
-        debugPrint("\x0744FF44Revive player stopped event!")
+        local player = EntIndexToHScript(params.entindex)
+        local scope = player.GetScriptScope()
+        scope.isReviving = false
     }
 
-    OnGameEvent_revive_player_complete = function(params) {
-        debugPrint("\x074444FFRevive player complete event!")
-    }
+    // OnGameEvent_revive_player_complete = function(params) {
+    //     debugPrint("\x074444FFRevive player complete event!")
+    // }
 
     OnGameEvent_player_disconnect = function(params) {
 		local player = GetPlayerFromUserID(params.userid)
 		local scope = player.GetScriptScope()
 
-        //Disconnected while you have a reanim up? KILL IT
+        //Disconnected while you have a reanim up? Forget about it
+        //The cleanup is automatic so the Kill() is redundant
         if(params.userid in reanimTable) {
-            reanimTable[userid].Kill()
+            // reanimTable[userid].Kill()
             delete reanimTable[userid]
         }
 

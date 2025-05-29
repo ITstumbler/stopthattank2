@@ -79,6 +79,10 @@
         
         break
     }
+
+    //Have red players all yell at the incoming giant
+    globalSpeakResponseConcept("ConceptMvMGiantCallout:1", "TLK_MVM_GIANT_CALLOUT")
+    EntFireByHandle(gamerules, "RunScriptCode", "globalSpeakResponseConcept(`ConceptMvMGiantHasBomb:1`, `TLK_MVM_GIANT_HAS_BOMB`)", 4, gamerules, gamerules)
 }
 
 //Called 0.4s before giant spawns via intermission.nut

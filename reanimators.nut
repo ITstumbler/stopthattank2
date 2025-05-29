@@ -10,8 +10,6 @@
         max_health = (player.GetMaxHealth() / 2) + (scope.reanimCount * 10)
     })
 
-    reanim.SetCollisionGroup(COLLISION_GROUP_DEBRIS)
-
     //Store the reanimator so we can KILL IT when the player revives or respawns
     reanimTable[userid] <- reanim
 

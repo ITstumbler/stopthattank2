@@ -22,6 +22,9 @@
         return
     }
 
+    //Have red mercs yell about bomb
+    globalSpeakResponseConcept("ConceptMvMBombPickup:1", "TLK_MVM_BOMB_PICKUP")
+
     debugPrint("\x079999FFBomb carrier is not giant, lets go give them conds and stuff")
 
     //Apply the identifying bomb carrier cond - used by other map entities to identify bomb carrier
@@ -89,6 +92,9 @@
 
         return
     }
+
+    //Have red mercs yell about no bomb
+    globalSpeakResponseConcept("ConceptMvMBombDropped:1", "TLK_MVM_BOMB_DROPPED")
 
     //Remove the identifying bomb carrier cond - used by other map entities to identify bomb carrier
     activator.RemoveCond(65)

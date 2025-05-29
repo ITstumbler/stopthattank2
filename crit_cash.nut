@@ -67,6 +67,65 @@
     local playerHealthOnPickup = activator.GetHealth()
     activator.Regenerate(true)
     activator.SetHealth(playerHealthOnPickup)
+
+    //Money pickup voiceline
+    playerSpeakResponseConcept("ConceptMvMMoneyPickup:1", "TLK_MVM_MONEY_PICKUP", activator)
+
+    //For red medics: give them projectile shield for 5 seconds
+    if(activator.GetPlayerClass() != TF_CLASS_MEDIC) return
+
+    activator.AddCustomAttribute("generate rage on heal", 1, 5)
+    NetProps.SetPropFloat(activator, "m_Shared.m_flRageMeter", 50.0)
+    NetProps.SetPropBool(activator, "m_Shared.m_bRageDraining", true)
+
+    //The projectile shield will need to be spawned manually if our medic has their medi gun out
+    local scope = activator.GetScriptScope()
+
+    scope.medigun <- null
+    
+    for(local i = 0; i < NetProps.GetPropArraySize(activator, "m_hMyWeapons"); i++) {
+        local wep = NetProps.GetPropEntityArray(activator, "m_hMyWeapons", i)
+    
+        if(wep && wep.GetClassname() == "tf_weapon_medigun") {
+            scope.medigun = NetProps.GetPropEntityArray(activator, "m_hMyWeapons", i);
+            break;
+        }
+    }
+
+    if(scope.medigun == null) return
+
+    if(activator.GetActiveWeapon() != scope.medigun) return
+
+    //Must be nested because IsValid() on null is no good
+    if(scope.projShield != null) {
+        if(scope.projShield.IsValid()) {
+            return
+        }
+    }
+
+    scope.projShield = SpawnEntityFromTable("entity_medigun_shield", {
+        //targetname = "shield"
+        teamnum = activator.GetTeam()
+        skin = activator.GetTeam() == TF_TEAM_RED ? 0 : 1
+    })
+    projShield.SetOwner(activator)
+
+    //A think is needed to despawn our spawned shield if medic switches away from medi gun
+    scope.projShieldThink <- function()
+    {
+        //Remove think on death
+        if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
+            delete thinkFunctions["projShieldThink"]
+        }
+
+        if(self.GetActiveWeapon() == medigun) return -1
+
+        projShield.Destroy()
+        delete thinkFunctions["projShieldThink"]
+    }
+    scope.thinkFunctions["projShieldThink"] <- scope.projShieldThink
+
+    playerSpeakResponseConcept("ConceptMvMDeployRage:1", "TLK_MVM_DEPLOY_RAGE", activator)
 }
 
 //We gotta murder the trigger's parent as well
