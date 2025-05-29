@@ -1,3 +1,25 @@
+//Prevent dead and currently being revived players from being revived by constantly setting their state to 2
+::addReanimatorThink <- function()
+{
+    gamerules.ValidateScriptScope()
+    local scope = gamerules.GetScriptScope()
+    scope.reanimatorThink <- function()
+    {
+        foreach(userid, reanim in reanimTable) {
+            local player = GetPlayerFromUserID(userid)
+            local playerScope = player.GetScriptScope()
+            // if(playerScope.isReviving) NetProps.SetPropInt(player, "mShared.m_nPlayerState", 3)
+            NetProps.SetPropInt(player, "mShared.m_nPlayerState", 3)
+        }
+        return -1
+    }
+
+    AddThinkToEnt(gamerules, null)
+    AddThinkToEnt(gamerules, "reanimatorThink")
+}
+
+// addReanimatorThink()
+
 //These functions are called by callbacks in round_setup.nut
 
 ::spawnReanim <- function(player, userid) 

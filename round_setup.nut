@@ -135,6 +135,7 @@ if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
 ::MaxWeapons <- 8
 
 IncludeScript("stopthattank2/precaches.nut")
+IncludeScript("stopthattank2/custom_boss_bar.nut")
 IncludeScript("stopthattank2/giant_kill_responses.nut")
 IncludeScript("stopthattank2/intermission.nut")
 IncludeScript("stopthattank2/bomb_deploy.nut")
@@ -146,6 +147,7 @@ IncludeScript("stopthattank2/crit_cash.nut")
 IncludeScript("stopthattank2/reanimators.nut")
 IncludeScript("stopthattank2/giant_mode.nut")
 IncludeScript("stopthattank2/giant_attributes.nut")
+IncludeScript("stopthattank2/vs_math.nut")
 
 ::debugPrint <- function(msg)
 {
@@ -222,19 +224,6 @@ roundTimer.ValidateScriptScope()
 		case STATE_BOMB:
 			redWin.AcceptInput("RoundWin", null, null, null)
 			debugPrint("\x05Call timer: \x01Winning red")
-			//Resetting hp is a pain so instead giant hp becomes 50 during humiliation
-			for (local i = 1; i <= MaxPlayers ; i++)
-			{
-				local player = PlayerInstanceFromIndex(i)
-				if (player == null) continue
-				if (player.GetTeam() != TF_TEAM_BLUE) continue
-				if (!player.GetScriptScope().isGiant) continue
-				debugPrint("\x0799CCFFShame on blu giant. Its HP will become 50.")
-				player.SetHealth(50)
-				player.RemoveCustomAttribute("max health additive bonus")
-				break
-			}
-            AddThinkToEnt(roundTimer, null)
 			break;
 		default:
 			break;
@@ -248,6 +237,36 @@ roundTimer.ValidateScriptScope()
     AddThinkToEnt(roundTimer, null)
     AddThinkToEnt(roundTimer, "countdownThink")
     setSTTRoundState(STATE_PRESPAWN_TANK)
+}
+
+//Round win and loss music has been removed via level_sounds, so we need to replay them
+//Red has special music for winning and losing
+::handleRedWin <- function()
+{
+    EntFireByHandle(gamerules, "PlayVORed", "music.mvm_end_wave", -1, null, null)
+    EntFireByHandle(gamerules, "PlayVORed", "Announcer.MVM_Final_Wave_End", -1, null, null)
+    EntFireByHandle(gamerules, "PlayVOBlue", "STT.YourTeamLost", -1, null, null)
+    //Resetting hp is a pain so instead giant hp becomes 50 during humiliation
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != TF_TEAM_BLUE) continue
+        if (!player.GetScriptScope().isGiant) continue
+        debugPrint("\x0799CCFFShame on blu giant. Its HP will become 50.")
+        player.SetHealth(50)
+        player.RemoveCustomAttribute("max health additive bonus")
+        break
+    }
+    AddThinkToEnt(roundTimer, null)
+}
+
+::handleBlueWin <- function()
+{
+    EntFireByHandle(gamerules, "PlayVORed", "music.mvm_lost_wave", -1, null, null)
+    EntFireByHandle(gamerules, "PlayVORed", "Announcer.MVM_Game_Over_Loss", -1, null, null)
+    EntFireByHandle(gamerules, "PlayVOBlue", "STT.YourTeamWon", -1, null, null)
+    AddThinkToEnt(roundTimer, null)
 }
 
 //We manually count down our own timer because outputs like On5SecRemain are off by 1 second for some reason
@@ -307,28 +326,6 @@ roundTimer.ValidateScriptScope()
     AddThinkToEnt(roundTimer, null)
     AddThinkToEnt(roundTimer, "countdownThink")
 }
-
-//Prevent dead and currently being revived players from being revived by constantly setting their state to 2
-::addReanimatorThink <- function()
-{
-    gamerules.ValidateScriptScope()
-    local scope = gamerules.GetScriptScope()
-    scope.reanimatorThink <- function()
-    {
-        foreach(userid, reanim in reanimTable) {
-            local player = GetPlayerFromUserID(userid)
-            local playerScope = player.GetScriptScope()
-            // if(playerScope.isReviving) NetProps.SetPropInt(player, "mShared.m_nPlayerState", 3)
-            NetProps.SetPropInt(player, "mShared.m_nPlayerState", 3)
-        }
-        return -1
-    }
-
-    AddThinkToEnt(gamerules, null)
-    AddThinkToEnt(gamerules, "reanimatorThink")
-}
-
-// addReanimatorThink()
 
 //Handles countdown sounds (e.g. mission ends in 10 seconds!)
 ::playCountdownSound <- function(secondsRemaining)
@@ -623,7 +620,6 @@ roundTimer.ValidateScriptScope()
         local player = GetPlayerFromUserID(params.userid)
         local killer = GetPlayerFromUserID(params.attacker)
         local scope = player.GetScriptScope()
-        local killerScope = killer.GetScriptScope()
 
         //If a red player dies, create reanimators for them
         //CURRENTLY DISABLED because a lot of reanimator aspects are beyond the reach of vscript
@@ -632,21 +628,32 @@ roundTimer.ValidateScriptScope()
         }
 
         //If a giant killed a red player, have red heavies scream METAL GIANT IS KILLING US
-        if(killer != null) {
-            if(player.GetTeam() == TF_TEAM_RED && killerScope.isGiant) {
-                globalSpeakResponseConcept("ConceptMvMGiantKilledTeammate:1", "TLK_MVM_GIANT_KILLED_TEAMMATE")
+        if(killer != null) { //This nested if setup is so cooked but kinda necessary
+            if(killer.IsPlayer()) {
+
+                local killerScope = killer.GetScriptScope()
+
+                if(player.GetTeam() == TF_TEAM_RED && killerScope.isGiant) {
+                    globalSpeakResponseConcept("ConceptMvMGiantKilledTeammate:1", "TLK_MVM_GIANT_KILLED_TEAMMATE")
+                }
+
             }
         }
 
         //Below handles giant death events
         if (!scope.isGiant) return
         handleGiantDeath() //Global events
-        speakGiantKillResponse(killer) //Have the killer say something cool, find in giant_kill_responses.nut
+        if(killer != player && killer.IsAlive() && killer.IsPlayer()) { //Don't say anything if suicide
+            speakGiantKillResponse(killer) //Have the killer say something cool, find in giant_kill_responses.nut
+        }
+        
 
         local deadPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
         debugPrint("\x01Giant privileges removed on death for player \x0799CCFF" + deadPlayerName)
 
         player.SetCustomModelWithClassAnimations("")
+
+        player.SetIsMiniBoss(false)
 
         //Stop being giant
         scope.isGiant = false

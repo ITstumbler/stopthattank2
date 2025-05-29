@@ -360,6 +360,12 @@
     //A bunch of think funcs, see the function below for the list of things it does
     addGiantThink(player)
 
+    //Boss bar
+    SetBossEntity(player)
+	UpdateBossBarLeaderboardIcon(giantSpecifics.classIcon)
+
+    player.SetIsMiniBoss(true)
+
     //Miscellaneous actions to do if a giant has tags
     if(giantSpecifics.tags == null) return
 
@@ -661,6 +667,9 @@
 
         player.RemoveCustomAttribute("cannot pick up intelligence")
     }
+
+    //Disable healthbar
+    SetBossEntity(null)
 
     //On giant death: destroy all buildings that they owned.
     //Relevant for giant engineer

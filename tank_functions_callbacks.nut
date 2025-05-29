@@ -3,14 +3,35 @@
     //Make sure tank hologram is called tank_hologram!!
     tankHologram.AcceptInput("Disable", null, null, null)
 
+    local redPlayerCount = 0
+    for (local i = 1; i <= MaxPlayers ; i++)
+    {
+        local player = PlayerInstanceFromIndex(i)
+        if (player == null) continue
+        if (player.GetTeam() != 2) continue
+        redPlayerCount += 1
+    }
+
+    local tankHealth = BASE_TANK_HEALTH / BASE_TANK_PLAYER_COUNT.tofloat()
+    tankHealth = tankHealth * redPlayerCount
+    
+    //Why is nobody on red? Tank gets 1000 hp as consolation prize
+    if(tankHealth == 0) {
+        tankHealth = 1000
+        debugPrint("\x05NOBODY is on red? Tank HP is now " + tankHealth)
+    }
+
     tank = SpawnEntityFromTable("tank_boss", {
         targetname = "tank",
         TeamNum = 4,
         speed = TANK_SPEED,
         angles = startingPathTrack.GetAbsAngles(),
-        health = 1,
+        health = tankHealth,
         model = "models/bots/boss_bot/boss_tank.mdl"
 	})
+
+    SetBossEntity(tank)
+	UpdateBossBarLeaderboardIcon(leaderboard.tank)
 
     tank.SetAbsOrigin(startingPathTrack.GetOrigin())
 
