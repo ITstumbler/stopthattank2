@@ -35,7 +35,7 @@
     while(playersToShove = Entities.FindByClassnameWithin(playersToShove, "player", bombSpawnOrigin, 163))
     {
         //We don't shove blu team
-        if(playersToShove.GetTeam == TF_TEAM_BLUE) continue
+        if(playersToShove.GetTeam() == TF_TEAM_BLUE) continue
 
         local playerOrigin = playersToShove.GetOrigin()
 
@@ -67,16 +67,21 @@
         break
     }
 
-    //Add special bomb uber thinks for blu medics that let them uber bomb carriers
+   
     for (local i = 1; i <= MaxPlayers ; i++)
     {
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
         if (player.GetTeam() != TF_TEAM_BLUE) continue
-        if (player.GetPlayerClass() != TF_CLASS_MEDIC) continue
-        
-        addBombUberThink(player)
-        
+
+        player.SetScriptOverlayMaterial(null) //Remove giant info hud
+        local scope = player.GetScriptScope()
+        if("giantHideHudThink" in scope.thinkFunctions) delete scope.thinkFunctions["giantHideHudThink"]
+
+        if (player.GetPlayerClass() != TF_CLASS_MEDIC) {
+             //Add special bomb uber thinks for blu medics that let them uber bomb carriers
+            addBombUberThink(player)
+        }
         break
     }
 
@@ -93,7 +98,7 @@
     while(playersToPush = Entities.FindByClassnameWithin(playersToPush, "player", bombSpawnOrigin, 256))
     {
         //We don't push blu team
-        if(playersToPush.GetTeam == TF_TEAM_BLUE) continue
+        if(playersToPush.GetTeam() == TF_TEAM_BLUE) continue
         
         //Do trigonometry homework to find the angle to launch the players to
         local playerOrigin = playersToPush.GetOrigin()
@@ -389,12 +394,27 @@
                 EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 0, 1)", -1, player, player)
 				break
 
+            case "airblast_crits":
+                local scope = player.GetScriptScope()
+                scope.gpyroThink <- function()
+				{
+                    if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
+                        delete thinkFunctions["gpyroThink"]
+                    }
+                    
+				}
+				scope.thinkFunctions.gpyroThink <- scope.gpyroThink
+                break
+
             case "giant_engineer":
                 //Activates a set of callbacks for giant engineer
                 giantEngineerPlayer = player
 				local scope = player.GetScriptScope()
 				scope.gengieThink <- function()
 				{
+                    if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
+                        delete thinkFunctions["gengieThink"]
+                    }
 					//based on main think's time of -1, so constantly spamming this might not be great
 					local building = null
 					while(building = Entities.FindByClassname(building, "obj_*"))
@@ -473,6 +493,9 @@
 
 				scope.gmedicThink <- function()
 				{
+                    if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
+                        delete thinkFunctions["gmedicThink"]
+                    }
                     //If medic doesnt have medi gun out, dont do any of these stuffs
                     local activeWeapon = self.GetActiveWeapon()
                     if(activeWeapon != medigun) {

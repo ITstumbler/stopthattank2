@@ -111,10 +111,8 @@
         if (player == null) continue
         if (player.GetTeam() != 3) continue
 
-        ClientPrint(player, 3, "\x0799CCFF============================")
-        ClientPrint(player, 3, "\x05" + giantPlayerName + " \x01is about to become a \x0799CCFF" + giantProperties[chosenGiantThisRound].giantName + "\x01!")
-        ClientPrint(player, 3, "\x04" + giantProperties[chosenGiantThisRound].playerInfo)
-        ClientPrint(player, 3, "\x0799CCFF============================")
+        player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
+        EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator)", 3, player, player)
         break
     }
 
@@ -201,21 +199,20 @@
 
     // debugPrint("\x01Prompting \x0799CCFF" + playerName + " \x01to be giant")
     
-    //Temporary until HUD stuff has been worked on
-    ClientPrint(player, 3, "\x0799CCFF============================")
-    ClientPrint(player, 3, "\x01You are about to become a \x0799CCFFGIANT\x01!")
-    ClientPrint(player, 3, "\x01You will become a: \x0799CCFF" + giantProperties[chosenGiantThisRound].giantName)
-    ClientPrint(player, 3, "\x04" + giantProperties[chosenGiantThisRound].playerInfo)
-    ClientPrint(player, 3, "\x0799CCFF============================")
+    // ClientPrint(player, 3, "\x0799CCFF============================")
+    // ClientPrint(player, 3, "\x01You are about to become a \x0799CCFFGIANT\x01!")
+    // ClientPrint(player, 3, "\x01You will become a: \x0799CCFF" + giantProperties[chosenGiantThisRound].giantName)
+    // ClientPrint(player, 3, "\x04" + giantProperties[chosenGiantThisRound].playerInfo)
+    // ClientPrint(player, 3, "\x0799CCFF============================")
+    player.SetScriptOverlayMaterial("hud/stopthattank2/g_b_" + giantProperties[chosenGiantThisRound].hudHintName)
     EntFireByHandle(rejectGiantHudHint, "ShowHudHint", null, 0, player, player)
 
-    player.ValidateScriptScope()
     local scope = player.GetScriptScope()
     scope.isBecomingGiant = true
     
     scope.promptGiantThink <- function() {
         //Cleanup on death
-        if(NetProps.GetPropInt(player, "m_lifeState") != 0) {
+        if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
             delete thinkFunctions["promptGiantThink"]
         }
         local buttons = NetProps.GetPropInt(self, "m_nButtons")
@@ -223,7 +220,7 @@
         //ATTACK3 will be used to reject giant prompt as it is not used in pvp
         if(buttons & IN_ATTACK3)
         {
-            EntFireByHandle(rejectGiantHudHint, "HideHudHint", null, 0, player, player)
+            EntFireByHandle(rejectGiantHudHint, "HideHudHint", null, 0, self, self)
             debugPrint("\x04Current candidate has rejected to become a giant!")
             //Player didn't want to be giant; remember that so that we don't pick them again
             playersThatHaveRejectedGiant[playerIndex] <- null
@@ -243,3 +240,30 @@
 
 }
 
+//Lets players hide giant info hud by pressing reload
+//Only after at least 3s of the info hud being visible on screen
+::AddGiantHideHudThink <- function(player)
+{
+    EntFireByHandle(hideGiantHudHint, "ShowHudHint", null, 0, player, player)
+
+    local scope = player.GetScriptScope()
+    
+    scope.giantHideHudThink <- function() {
+        local buttons = NetProps.GetPropInt(self, "m_nButtons")
+
+        //RELOAD will be used to hide giant info HUD as it is not often used
+        //Heatmaker, vaccinator, and people with auto reload disabled will have to cope
+        //That's why it's 3s minimum
+        if(buttons & IN_RELOAD)
+        {
+            EntFireByHandle(hideGiantHudHint, "HideHudHint", null, 0, self, self)
+
+            player.SetScriptOverlayMaterial(null)
+
+            //Think cleanup
+            delete thinkFunctions["giantHideHudThink"]
+        }
+        return -1
+    }
+    scope.thinkFunctions["giantHideHudThink"] <- scope.giantHideHudThink
+}

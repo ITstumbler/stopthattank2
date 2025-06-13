@@ -36,6 +36,14 @@
         activator.AddCustomAttribute(attribute, value, -1)
     }
 
+    for (local i = 0; i < MaxWeapons; i++)
+	{
+		local weapon = NetProps.GetPropEntityArray(activator, "m_hMyWeapons", i)
+		if (weapon == null)
+			continue
+		weapon.AddAttribute("self dmg push force decreased", 0.01, -1) //This needs to be applied to WEAPONS and not the players??? Garbage game
+	}
+
     //Count red players - if the amount of players on red is less than MINIMUM_PLAYERS_FOR_BOMB_BUFFS, do not apply conds
     local redPlayerCount = 0
     for (local i = 1; i <= MaxPlayers ; i++)
@@ -110,6 +118,14 @@
     {
         activator.RemoveCustomAttribute(attribute)
     }
+
+    for (local i = 0; i < MaxWeapons; i++)
+	{
+		local weapon = NetProps.GetPropEntityArray(activator, "m_hMyWeapons", i)
+		if (weapon == null)
+			continue
+		weapon.RemoveAttribute("self dmg push force decreased") //This needs to be applied to WEAPONS and not the players??? Garbage game
+	}
 
     //Update when the player last dropped the bomb, to check if they're eligible for temporary conds (see above)
     scope.lastBombDropTime <- Time()

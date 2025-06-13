@@ -23,7 +23,7 @@
 
     tank = SpawnEntityFromTable("tank_boss", {
         targetname = "tank",
-        TeamNum = 4,
+        TeamNum = 3,
         speed = TANK_SPEED,
         angles = startingPathTrack.GetAbsAngles(),
         health = tankHealth,
@@ -32,6 +32,13 @@
 
     SetBossEntity(tank)
 	UpdateBossBarLeaderboardIcon(leaderboard.tank)
+
+    //Allow tank to be instantly destroyed by anyone when debugging
+    if(GetDeveloperLevel() >= 1) {
+        tank.SetHealth(1)
+        tank.SetTeam(4)
+        debugPrint("\x07FF3333DEBUGGING: \x01Tank set to 1 HP and neutral team")
+    }
 
     tank.SetAbsOrigin(startingPathTrack.GetOrigin())
 

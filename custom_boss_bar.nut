@@ -163,7 +163,6 @@ function Think()
 	{
 		local AllowBoss = true
         if(bossEntity == null) AllowBoss = false
-        debugPrint("allow boss? " + AllowBoss)
 		SetBossBarValue(bossEntity.GetHealth(), bossEntity.GetMaxHealth(), AllowBoss);
 		return BOSS_BAR_UPDATE_PERIOD;
 	}
@@ -177,8 +176,8 @@ function Think()
 /*
 This is how we make CompilePal include custom files.
 PrecacheModel("resource/ui/custom_boss_bar.res");
-PrecacheModel("materials/hud/custom_boss_bar.vmt");
-PrecacheModel("materials/hud/custom_boss_bar.vtf");
-PrecacheModel("materials/hud/custom_boss_bar_surround.vmt");
-PrecacheModel("materials/hud/custom_boss_bar_surround.vtf");
+PrecacheModel("materials/hud/stopthattank2/boss_bar_stt2.vmt");
+PrecacheModel("materials/hud/stopthattank2/boss_bar_stt2.vtf");
+PrecacheModel("materials/hud/stopthattank2/custom_boss_bar_surround_stt2.vmt");
+PrecacheModel("materials/hud/stopthattank2/custom_boss_bar_surround_stt2.vtf");
 */

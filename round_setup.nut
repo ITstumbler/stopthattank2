@@ -18,13 +18,13 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 }
 
 //Balance-sensitive parameters
-::TANK_SPEED                        <- 75           //The speed at which the tank goes. The fake_train in the map must be set to the same speed
+::TANK_SPEED                        <- 45           //The speed at which the tank goes. The fake_train in the map must be set to the same speed
 ::BASE_TANK_HEALTH                  <- 12000        //Base tank health, will be increased or decreased if the amount of players on red is more or less than BASE_TANK_PLAYER_COUNT. Can be overriden using overrideBaseTankHealth(health)
 ::BASE_TANK_PLAYER_COUNT            <- 12           //If there are this many players on red team, the tank will use BASE_TANK_HEALTH. Scaled linearly if there are more or less players on red team
 ::SETUP_LENGTH                      <- 6           //Time between round starting and doors opening, like other gamemodes' setup. MUST match team_round_timer keyvalues.
-::POST_SETUP_LENGTH                 <- 5           //Time between setup ending and tank spawning. MUST match team_round_timer keyvalues.
+::POST_SETUP_LENGTH                 <- 15           //Time between setup ending and tank spawning. MUST match team_round_timer keyvalues.
 ::INTERMISSION_LENGTH               <- 30           //Time between tank dying and giant spawning. MUST be higher than 2 seconds. Avoid changing this since it lines up with cash expiring.
-::BOMB_MISSION_LENGTH               <- 70          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
+::BOMB_MISSION_LENGTH               <- 150          //Time blu has to deploy the bomb the moment their giant can move, in seconds (like everything else)
 ::TOP_PLAYERS_ELIGIBLE_FOR_GIANT    <- 5            //Pick from the first x top performing players in scoreboard to be giant
 ::GIANT_TYPES_AMOUNT                <- 12           //Pick first x giant templates to choose from
 ::GIANT_SCALE                       <- 1.75         //Giant players will be scaled by this much
@@ -35,8 +35,8 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                         [TF_COND_HALLOWEEN_QUICK_HEAL]      = 3
                                        }
 ::BOMB_CARRIER_ATTRIBUTES           <- {            //Attributes to apply to non-giant players carrying the bomb
-                                        "move speed penalty": 0.8,
-                                        "self dmg push force decreased": 0.01
+                                        "move speed penalty": 0.8
+                                        // "self dmg push force decreased": 0.01 //This needs to be applied to all weapons and not the character because this game sucks
                                        }
 ::MINIMUM_PLAYERS_FOR_BOMB_BUFFS    <- 5            //If there are less than this many players on red, do not apply any conds
 ::BOMB_CARRIER_TEMP_CONDS_DELAY     <- 10           //Temporary conds will be blocked if a player recently dropped the bomb, this is the delay (seconds) that allows said player to get temp conds again
@@ -61,7 +61,6 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                         [TF_COND_CRITBOOSTED_CTF_CAPTURE]   = 5, //If you remove this, be sure to also change the cond in filter_cash_eligible
                                         [TF_COND_HALLOWEEN_QUICK_HEAL]      = 3
                                        }
-::PROJECTILE_SHIELD_LENGTH          <- 10           //In seconds, the length red medics get projectile shield for when picking up cash
 ::WEARABLE_IDS_TO_REMOVE            <-  {           //Weapons like razorback, booties etc. need to be removed manually when a player becomes giant. This determines the list of weapons to remove manually.
                                             [1101] = "The B.A.S.E. Jumper",
                                             [444] = "The Mantreads",
@@ -81,8 +80,11 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                             [411] = "The Quick-Fix",
                                             [998] = "The Vaccinator"
                                         }
+::UNREFLECTABLE_PROJECTILES         <-  { //In order to make Giant Pyro's airblast turn everything into crits, the code needs to iterate through every single projectile on the field. This list tells the code which projectiles to not bother with since they either can't crit or can't be reflected
+                                            [0] = ""
+                                        }
 ::RED_REANIMATORS                   <-  false //Enables reanimators for red players
-::GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN   <- Vector(0,0,-376) //Must be somwhere out of bounds. Used to spawn an indestructible tele entrance
+::GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN   <- Vector(0,0,-376) //Must be somewhere out of bounds. Used to spawn an indestructible tele entrance
 
 ::DEBUG_FORCE_GIANT_TYPE            <- null            //If not null, always chooses this giant ID.
 
@@ -98,6 +100,8 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 
 //Find map entities
 ::startingPathTrack <- Entities.FindByName(null, "tank_path_1")
+::customFirstGiantSpawn <- Entities.FindByName(null, "first_giant_spawn")
+::customGiantEngineerTeleEntranceMarker <- Entities.FindByName(null, "giant_engineer_tele_hint")
 ::trainWatcherDummy <- Entities.FindByName(null, "fake_train")
 ::redWin <- Entities.FindByName(null, "Red_Win")
 ::tankHologram <- Entities.FindByName(null, "tank_hologram")
@@ -112,9 +116,16 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
     message = "%+attack3% Reject becoming a giant"
 })
 
+::hideGiantHudHint <- SpawnEntityFromTable("env_hudhint", {
+    targetname = "hide_giant_hud_hint",
+    message = "%+reload% Hide giant info"
+})
+
 //Keep track of some things
 ::tank <- null
 ::bombSpawnOrigin <- startingPathTrack.GetOrigin()
+if(customFirstGiantSpawn != null) bombSpawnOrigin = customFirstGiantSpawn.GetOrigin()
+if(customGiantEngineerTeleEntranceMarker != null) GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN = customGiantEngineerTeleEntranceMarker.GetOrigin()
 ::chosenGiantThisRound <- RandomInt(0, GIANT_TYPES_AMOUNT - 1)
 ::sttRoundState <- STATE_SETUP
 
@@ -151,6 +162,7 @@ IncludeScript("stopthattank2/vs_math.nut")
 
 ::debugPrint <- function(msg)
 {
+    if(GetDeveloperLevel() < 1) return
     ClientPrint(null,3,msg)
 }
 
