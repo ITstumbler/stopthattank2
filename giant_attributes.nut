@@ -114,7 +114,7 @@ local giantHeavy = { //TODO: Custom minigun spin sounds
         "minigun no spin sounds"		: 1.0,
         "crit mod disabled"				: 0.0,
         "aiming movespeed increased"	: 1.3,
-        "dmg penalty vs buildings"		: 9999
+        "dmg penalty vs buildings"		: 0.75
     },
     secondaryAttributes         = null,
     meleeAttributes             = null
@@ -212,7 +212,7 @@ local giantRapidFireHuntsman = { //TODO: make this guy spawn with 5 jarates
 	meleeWeaponID               = 232,
 	meleeWeaponClassName        = "tf_weapon_club",
 	respawnOverride             = null,
-	tags						= ["regenerate_on_spawn"], //Only spawns with 1 jarate for some reasons so this gives him 5 jarates
+	tags						= null,
 	playerInfo                  = "-Increased arrow damage and reload speed.\n-Can recharge and store up to 5 Jarates at once.\n-Bushwacka doesn't increase damage taken.",
 	introSound                  = giantSounds[TF_CLASS_SNIPER],	
 	playerAttributes =
@@ -374,7 +374,7 @@ local giantShotgunHeavy = {
 	meleeWeaponID               = 43,
 	meleeWeaponClassName        = "tf_weapon_fists",
 	respawnOverride             = null,
-	tags						= null,
+	tags						= "1_clip_secondary",
 	playerInfo                  = "-Can one-shot almost every enemy in close range.\n-Melee weapon gives crits for 7s on kill.\n-Weak at longer ranges.",
 	introSound                  = giantSounds[TF_CLASS_HEAVYWEAPONS],	
 	playerAttributes =
@@ -386,11 +386,11 @@ local giantShotgunHeavy = {
 	primaryAttributes = null,
     secondaryAttributes = 
 	{
-		"fire rate penalty"   				: 2.3,
+		"clip size penalty"   				: 0.167,
 		"bullets per shot bonus"   			: 10.0,
 		"damage penalty"	   				: 0.5,
-		"faster reload rate"   				: 0.1,
-		"crit mod disabled"   				: 0.0
+		"crit mod disabled"   				: 0.0,
+		"crit kill will gib"				: 1.0
 	},	
     meleeAttributes = 
 	{
@@ -489,7 +489,7 @@ local giantEngineer = {
 	}
 }
 
-local giantKritzkriegMedic = { //TODO: Share ubercharge with nearby teammates
+local giantKritzkriegMedic = {
 	classId 					= TF_CLASS_MEDIC,
 	giantName                   = "Giant Kritzkrieg Medic",
 	baseHealth                  = 6000.0,

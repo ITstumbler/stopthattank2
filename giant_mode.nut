@@ -88,6 +88,8 @@
     //Have red players all yell at the incoming giant
     globalSpeakResponseConcept("ConceptMvMGiantCallout:1", "TLK_MVM_GIANT_CALLOUT")
     EntFireByHandle(gamerules, "RunScriptCode", "globalSpeakResponseConcept(`ConceptMvMGiantHasBomb:1`, `TLK_MVM_GIANT_HAS_BOMB`)", 4, gamerules, gamerules)
+
+    EntFireByHandle(hideGiantHudHint, "HideHudHint", null, 0, self, self)
 }
 
 //Called 0.4s before giant spawns via intermission.nut
@@ -394,6 +396,10 @@
                 EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 0, 1)", -1, player, player)
 				break
 
+            case "1_clip_secondary":
+                EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 1, 1)", -1, player, player)
+				break
+
             case "airblast_crits":
                 local scope = player.GetScriptScope()
                 scope.gpyroThink <- function()
@@ -401,7 +407,41 @@
                     if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
                         delete thinkFunctions["gpyroThink"]
                     }
-                    
+                    local projectileToCheck = null
+                    while(projectileToCheck = Entities.FindByClassname(projectileToCheck, "tf_projectile_*"))
+					{
+                        //Not belonging to blue = impossible to have been reflected by the giant pyro
+                        //Projectiles change ownership on reflect, except for stickybombs
+                        //Stickybombs are excluded completely from this mechanic
+                        if(projectileToCheck.GetTeam() != TF_TEAM_BLUE) {
+                            // debugPrint("PR: not blu team, skipping")
+                            continue
+                        }
+                        if(projectileToCheck.GetClassname() in UNREFLECTABLE_PROJECTILES) {
+                            // debugPrint("PR: in unreflectable list, skipping")
+                            continue
+                        }
+                        if(!NetProps.GetPropInt(projectileToCheck, "m_iDeflected")) {
+                            // debugPrint("PR: not deflected, skipping")
+                            continue
+                        }
+
+                        //Grenades for some reasons dont change owner but instead deflectowner
+                        local owner = NetProps.GetPropEntity(projectileToCheck, "m_hOwnerEntity")
+                        if(owner != self) {
+                            owner = NetProps.GetPropEntity(projectileToCheck, "m_hDeflectOwner")
+                            if(owner != self) continue
+                        }
+
+                        if(NetProps.GetPropBool(projectileToCheck, "m_bCritical") == true) continue
+
+                        debugPrint("PR: " + projectileToCheck.GetClassname() + " set to crit")
+
+                        NetProps.SetPropBool(projectileToCheck, "m_bCritical", true)
+                        local deflectCount = NetProps.GetPropInt(projectileToCheck, "m_iDeflected")
+                        //Force data update to update trails
+                        NetProps.SetPropInt(projectileToCheck, "m_iDeflected", deflectCount + 1)
+                    }
 				}
 				scope.thinkFunctions.gpyroThink <- scope.gpyroThink
                 break

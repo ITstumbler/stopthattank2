@@ -81,7 +81,11 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
                                             [998] = "The Vaccinator"
                                         }
 ::UNREFLECTABLE_PROJECTILES         <-  { //In order to make Giant Pyro's airblast turn everything into crits, the code needs to iterate through every single projectile on the field. This list tells the code which projectiles to not bother with since they either can't crit or can't be reflected
-                                            [0] = ""
+                                            "tf_projectile_energy_ring": null,
+                                            "tf_projectile_jar": null,
+                                            "tf_projectile_jar_gas": null,
+                                            "tf_projectile_jar_milk": null,
+                                            "tf_projectile_syringe": null
                                         }
 ::RED_REANIMATORS                   <-  false //Enables reanimators for red players
 ::GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN   <- Vector(0,0,-376) //Must be somewhere out of bounds. Used to spawn an indestructible tele entrance
@@ -156,8 +160,11 @@ IncludeScript("stopthattank2/overtime_and_bomb_alarm.nut")
 IncludeScript("stopthattank2/tank_functions_callbacks.nut")
 IncludeScript("stopthattank2/crit_cash.nut")
 IncludeScript("stopthattank2/reanimators.nut")
+IncludeScript("stopthattank2/blue_robots.nut")
 IncludeScript("stopthattank2/giant_mode.nut")
 IncludeScript("stopthattank2/giant_attributes.nut")
+IncludeScript("stopthattank2/vcd_soundscript.nut")
+IncludeScript("stopthattank2/robot_voicelines.nut")
 IncludeScript("stopthattank2/vs_math.nut")
 
 ::debugPrint <- function(msg)
@@ -394,6 +401,7 @@ roundTimer.ValidateScriptScope()
         
         EntFireByHandle(player, "AddContext", p_context, -1, null, null)
         EntFireByHandle(player, "SpeakResponseConcept", p_response + overrideFlags, -1, null, null)
+        EntFireByHandle(player, "RemoveContext", p_context, 1, null, null)
     }
 }
 
@@ -402,6 +410,7 @@ roundTimer.ValidateScriptScope()
 {
     EntFireByHandle(player, "AddContext", p_context, -1, null, null)
     EntFireByHandle(player, "SpeakResponseConcept", p_response + overrideFlags, -1, null, null)
+    EntFireByHandle(player, "RemoveContext", p_context, 1, null, null)
 }
 
 //Handles what responses players should say a few seconds after they spawn
@@ -450,6 +459,7 @@ roundTimer.ValidateScriptScope()
             if (player == null) continue
             local scope = player.GetScriptScope()
             scope.isBecomingGiant = false
+            scope.hasHiddenGiantHud = false
         }
     }
 
@@ -484,6 +494,7 @@ roundTimer.ValidateScriptScope()
             scope.reanimCount <- 0 //The amount of times a player has been revived; each reanimation increases the hp cost by 10
             scope.isReviving <- false
             scope.projShield <- null
+            scope.hasHiddenGiantHud <- false
 
             AddThinkToEnt(player, null)
             AddThinkToEnt(player, "playerThink")
@@ -500,7 +511,7 @@ roundTimer.ValidateScriptScope()
         if(params.team == TF_TEAM_BLUE && player.GetPlayerClass() == TF_CLASS_MEDIC && !scope.isGiant) addBombUberThink(player)
 
         //Red players should say something a few seconds after spawning
-        EntFireByHandle(player, "RunScriptCode", "handleSpawnResponse(activator)", 4, player, player)
+        if(params.team == TF_TEAM_RED) EntFireByHandle(player, "RunScriptCode", "handleSpawnResponse(activator)", 4, player, player)
 
         //Lets players about to become giant reject if they die during intermission
         if(getSTTRoundState() == STATE_INTERMISSION && scope.isBecomingGiant && !(player.entindex() in playersThatHaveRejectedGiant)) promptGiant(player.entindex())

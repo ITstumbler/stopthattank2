@@ -13,7 +13,7 @@
     }
 
     local tankHealth = BASE_TANK_HEALTH / BASE_TANK_PLAYER_COUNT.tofloat()
-    tankHealth = tankHealth * redPlayerCount
+    tankHealth = (tankHealth * redPlayerCount) / 2
     
     //Why is nobody on red? Tank gets 1000 hp as consolation prize
     if(tankHealth == 0) {

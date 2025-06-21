@@ -169,6 +169,8 @@
             local scope = player.GetScriptScope()
             scope.isBecomingGiant = true
             ClientPrint(player, 3, "\x05Everyone on your team rejected. You're the next giant now.")
+            player.SetScriptOverlayMaterial("hud/stopthattank2/g_b_" + giantProperties[chosenGiantThisRound].hudHintName)
+
             break
         }
     }
@@ -206,6 +208,7 @@
     // ClientPrint(player, 3, "\x0799CCFF============================")
     player.SetScriptOverlayMaterial("hud/stopthattank2/g_b_" + giantProperties[chosenGiantThisRound].hudHintName)
     EntFireByHandle(rejectGiantHudHint, "ShowHudHint", null, 0, player, player)
+    EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator, 7)", 3, player, player)
 
     local scope = player.GetScriptScope()
     scope.isBecomingGiant = true
@@ -221,6 +224,12 @@
         if(buttons & IN_ATTACK3)
         {
             EntFireByHandle(rejectGiantHudHint, "HideHudHint", null, 0, self, self)
+
+            //Theyre no longer willing, so they get the receiving hud instead
+            if(!(scope.hasHiddenGiantHud)) {
+                player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
+            }
+            
             debugPrint("\x04Current candidate has rejected to become a giant!")
             //Player didn't want to be giant; remember that so that we don't pick them again
             playersThatHaveRejectedGiant[playerIndex] <- null
@@ -242,11 +251,14 @@
 
 //Lets players hide giant info hud by pressing reload
 //Only after at least 3s of the info hud being visible on screen
-::AddGiantHideHudThink <- function(player)
+::AddGiantHideHudThink <- function(player, delay=0)
 {
-    EntFireByHandle(hideGiantHudHint, "ShowHudHint", null, 0, player, player)
-
     local scope = player.GetScriptScope()
+    if(scope.hasHiddenGiantHud) return //Player has already hidden the giant info HUD, don't bother
+
+    EntFireByHandle(hideGiantHudHint, "ShowHudHint", null, delay, player, player)
+
+    
     
     scope.giantHideHudThink <- function() {
         local buttons = NetProps.GetPropInt(self, "m_nButtons")
@@ -257,7 +269,7 @@
         if(buttons & IN_RELOAD)
         {
             EntFireByHandle(hideGiantHudHint, "HideHudHint", null, 0, self, self)
-
+            hasHiddenGiantHud = true
             player.SetScriptOverlayMaterial(null)
 
             //Think cleanup
