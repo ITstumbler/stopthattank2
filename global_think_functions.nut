@@ -14,7 +14,7 @@ function Think()
                 if ((owner.GetTeam() == TF_TEAM_BLUE && !IsDisguisedAsOpposingTeam(owner)) || (owner.GetPlayerClass() == TF_CLASS_SPY && IsDisguisedAsOpposingTeam(owner) && owner.GetTeam() == TF_TEAM_RED))
                 {
                     owner.AddCustomAttribute("voice pitch scale", 0.0, -1.0) //Mute voicelines and play our own
-                    debugPrint("\x04Replacing voiceline")
+                    // debugPrint("\x04Replacing voiceline")
                     ReplaceVoiceline(owner, scene)
                 }
                 else

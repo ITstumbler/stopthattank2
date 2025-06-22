@@ -165,6 +165,7 @@ IncludeScript("stopthattank2/giant_mode.nut")
 IncludeScript("stopthattank2/giant_attributes.nut")
 IncludeScript("stopthattank2/vcd_soundscript.nut")
 IncludeScript("stopthattank2/robot_voicelines.nut")
+IncludeScript("stopthattank2/spy_disguises.nut")
 IncludeScript("stopthattank2/vs_math.nut")
 
 ::debugPrint <- function(msg)
@@ -460,6 +461,9 @@ roundTimer.ValidateScriptScope()
             local scope = player.GetScriptScope()
             scope.isBecomingGiant = false
             scope.hasHiddenGiantHud = false
+            scope.isCarryingBombInAlarmZone = false
+            scope.lastResponseTime = 0
+            scope.reanimCount = 0
         }
     }
 
@@ -495,6 +499,7 @@ roundTimer.ValidateScriptScope()
             scope.isReviving <- false
             scope.projShield <- null
             scope.hasHiddenGiantHud <- false
+            scope.lastResponseTime <- 0 //Used for red spies disguised as blue spies - see robot_voicelines.nut
 
             AddThinkToEnt(player, null)
             AddThinkToEnt(player, "playerThink")
@@ -509,6 +514,10 @@ roundTimer.ValidateScriptScope()
         //Blu medics with stock medi gun: add a think to make bomb carriers compatible with uber
         //Find this function in bomb_ubers.nut
         if(params.team == TF_TEAM_BLUE && player.GetPlayerClass() == TF_CLASS_MEDIC && !scope.isGiant) addBombUberThink(player)
+        
+        //Spies from both teams need a think to add/remove robo footsteps on disguise
+        //Find this function in spy_disguises.nut
+        if(player.GetPlayerClass() == TF_CLASS_SPY) addSpyDisguiseThink(player, params.team)
 
         //Red players should say something a few seconds after spawning
         if(params.team == TF_TEAM_RED) EntFireByHandle(player, "RunScriptCode", "handleSpawnResponse(activator)", 4, player, player)
@@ -575,7 +584,6 @@ roundTimer.ValidateScriptScope()
         }
         //After humiliation player model needs to be reset manually
         debugPrint("\x01Giant privileges removed on spawn for player \x0799CCFF" + spawnedPlayerName)
-        player.SetCustomModelWithClassAnimations("")
         
         //Stop being giant
         scope.isGiant = false
@@ -669,12 +677,11 @@ roundTimer.ValidateScriptScope()
         if(killer != player && killer.IsAlive() && killer.IsPlayer()) { //Don't say anything if suicide
             speakGiantKillResponse(killer) //Have the killer say something cool, find in giant_kill_responses.nut
         }
-        
+
+        playSoundEx("mvm/sentrybuster/mvm_sentrybuster_explode.wav")
 
         local deadPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
         debugPrint("\x01Giant privileges removed on death for player \x0799CCFF" + deadPlayerName)
-
-        player.SetCustomModelWithClassAnimations("")
 
         player.SetIsMiniBoss(false)
 

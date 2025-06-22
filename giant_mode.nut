@@ -597,7 +597,6 @@
     }
 }
 
-//Despite its general name it's only for Nukesalot to spawn with 1 clip kek
 ::setWeaponClip <- function(player, weaponSlot, clipCount)
 {
     for (local i = 0; i < MaxWeapons; i++)
