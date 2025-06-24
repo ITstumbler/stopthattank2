@@ -37,4 +37,13 @@
     //Disable countdown sounds
     AddThinkToEnt(roundTimer, null)
     bombFlag.AcceptInput("Disable", null, null, null)
+
+    //Remove the persisting no rocket jump attribute
+    for (local i = 0; i < MaxWeapons; i++)
+	{
+		local weapon = NetProps.GetPropEntityArray(activator, "m_hMyWeapons", i)
+		if (weapon == null)
+			continue
+		weapon.RemoveAttribute("self dmg push force decreased") //This needs to be applied to WEAPONS and not the players??? Garbage game
+	}
 }

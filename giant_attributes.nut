@@ -333,7 +333,7 @@ local giant10ShotBazookaSoldier = {
 	meleeWeaponID               = 196,
 	meleeWeaponClassName        = "tf_weapon_shovel",
 	respawnOverride             = null,
-	tags						= ["regenerate_on_spawn"],
+	tags						= null,
 	playerInfo                  = "-Loads up to 10 rockets rapidly.\n-Cannot overload.\n-6 degrees in random projectile deviation.",
 	introSound                  = giantSounds[TF_CLASS_SOLDIER],	
 	playerAttributes =
@@ -481,9 +481,10 @@ local giantEngineer = {
 		"Construction rate increased"					: 1.75,
 		"engineer sentry build rate multiplier"			: 2.75,
 		"engineer teleporter build rate multiplier"		: 2.0,
+		"max health additive bonus"						: 0,
 		"Repair rate decreased"							: 0.22,
 		"engy building health bonus"					: 6.5, //PDA stats should be able to be applied to wrench
-		"engy sentry damage bonus"						: 0.22,
+		"engy sentry damage bonus"						: 3.0,
 		"engy sentry fire rate increased"				: 1.45,
 		"engy dispenser radius increased"				: 8
 	}

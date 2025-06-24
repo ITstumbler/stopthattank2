@@ -17,8 +17,8 @@
 
     //Red spies have robotic footsteps when disguised, human otherwise
     else {
-        scope.disguisedFootsteps <- 0
-        scope.defaultFootsteps <- 7
+        scope.disguisedFootsteps <- 7
+        scope.defaultFootsteps <- 0
     }
 
     scope.spyDisguiseThink <- function()
@@ -28,12 +28,12 @@
             delete thinkFunctions["spyDisguiseThink"]
         }
 
-        if(self.InCond(TF_COND_DISGUISED) && !isDisguised) {
+        if(IsDisguisedAsOpposingTeam(self) && !isDisguised) {
             isDisguised = true
             self.AddCustomAttribute("override footstep sound set", disguisedFootsteps, -1)
         }
 
-        else if(!self.InCond(TF_COND_DISGUISED) && isDisguised) {
+        else if(!IsDisguisedAsOpposingTeam(self) && isDisguised) {
             isDisguised = false
             self.AddCustomAttribute("override footstep sound set", defaultFootsteps, -1)
         }

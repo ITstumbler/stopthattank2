@@ -168,7 +168,7 @@
             if (player.GetTeam() != TF_TEAM_BLUE) continue
             local scope = player.GetScriptScope()
             scope.isBecomingGiant = true
-            ClientPrint(player, 3, "\x05Everyone on your team rejected. You're the next giant now.")
+            ClientPrint(player, 3, "\x05Everyone on your team rejected. You have been chosen to become the next giant.")
             player.SetScriptOverlayMaterial("hud/stopthattank2/g_b_" + giantProperties[chosenGiantThisRound].hudHintName)
 
             break

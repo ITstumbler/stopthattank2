@@ -191,6 +191,9 @@
 {
     local player = PlayerInstanceFromIndex(playerIndex)
 
+    //Sometimes the overlay persists???
+    player.SetScriptOverlayMaterial(null)
+
     //If player is engineer, manually destroy all existing buildings they owned
     if(player.GetPlayerClass() == TF_CLASS_ENGINEER)
     {
@@ -373,6 +376,9 @@
 
     player.SetIsMiniBoss(true)
 
+    //Full ammo regeneration for the first 5 seconds
+    player.AddCustomAttribute("ammo regen", 1, 5)
+
     //Miscellaneous actions to do if a giant has tags
     if(giantSpecifics.tags == null) return
 
@@ -511,10 +517,6 @@
 				break
 
             case "giant_medic":
-
-                //Amputator effect
-                player.AddCondEx(55, -1, null)
-
                 local scope = player.GetScriptScope()
 
                 //Only need to be done once since giants have a dropped weapon deletion aura
@@ -536,6 +538,11 @@
                     if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
                         delete thinkFunctions["gmedicThink"]
                     }
+
+                    //Amputator effect
+                    //Needs to be in think because it's removed if the gmed ends any taunt
+                    player.AddCondEx(55, 1, null)
+
                     //If medic doesnt have medi gun out, dont do any of these stuffs
                     local activeWeapon = self.GetActiveWeapon()
                     if(activeWeapon != medigun) {

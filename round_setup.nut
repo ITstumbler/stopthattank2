@@ -517,7 +517,10 @@ roundTimer.ValidateScriptScope()
         
         //Spies from both teams need a think to add/remove robo footsteps on disguise
         //Find this function in spy_disguises.nut
-        if(player.GetPlayerClass() == TF_CLASS_SPY) addSpyDisguiseThink(player, params.team)
+        if(player.GetPlayerClass() == TF_CLASS_SPY) {
+            addSpyDisguiseThink(player, params.team)
+            applyAttributeOnSpawn("armor piercing", 75, -1) //750 backstab dmg to giants
+        }
 
         //Red players should say something a few seconds after spawning
         if(params.team == TF_TEAM_RED) EntFireByHandle(player, "RunScriptCode", "handleSpawnResponse(activator)", 4, player, player)
