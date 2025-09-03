@@ -1,21 +1,13 @@
 //Allows us to reference constants by name so no need to remember the cringe out-of-order class ID e.g. TF_CLASS_SNIPER = 2
-::ROOT <- getroottable();
-if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done once
+::root <- getroottable();
+if (!("ConstantNamingConvention" in root)) // make sure folding is only done once
 {
     foreach (a,b in Constants)
         foreach (k,v in b)
-            ROOT[k] <- v != null ? v : 0;
+            root[k] <- v != null ? v : 0;
 }
 
 ::SND_STOP <- 4 //flag for emitsoundex
-
-//Setup for stacking thinks
-::playerThink <- function() {
-	foreach(key, func in thinkFunctions) {
-		func()
-	}
-    return -1
-}
 
 //Balance-sensitive parameters
 ::TANK_SPEED                        <- 45           //The speed at which the tank goes. The fake_train in the map must be set to the same speed
@@ -92,7 +84,6 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 
 ::DEBUG_FORCE_GIANT_TYPE            <- null            //If not null, always chooses this giant ID.
 
-
 //round states
 ::STATE_SETUP <- 0
 ::STATE_PRESPAWN_TANK <- 1 //period before the tank spawns in
@@ -115,6 +106,8 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 ::bombFlag <- Entities.FindByClassname(null, "item_teamflag")
 ::roundTimer <- Entities.FindByClassname(null, "team_round_timer")
 
+if(customGiantEngineerTeleEntranceMarker != null) GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN = customGiantEngineerTeleEntranceMarker.GetOrigin()
+
 ::rejectGiantHudHint <- SpawnEntityFromTable("env_hudhint", {
     targetname = "reject_giant_hud_hint",
     message = "%+attack3% Reject becoming a giant"
@@ -127,18 +120,16 @@ if (!("ConstantNamingConvention" in ROOT)) // make sure folding is only done onc
 
 //Keep track of some things
 ::tank <- null
-::bombSpawnOrigin <- startingPathTrack.GetOrigin()
-if(customFirstGiantSpawn != null) bombSpawnOrigin = customFirstGiantSpawn.GetOrigin()
-if(customGiantEngineerTeleEntranceMarker != null) GIANT_ENGINEER_TELE_ENTRANCE_ORIGIN = customGiantEngineerTeleEntranceMarker.GetOrigin()
+::bombSpawnOrigin <- customFirstGiantSpawn != null ? customFirstGiantSpawn.GetOrigin() : startingPathTrack.GetOrigin()
 ::chosenGiantThisRound <- RandomInt(0, GIANT_TYPES_AMOUNT - 1)
 ::sttRoundState <- STATE_SETUP
+::giantPlayer <- null
 
 //Reanimators don't automatically destroy themselves when the player they're reviving for spawns,
 //So we need to keep track of the reanimators each player has
 ::reanimTable <- {}
 
 //Specifically for giant engineer, keep track of a lot of the special things he has 
-::giantEngineerPlayer <- null
 ::giantEngineerTeleExitOrigin <- null
 ::giantEngineerTeleExitAngle <- null
 ::giantEngineerTeleExitParticle <- null
@@ -168,7 +159,15 @@ IncludeScript("stopthattank2/robot_voicelines.nut")
 IncludeScript("stopthattank2/spy_disguises.nut")
 IncludeScript("stopthattank2/vs_math.nut")
 
-::debugPrint <- function(msg)
+//Setup for stacking thinks
+::playerThink <- function() {
+	foreach(key, func in thinkFunctions) {
+		func()
+	}
+    return -1
+}
+
+function root::debugPrint(msg)
 {
     if(GetDeveloperLevel() < 1) return
     ClientPrint(null,3,msg)
@@ -179,7 +178,7 @@ Convars.SetValue("mp_tournament_redteamname", "HUMANS")
 Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
 
 //Function for mapmakers to override base tank health
-::overrideBaseTankHealth <- function(health_input)
+function root::overrideBaseTankHealth(health_input)
 {
     BASE_TANK_HEALTH = health_input
 }
@@ -187,7 +186,7 @@ Convars.SetValue("mp_tournament_blueteamname", "ROBOTS")
 roundTimer.ValidateScriptScope()
 
 //Function for mapmakers to override round time
-::overrideRoundTime <- function(seconds, round_type)
+function root::overrideRoundTime(seconds, round_type)
 {
     switch(round_type) {
         case STATE_SETUP:
@@ -208,16 +207,16 @@ roundTimer.ValidateScriptScope()
 }
 
 //returns current round state, general use for any other things that could happen at round state
-::getSTTRoundState <- function() {
+function root::getSTTRoundState() {
 	return sttRoundState
 }
 
-::setSTTRoundState <- function(state) {
+function root::setSTTRoundState(state) {
 	sttRoundState = state
 }
 
 //Timer finishes 3 times, so we have to know which function we need to call
-::callTimerFunction <- function()
+function root::callTimerFunction()
 {
     debugPrint("\x05Call timer: \x01Executing a function")
 	switch(getSTTRoundState()) {
@@ -238,7 +237,6 @@ roundTimer.ValidateScriptScope()
 			}
 			
 			debugPrint("\x05Call timer function: \x01setting current round time to " + (BOMB_MISSION_LENGTH + GIANT_CAMERA_DURATION))
-			AddThinkToEnt(roundTimer, null)
 			AddThinkToEnt(roundTimer, "countdownThink")
 			break;
 		case STATE_BOMB:
@@ -251,37 +249,30 @@ roundTimer.ValidateScriptScope()
 }
 
 //Other stuffs we need to do after setup finishes
-::handleSetupFinish <- function()
+function root::handleSetupFinish()
 {
     roundTimer.GetScriptScope().currentRoundTime <- POST_SETUP_LENGTH
-    AddThinkToEnt(roundTimer, null)
     AddThinkToEnt(roundTimer, "countdownThink")
     setSTTRoundState(STATE_PRESPAWN_TANK)
 }
 
 //Round win and loss music has been removed via level_sounds, so we need to replay them
 //Red has special music for winning and losing
-::handleRedWin <- function()
+function root::handleRedWin()
 {
     EntFireByHandle(gamerules, "PlayVORed", "music.mvm_end_wave", -1, null, null)
     EntFireByHandle(gamerules, "PlayVORed", "Announcer.MVM_Final_Wave_End", -1, null, null)
     EntFireByHandle(gamerules, "PlayVOBlue", "STT.YourTeamLost", -1, null, null)
     //Resetting hp is a pain so instead giant hp becomes 50 during humiliation
-    for (local i = 1; i <= MaxPlayers ; i++)
-    {
-        local player = PlayerInstanceFromIndex(i)
-        if (player == null) continue
-        if (player.GetTeam() != TF_TEAM_BLUE) continue
-        if (!player.GetScriptScope().isGiant) continue
-        debugPrint("\x0799CCFFShame on blu giant. Its HP will become 50.")
-        player.SetHealth(50)
-        player.RemoveCustomAttribute("max health additive bonus")
-        break
-    }
+	if(giantPlayer != null) {
+		debugPrint("\x0799CCFFShame on blu giant. Its HP will become 50.")
+        giantPlayer.SetHealth(50)
+        giantPlayer.RemoveCustomAttribute("max health additive bonus")
+	}
     AddThinkToEnt(roundTimer, null)
 }
 
-::handleBlueWin <- function()
+function root::handleBlueWin()
 {
     EntFireByHandle(gamerules, "PlayVORed", "music.mvm_lost_wave", -1, null, null)
     EntFireByHandle(gamerules, "PlayVORed", "Announcer.MVM_Game_Over_Loss", -1, null, null)
@@ -290,21 +281,18 @@ roundTimer.ValidateScriptScope()
 }
 
 //We manually count down our own timer because outputs like On5SecRemain are off by 1 second for some reason
-::startCountdownSounds <- function()
+function root::startCountdownSounds()
 {
     //For some reasons onsetupstart is fired during waiting for players phase 
     if(IsInWaitingForPlayers()) return
 
     roundTimer.ValidateScriptScope()
     local scope = roundTimer.GetScriptScope()
-    scope.endTime <- NetProps.GetPropFloat(roundTimer, "m_flTimerEndTime")
     scope.prevEndTime <- 99999
     scope.countdownThink <- function()
     {
-        endTime = NetProps.GetPropFloat(roundTimer, "m_flTimerEndTime")
-
         //Change fl time to i time, these don't tend to be ints
-        local realEndTime = floor(endTime - Time())
+        local realEndTime = floor(NetProps.GetPropFloat(roundTimer, "m_flTimerEndTime") - Time())
 
         //Detect whenever the integer changes
         if(realEndTime != prevEndTime) {
@@ -343,12 +331,11 @@ roundTimer.ValidateScriptScope()
         // debugPrint("\x077700FFTime remaining: " + realEndTime.tostring())
         return -1
     }
-    AddThinkToEnt(roundTimer, null)
     AddThinkToEnt(roundTimer, "countdownThink")
 }
 
 //Handles countdown sounds (e.g. mission ends in 10 seconds!)
-::playCountdownSound <- function(secondsRemaining)
+function root::playCountdownSound(secondsRemaining)
 {
     //If bomb mission hasnt started yet, all countdown sounds should be mission begins in x seconds
     local prefix = getSTTRoundState() != STATE_BOMB ? "vo/announcer_begins_" : "vo/announcer_ends_"
@@ -356,23 +343,19 @@ roundTimer.ValidateScriptScope()
     debugPrint("\x07AA44AAPlaying countdown sound for " + secondsRemaining)
 }
 
-::playSoundEx <- function(soundname)
+function root::playSoundEx(soundname)
 {
-    EmitSoundEx({
-        sound_name = soundname,
+	local soundTable = {
+		sound_name = soundname,
         channel = 6,
-        origin = (0,0,0),
         filter_type = RECIPIENT_FILTER_GLOBAL
-    })
-    EmitSoundEx({
-        sound_name = soundname,
-        channel = 6,
-        origin = (0,0,0),
-        filter_type = RECIPIENT_FILTER_GLOBAL
-    })
+	}
+	
+    EmitSoundEx(soundTable)
+    EmitSoundEx(soundTable)
 }
 
-::playSoundOnePlayer <- function(soundname, player, soundflags=0)
+function root::playSoundOnePlayer(soundname, player, soundflags=0)
 {
     local soundfilter = (soundflags == 4) ? RECIPIENT_FILTER_GLOBAL : RECIPIENT_FILTER_SINGLE_PLAYER
     
@@ -386,13 +369,13 @@ roundTimer.ValidateScriptScope()
 }
 
 //Must be separated and delayed, or applying attributes wont work
-::applyAttributeOnSpawn <- function(attribute, value, duration)
+function root::applyAttributeOnSpawn(attribute, value, duration)
 {
     activator.AddCustomAttribute(attribute, value, duration)
 }
 
 //Trigger merc voicelines e.g. THE TANK IS DEPLOYING THE BOMB!!
-::globalSpeakResponseConcept <- function(p_context, p_response, p_team=TF_TEAM_RED, overrideFlags=" IsMvMDefender:1")
+function root::globalSpeakResponseConcept(p_context, p_response, p_team=TF_TEAM_RED, overrideFlags=" IsMvMDefender:1")
 {
     for (local i = 1; i <= MaxPlayers ; i++)
     {
@@ -407,7 +390,7 @@ roundTimer.ValidateScriptScope()
 }
 
 //Do it for one player only
-::playerSpeakResponseConcept <- function(p_context, p_response, player, overrideFlags=" IsMvMDefender:1")
+function root::playerSpeakResponseConcept(p_context, p_response, player, overrideFlags=" IsMvMDefender:1")
 {
     EntFireByHandle(player, "AddContext", p_context, -1, null, null)
     EntFireByHandle(player, "SpeakResponseConcept", p_response + overrideFlags, -1, null, null)
@@ -415,7 +398,7 @@ roundTimer.ValidateScriptScope()
 }
 
 //Handles what responses players should say a few seconds after they spawn
-::handleSpawnResponse <- function(player)
+function root::handleSpawnResponse(player)
 {
     if(getSTTRoundState() == STATE_TANK) playerSpeakResponseConcept("ConceptMvMAttackTheTank:1", "TLK_MVM_ATTACK_THE_TANK", player)
     if(getSTTRoundState() == STATE_BOMB && !isBombGiantDead) playerSpeakResponseConcept("ConceptMvMGiantHasBomb:1", "TLK_MVM_GIANT_HAS_BOMB", player)
@@ -423,9 +406,27 @@ roundTimer.ValidateScriptScope()
     if(getSTTRoundState() == STATE_INTERMISSION) playerSpeakResponseConcept("ConceptMvMEncourageMoney:1", "TLK_MVM_ENCOURAGE_MONEY", player)
 }
 
+//clean up a player from giant eligibility if they disconnected/switched teams
+function root::removeInvalidatedPlayer(player)
+{
+	//If they were top 5, also remove them from the list
+	//The player that rejected might not be in top 5 because top 5 all rejected already
+	if(player.GetEntityIndex() in eligibleGiantPlayers)
+	{
+		debugPrint("\x0788BB88They were eligible to be giant, handling leaving case")
+		delete eligibleGiantPlayers[player.GetEntityIndex()]
+	}
+
+	//Player disconnected when they were prompted to be giant, so toss it to someone else
+	if (scope.isBecomingGiant) {
+		debugPrint("\x0788BB88They were prompted to be giant, handling leaving case")
+		pickRandomPlayerToBeGiant(eligibleGiantPlayers)
+	}
+}
+
 ::roundCallbacks <-
 {
-    Cleanup = function() {
+    function Cleanup() {
         //Reset HUD type
         NetProps.SetPropInt(gamerules, "m_nHudType", 3)
         NetProps.SetPropBool(gamerules, "m_bPlayingHybrid_CTF_CP", false)
@@ -442,16 +443,13 @@ roundTimer.ValidateScriptScope()
 
         //Reset overtime availability
         SetOvertimeAllowedForCTF(false)
-
-        //Prevent callbacks from stacking
-		delete ::roundCallbacks
         
         //Flush out reanim list
         reanimTable.clear()
         addReanimatorThink()
-
-        //Stop keeping track of who the giant engi is because they dont exist anymore
-        giantEngineerPlayer = null
+		
+		//Stop keeping track of who the giant is because they dont exist anymore
+		giantPlayer = null
 
         //Reset all variables
         for (local i = 1; i <= MaxPlayers ; i++)
@@ -465,23 +463,26 @@ roundTimer.ValidateScriptScope()
             scope.lastResponseTime = 0
             scope.reanimCount = 0
         }
+		
+		//Prevent callbacks from stacking
+		delete ::roundCallbacks
     }
 
-    OnGameEvent_scorestats_accumulated_update = function(_) {
+    function OnGameEvent_scorestats_accumulated_update(_) {
 		if (GetRoundState() == 3) {
 			Cleanup()
 		}
 	}
 
-    OnGameEvent_player_hurt = function(params) {
+    function OnGameEvent_player_hurt(params) {
 		local player = GetPlayerFromUserID(params.userid)
         
         //Flash giants when shot during invuln phase
         if (player.GetCustomAttribute("dmg taken increased", 1) != 0.001) return
-        player.AddCondEx(5, 0.5, null)
+        player.AddCondEx(TF_COND_INVULNERABLE, 0.5, null)
 	}
 
-    OnGameEvent_player_spawn = function(params) {
+    function OnGameEvent_player_spawn(params) {
         local player = GetPlayerFromUserID(params.userid)
         local scope = player.GetScriptScope()
 
@@ -501,7 +502,6 @@ roundTimer.ValidateScriptScope()
             scope.hasHiddenGiantHud <- false
             scope.lastResponseTime <- 0 //Used for red spies disguised as blue spies - see robot_voicelines.nut
 
-            AddThinkToEnt(player, null)
             AddThinkToEnt(player, "playerThink")
 		}
 
@@ -526,7 +526,8 @@ roundTimer.ValidateScriptScope()
         if(params.team == TF_TEAM_RED) EntFireByHandle(player, "RunScriptCode", "handleSpawnResponse(activator)", 4, player, player)
 
         //Lets players about to become giant reject if they die during intermission
-        if(getSTTRoundState() == STATE_INTERMISSION && scope.isBecomingGiant && !(player.entindex() in playersThatHaveRejectedGiant)) promptGiant(player.entindex())
+        if(getSTTRoundState() == STATE_INTERMISSION && scope.isBecomingGiant && !(player.entindex() in playersThatHaveRejectedGiant))
+			promptGiant(player.entindex())
 
         //Giant engineer: if a teleporter exit is active, teleport all newly spawned blu players
         if(giantEngineerTeleExitOrigin != null && params.team == TF_TEAM_BLUE)
@@ -534,8 +535,8 @@ roundTimer.ValidateScriptScope()
             local playerTeleportOrigin = giantEngineerTeleExitOrigin
             playerTeleportOrigin.z = giantEngineerTeleExitOrigin.z + 18
 
-            player.Teleport(true, playerTeleportOrigin, true, giantEngineerTeleExitAngle, false, Vector(0,0,0))
-            player.AddCondEx(57, 1, giantEngineerPlayer)
+            player.Teleport(true, playerTeleportOrigin, true, giantEngineerTeleExitAngle, false, Vector())
+            player.AddCondEx(TF_COND_INVULNERABLE_CARD_EFFECT, 1, giantPlayer)
             EmitSoundEx({
                 sound_name = "mvm/mvm_tele_deliver.wav",
                 origin = playerTeleportOrigin
@@ -554,19 +555,8 @@ roundTimer.ValidateScriptScope()
         if(getSTTRoundState() == STATE_INTERMISSION && params.team == TF_TEAM_RED) {
             debugPrint("\x0788BB88Someone spawned on red during intermission")
 
-            //If they were top 5, also remove them from the list
-            //The player that rejected might not be in top 5 because top 5 all rejected already
-            if(player.GetEntityIndex() in eligibleGiantPlayers)
-            {
-                debugPrint("\x0788BB88They were eligible to be giant, handling leaving case")
-                delete eligibleGiantPlayers[player.GetEntityIndex()]
-            }
-
-            //Player disconnected when they were prompted to be giant, so toss it to someone else
-            if (scope.isBecomingGiant) {
-                debugPrint("\x0788BB88They were prompted to be giant, handling leaving case")
-                pickRandomPlayerToBeGiant(eligibleGiantPlayers)
-            }
+            removeInvalidatedPlayer(player)
+			return
         }
 
         if (!scope.isGiant) {
@@ -592,7 +582,7 @@ roundTimer.ValidateScriptScope()
         scope.isGiant = false
     }
 
-    OnGameEvent_mvm_tank_destroyed_by_players = function(params) {
+    function OnGameEvent_mvm_tank_destroyed_by_players(params) {
         debugPrint("Intermission stuff happening now")
         startIntermission() //Find in intermission.nut
 
@@ -605,13 +595,13 @@ roundTimer.ValidateScriptScope()
         globalSpeakResponseConcept("ConceptMvMTankDead:1", "TLK_MVM_TANK_DEAD")
     }
 
-    OnGameEvent_object_destroyed = function(params) {
-        if(giantEngineerPlayer == null) return
+    function OnGameEvent_object_destroyed(params) {
+        if(giantPlayer.GetPlayerClass() != TF_CLASS_ENGINEER) return
 
         local owner = GetPlayerFromUserID(params.userid)
 
         //Only execute for giant engis
-        if(owner != giantEngineerPlayer) return
+        if(owner != giantPlayer) return
 
         //Check if destroyed object was a teleporter entrance
         if(params.objecttype != 1) return
@@ -623,13 +613,13 @@ roundTimer.ValidateScriptScope()
         stopTeleExit()
     }
 
-    OnGameEvent_object_detonated = function(params) {
-        if(giantEngineerPlayer == null) return
+    function OnGameEvent_object_detonated(params) {
+        if(giantPlayer.GetPlayerClass() != TF_CLASS_ENGINEER) return
 
         local detonator = GetPlayerFromUserID(params.userid)
 
         //Only execute for giant engis
-        if(detonator != giantEngineerPlayer) return
+        if(detonator != giantPlayer) return
 
         //Check if detonated object was a teleporter entrance
         if(params.objecttype != 1) return
@@ -640,17 +630,16 @@ roundTimer.ValidateScriptScope()
         {
             stopTeleExit()
         }
-
         else
         {
             //UNDO YOU MAY NOT BUILD TELE ENTRANCES
             createIndestructibleTeleEntrance(detonator)
-            ClientPrint(detonator, 4, "You may not build teleporter entrance as Giant Engineer; Just build an exit")
+            ClientPrint(detonator, 4, "You may not build teleporter entrances as Giant Engineer; just build an exit")
         }
         
     }
 
-    OnGameEvent_player_death = function(params) {
+    function OnGameEvent_player_death(params) {
         local player = GetPlayerFromUserID(params.userid)
         local killer = GetPlayerFromUserID(params.attacker)
         local scope = player.GetScriptScope()
@@ -662,25 +651,18 @@ roundTimer.ValidateScriptScope()
         }
 
         //If a giant killed a red player, have red heavies scream METAL GIANT IS KILLING US
-        if(killer != null) { //This nested if setup is so cooked but kinda necessary
-            if(killer.IsPlayer()) {
-
-                local killerScope = killer.GetScriptScope()
-
-                if(player.GetTeam() == TF_TEAM_RED && killerScope.isGiant) {
-                    globalSpeakResponseConcept("ConceptMvMGiantKilledTeammate:1", "TLK_MVM_GIANT_KILLED_TEAMMATE")
-                }
-
+        if(killer != null && killer == giantPlayer) {
+            if(player.GetTeam() == TF_TEAM_RED) {
+                globalSpeakResponseConcept("ConceptMvMGiantKilledTeammate:1", "TLK_MVM_GIANT_KILLED_TEAMMATE")
             }
         }
 
         //Below handles giant death events
         if (!scope.isGiant) return
         handleGiantDeath() //Global events
-        if(killer != player && killer.IsAlive() && killer.IsPlayer()) { //Don't say anything if suicide
+        if(killer != player && killer.IsAlive() && killer.IsPlayer()) { //Only say something for non suicide player kills
             speakGiantKillResponse(killer) //Have the killer say something cool, find in giant_kill_responses.nut
         }
-
         playSoundEx("mvm/sentrybuster/mvm_sentrybuster_explode.wav")
 
         local deadPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
@@ -693,14 +675,14 @@ roundTimer.ValidateScriptScope()
     }
 
     //Whenever a revive starts: force players to remain dead and unable to respawn
-    OnGameEvent_revive_player_notify = function(params) {
+    function OnGameEvent_revive_player_notify(params) {
         local player = EntIndexToHScript(params.entindex)
         local scope = player.GetScriptScope()
         scope.isReviving = true
     }
 
     //Whenever a revive stops: they may revive is ok
-    OnGameEvent_revive_player_stopped = function(params) {
+    function OnGameEvent_revive_player_stopped(params) {
         local player = EntIndexToHScript(params.entindex)
         local scope = player.GetScriptScope()
         scope.isReviving = false
@@ -710,14 +692,12 @@ roundTimer.ValidateScriptScope()
     //     debugPrint("\x074444FFRevive player complete event!")
     // }
 
-    OnGameEvent_player_disconnect = function(params) {
+    function OnGameEvent_player_disconnect(params) {
 		local player = GetPlayerFromUserID(params.userid)
 		local scope = player.GetScriptScope()
 
         //Disconnected while you have a reanim up? Forget about it
-        //The cleanup is automatic so the Kill() is redundant
         if(params.userid in reanimTable) {
-            // reanimTable[userid].Kill()
             delete reanimTable[userid]
         }
 
@@ -725,19 +705,7 @@ roundTimer.ValidateScriptScope()
         if(getSTTRoundState() == STATE_INTERMISSION) {
             debugPrint("\x0788BB88Some jerk disconnected during intermission")
 
-            //If they were top 5, also remove them from the list
-            //The player that rejected might not be in top 5 because top 5 all rejected already
-            if(player.GetEntityIndex() in eligibleGiantPlayers)
-            {
-                debugPrint("\x0788BB88They were eligible to be giant, handling leaving case")
-                delete eligibleGiantPlayers[player.GetEntityIndex()]
-            }
-
-            //Player disconnected when they were prompted to be giant, so toss it to someone else
-            if (scope.isBecomingGiant) {
-                debugPrint("\x0788BB88They were prompted to be giant, handling leaving case")
-                pickRandomPlayerToBeGiant(eligibleGiantPlayers)
-            }
+            removeInvalidatedPlayer(player)
             return
         }
         else if(getSTTRoundState() == STATE_BOMB) {

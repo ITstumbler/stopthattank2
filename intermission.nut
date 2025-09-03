@@ -2,13 +2,13 @@
 ::playerScoreTable <- {}
 ::playersThatHaveRejectedGiant <- {}
 
-::setBombSpawnOrigin <- function(ent_name)
+function root::setBombSpawnOrigin(ent_name)
 {
     local entToFind = Entities.FindByName(null, ent_name)
     bombSpawnOrigin = entToFind.GetOrigin()
 }
 
-::startIntermission <- function()
+function root::startIntermission()
 {
     //Anything else the mapmaker wants to happen when tank dies is handled by this guy
     EntFire("boss_dead_relay", "trigger")
@@ -17,7 +17,6 @@
     roundTimer.AcceptInput("Enable", null, null, null)
     roundTimer.AcceptInput("SetTime", INTERMISSION_LENGTH.tostring(), null, null)
     roundTimer.GetScriptScope().currentRoundTime <- INTERMISSION_LENGTH
-    AddThinkToEnt(roundTimer, null)
     AddThinkToEnt(roundTimer, "countdownThink")
 
     //Impending teleportation! Show a particle that indicates where a giant will teleport to
@@ -46,7 +45,7 @@
     {
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
-        if (player.GetTeam() != 3) continue
+        if (player.GetTeam() != TF_TEAM_BLUE) continue
         local playerScore = NetProps.GetPropIntArray(playerManager, "m_iTotalScore", i)
         playerScoreTable[i] <- playerScore
     }
@@ -89,7 +88,7 @@
     EntFire("gamerules", "CallScriptFunction", "startGiantPickingProcess", 2)
 }
 
-::startGiantPickingProcess <- function()
+function root::startGiantPickingProcess()
 {
     local giantPlayerIndex = pickRandomPlayerToBeGiant(eligibleGiantPlayers)
 
@@ -102,35 +101,27 @@
 
     local giantPlayerName = Convars.GetClientConvarValue("name", giantPlayer.GetEntityIndex())
 
-    //Tell everyone else on blu about who's becoming what giant
     for (local i = 1; i <= MaxPlayers ; i++)
     {
-        if (i == giantPlayerIndex) continue //We don't need to tell the giant themselves
+        if (i == giantPlayerIndex) continue //We don't need to tell the giant themself
 
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
-        if (player.GetTeam() != 3) continue
-
-        player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
-        EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator)", 3, player, player)
-        break
-    }
-
-    //Yell at everyone on red about incoming giant robot. They don't get details
-    for (local i = 1; i <= MaxPlayers ; i++)
-    {
-        local player = PlayerInstanceFromIndex(i)
-        if (player == null) continue
-        if (player.GetTeam() != 2) continue
-
-        ClientPrint(player, 3, "============================")
-        ClientPrint(player, 3, "\x01WARNING: \x07FF3F3FGIANT ROBOT INCOMING")
-        ClientPrint(player, 3, "============================")
-        break
+		if (player.GetTeam() == TF_TEAM_RED) {
+			//Yell at everyone on red about incoming giant robot. They don't get details
+			ClientPrint(player, 3, "============================")
+			ClientPrint(player, 3, "\x01WARNING: \x07FF3F3FGIANT ROBOT INCOMING")
+			ClientPrint(player, 3, "============================")
+		}
+		else if(player.GetTeam() == TF_TEAM_BLUE) {
+			//Tell everyone else on blu about who's becoming what giant
+			player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
+			EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator)", 3, player, player)
+		}
     }
 }
 
-::pickRandomPlayerToBeGiant <- function(eligibleTable)
+function root::pickRandomPlayerToBeGiant(eligibleTable)
 {
     local randomGiantPlayerIndex = -1
     if(eligibleTable.len() > 0)
@@ -148,7 +139,7 @@
         {
             local player = PlayerInstanceFromIndex(i)
             if (player == null) continue
-            if (player.GetTeam() != 3) continue
+            if (player.GetTeam() != TF_TEAM_BLUE) continue
             //Player has rejected before, dont ask them again
             if (i in playersThatHaveRejectedGiant) {
                 debugPrint("\x01Player \x0799CCFF" + Convars.GetClientConvarValue("name", i) + " \x01has already rejected before, not asking again")
@@ -179,13 +170,13 @@
 }
 
 //Separated so that the rollback is delayed sufficiently enough so that crit cash func can do its job properly
-::rollbackTrainWatcherDummy <- function()
+function root::rollbackTrainWatcherDummy()
 {
     trainWatcherDummy.KeyValueFromInt("startspeed", INTERMISSION_ROLLBACK_SPEED)
     trainWatcherDummy.AcceptInput("SetSpeedDir", "-1", null, null)
 }
 
-::stopTrainWatcherDummy <- function()
+function root::stopTrainWatcherDummy()
 {
     if(getSTTRoundState() == STATE_INTERMISSION) {
         debugPrint("Attempting to stop train dummy")
@@ -193,7 +184,7 @@
     }
 }
 
-::promptGiant <- function(playerIndex)
+function root::promptGiant(playerIndex)
 {
     local player = PlayerInstanceFromIndex(playerIndex)
 
@@ -216,7 +207,7 @@
     scope.promptGiantThink <- function() {
         //Cleanup on death
         if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-            delete thinkFunctions["promptGiantThink"]
+            delete thinkFunctions.promptGiantThink
         }
         local buttons = NetProps.GetPropInt(self, "m_nButtons")
 
@@ -226,7 +217,7 @@
             EntFireByHandle(rejectGiantHudHint, "HideHudHint", null, 0, self, self)
 
             //Theyre no longer willing, so they get the receiving hud instead
-            if(!(scope.hasHiddenGiantHud)) {
+            if(!hasHiddenGiantHud) {
                 player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
             }
             
@@ -235,31 +226,27 @@
             playersThatHaveRejectedGiant[playerIndex] <- null
             if(playerIndex in eligibleGiantPlayers) delete eligibleGiantPlayers[playerIndex]
             
-            scope.isBecomingGiant = false
+            isBecomingGiant = false
 
             //Pick another pleb to be giant
             pickRandomPlayerToBeGiant(eligibleGiantPlayers)
             
             //Think cleanup
-            delete thinkFunctions["promptGiantThink"]
+            delete thinkFunctions.promptGiantThink
         }
-        return -1
     }
-    scope.thinkFunctions["promptGiantThink"] <- scope.promptGiantThink
-
+    scope.thinkFunctions.promptGiantThink <- scope.promptGiantThink
 }
 
 //Lets players hide giant info hud by pressing reload
 //Only after at least 3s of the info hud being visible on screen
-::AddGiantHideHudThink <- function(player, delay=0)
+function root::AddGiantHideHudThink(player, delay=0)
 {
     local scope = player.GetScriptScope()
     if(scope.hasHiddenGiantHud) return //Player has already hidden the giant info HUD, don't bother
 
     EntFireByHandle(hideGiantHudHint, "ShowHudHint", null, delay, player, player)
 
-    
-    
     scope.giantHideHudThink <- function() {
         local buttons = NetProps.GetPropInt(self, "m_nButtons")
 
@@ -273,9 +260,8 @@
             player.SetScriptOverlayMaterial(null)
 
             //Think cleanup
-            delete thinkFunctions["giantHideHudThink"]
+            delete thinkFunctions.giantHideHudThink
         }
-        return -1
     }
-    scope.thinkFunctions["giantHideHudThink"] <- scope.giantHideHudThink
+    scope.thinkFunctions.giantHideHudThink <- scope.giantHideHudThink
 }

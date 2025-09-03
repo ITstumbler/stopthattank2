@@ -1,10 +1,9 @@
-::handleBombPickup <- function()
+function root::handleBombPickup()
 {
     debugPrint("Handling bomb pickup")
 
     //The administrator yells when someone picks up a bomb
-    local randomLine = RandomInt(0,1)
-    switch(randomLine) {
+    switch(RandomInt(0,1)) {
         case 0:
             playSoundEx("vo/mvm_another_bomb01.mp3")
             break
@@ -50,7 +49,7 @@
     {
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
-        if (player.GetTeam() != 2) continue
+        if (player.GetTeam() != TF_TEAM_RED) continue
         redPlayerCount += 1
     }
 
@@ -60,7 +59,6 @@
     }
 
     //Check if player is eligible for temporary conds
-    local timePickedUp = Time()
     local eligibleForTempConds = true
     if ("lastBombDropTime" in scope) {
         debugPrint("Time between last bomb drop: " + (Time() - scope.lastBombDropTime))
@@ -78,7 +76,7 @@
     }
 }
 
-::handleBombDrop <- function()
+function root::handleBombDrop()
 {
     debugPrint("Handling bomb drop")
     local scope = activator.GetScriptScope()
@@ -86,7 +84,7 @@
     if (scope.isGiant) {
         debugPrint("Giant just tried dropping the bomb, undo!")
 
-        ClientPrint(activator, 4, "You may not drop the bomb as a Giant Robot")
+        ClientPrint(activator, 4, "You may not drop the bomb as a giant robot")
 
         bombFlag.AcceptInput("ForceResetSilent", null, null, null)
         bombFlag.SetAbsOrigin(activator.GetOrigin())
@@ -131,7 +129,7 @@
     scope.lastBombDropTime <- Time()
 }
 
-::resetBombOrigin <- function()
+function root::resetBombOrigin()
 {
     //Bomb reset because blue left it on the ground for too long
     //This function resets it to the nearest captured point 

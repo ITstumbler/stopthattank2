@@ -1,4 +1,4 @@
-::startGiantMode <- function()
+function root::startGiantMode()
 {
     //2:30 to deliver the bomb or else
     //Might want to move this soon
@@ -63,11 +63,9 @@
         if (!player.GetScriptScope().isBecomingGiant) continue
         debugPrint("Attempting to make player index " + i + " a giant")
         becomeGiant(i)
-        player.GetScriptScope().isBecomingGiant = false
         break
     }
 
-   
     for (local i = 1; i <= MaxPlayers ; i++)
     {
         local player = PlayerInstanceFromIndex(i)
@@ -76,7 +74,7 @@
 
         player.SetScriptOverlayMaterial(null) //Remove giant info hud
         local scope = player.GetScriptScope()
-        if("giantHideHudThink" in scope.thinkFunctions) delete scope.thinkFunctions["giantHideHudThink"]
+        if("giantHideHudThink" in scope.thinkFunctions) delete scope.thinkFunctions.giantHideHudThink
 
         if (player.GetPlayerClass() != TF_CLASS_MEDIC) {
              //Add special bomb uber thinks for blu medics that let them uber bomb carriers
@@ -93,7 +91,7 @@
 }
 
 //Called 0.4s before giant spawns via intermission.nut
-::pushPlayersNearGiantSpawnPoint <- function()
+function root::pushPlayersNearGiantSpawnPoint()
 {
     //Nearby players will take 1 damage and get pushed back before giant spawns
     local playersToPush = null
@@ -123,26 +121,24 @@
     }
 }
 
-::GivePlayerWeapon <- function(player, className, itemID, itemSlotToDestroy=0)
+function root::DestroyPlayerWeapon(player, itemSlotToDestroy)
 {
-    //Setting itemID to null means that we dont want players to have anything in that slot
-    if(itemID == null)
-    {
-        // remove existing weapon in same slot
-        for (local i = 0; i < MaxWeapons; i++)
-        {
-            local heldWeapon = NetProps.GetPropEntityArray(player, "m_hMyWeapons", i)
-            if (heldWeapon == null)
-                continue
-            if (heldWeapon.GetSlot() != itemSlotToDestroy)
-                continue
-            heldWeapon.Destroy()
-            NetProps.SetPropEntityArray(player, "m_hMyWeapons", null, i)
-            break
-        }
-        return
-    }
+	// remove existing weapon in slot
+	for (local i = 0; i < MaxWeapons; i++)
+	{
+		local heldWeapon = NetProps.GetPropEntityArray(player, "m_hMyWeapons", i)
+		if (heldWeapon == null)
+			continue
+		if (heldWeapon.GetSlot() != itemSlotToDestroy)
+			continue
+		heldWeapon.Destroy()
+		NetProps.SetPropEntityArray(player, "m_hMyWeapons", null, i)
+		break
+	}
+}
 
+function root::GivePlayerWeapon(player, className, itemID, itemSlotToDestroy=0)
+{
     local weapon = Entities.CreateByClassname(className)
     NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
     NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
@@ -150,19 +146,8 @@
     weapon.SetTeam(player.GetTeam())
     weapon.DispatchSpawn()
 
-
     // remove existing weapon in same slot
-    for (local i = 0; i < MaxWeapons; i++)
-    {
-        local heldWeapon = NetProps.GetPropEntityArray(player, "m_hMyWeapons", i)
-        if (heldWeapon == null)
-            continue
-        if (heldWeapon.GetSlot() != itemSlotToDestroy)
-            continue
-        heldWeapon.Destroy()
-        NetProps.SetPropEntityArray(player, "m_hMyWeapons", null, i)
-        break
-    }
+    DestroyPlayerWeapon(player, itemSlotToDestroy)
     
     player.Weapon_Equip(weapon)
     player.Weapon_Switch(weapon)
@@ -172,7 +157,7 @@
 
 //Internally, weapons like Razorback, Splendid Screen etc. are cosmetics with stats and not "weapons"
 //they need to be removed manually
-::removeWeaponWearables <- function(player)
+function root::removeWeaponWearables(player)
 {
     for (local wearable = player.FirstMoveChild(); wearable != null; wearable = wearable.NextMovePeer())
     {
@@ -187,7 +172,7 @@
     }
 }
 
-::becomeGiant <- function(playerIndex)
+function root::becomeGiant(playerIndex)
 {
     local player = PlayerInstanceFromIndex(playerIndex)
 
@@ -210,7 +195,10 @@
     }
 
     local scope = player.GetScriptScope()
+	scope.isBecomingGiant = false
     scope.isGiant = true
+
+	giantPlayer = player
 
     local giantSpecifics = giantProperties[chosenGiantThisRound]
     
@@ -222,7 +210,7 @@
     {
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
-        if (player.GetTeam() != 2) continue
+        if (player.GetTeam() != TF_TEAM_RED) continue
         redPlayerCount += 1
     }
     giantHealth = giantHealth / BASE_GIANT_PLAYER_COUNT.tofloat()
@@ -236,9 +224,7 @@
     //The healing the giant receives is also scaled based on player count
     local healMult = BASE_GIANT_HEALING / BASE_GIANT_PLAYER_COUNT.tofloat()
     healMult = BASE_GIANT_HEALING * redPlayerCount
-    if(healMult == 0) {
-        healMult = 0.5
-    }
+	healMult = healMult == 0 ? 0.5 : healMult
     player.AddCustomAttribute("healing received penalty", healMult, -1)
     debugPrint("\x05Giant healing scale is now " + healMult)
 
@@ -290,7 +276,6 @@
             default:
                 break
         }
-
         if(attributesTable == null) continue
         
         foreach(attribute, value in attributesTable)
@@ -315,7 +300,7 @@
     }
 
     //Teleport giant to nearest CP
-    player.Teleport(true, bombSpawnOrigin, false, QAngle(0,0,0), false, Vector(0,0,0))
+    player.Teleport(true, bombSpawnOrigin, false, QAngle(), false, Vector())
 
     //You are an AWESOME GIANT you will LOOK AT YOURSELF when you spawn
     //Everything here is delayed to ensure that they get called after the player teleport
@@ -362,7 +347,7 @@
 
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
-        if (player.GetTeam() != 3) continue
+        if (player.GetTeam() != TF_TEAM_BLUE) continue
 
         player.AddCustomAttribute("cannot pick up intelligence", 1, -1)
     }
@@ -384,9 +369,8 @@
 
     foreach(tag in giantSpecifics.tags) {
         switch(tag) {
-
             case "always_crit":
-                player.AddCondEx(44, -1, null)
+                player.AddCondEx(TF_COND_CRITBOOSTED_RAGE_BUFF, -1, null)
 				break
             
             case "knight_shield":
@@ -394,7 +378,7 @@
 				break
 
             case "regenerate_on_spawn":
-                EntFireByHandle(player, "RunScriptCode", "self.Regenerate(true)", 0.1, player, player)
+                EntFireByHandle(player, "RunScriptCode", "self.Regenerate(true)", 0.1, null, null)
                 //EntFireByHandle(player, "RunScriptCode", "setWeaponClip(activator, 1, 5)", 0.1, player, player)
 				break
 
@@ -407,11 +391,10 @@
 				break
 
             case "airblast_crits":
-                local scope = player.GetScriptScope()
                 scope.gpyroThink <- function()
 				{
                     if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-                        delete thinkFunctions["gpyroThink"]
+                        delete thinkFunctions.gpyroThink
                     }
                     local projectileToCheck = null
                     while(projectileToCheck = Entities.FindByClassname(projectileToCheck, "tf_projectile_*"))
@@ -439,7 +422,7 @@
                             if(owner != self) continue
                         }
 
-                        if(NetProps.GetPropBool(projectileToCheck, "m_bCritical") == true) continue
+                        if(NetProps.GetPropBool(projectileToCheck, "m_bCritical")) continue
 
                         debugPrint("PR: " + projectileToCheck.GetClassname() + " set to crit")
 
@@ -454,12 +437,10 @@
 
             case "giant_engineer":
                 //Activates a set of callbacks for giant engineer
-                giantEngineerPlayer = player
-				local scope = player.GetScriptScope()
 				scope.gengieThink <- function()
 				{
                     if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-                        delete thinkFunctions["gengieThink"]
+                        delete thinkFunctions.gengieThink
                     }
 					//based on main think's time of -1, so constantly spamming this might not be great
 					local building = null
@@ -482,7 +463,6 @@
                                 local teleLevel = NetProps.GetPropInt(building, "m_iHighestUpgradeLevel")
                                 if(teleLevel != 3) NetProps.SetPropInt(building, "m_iHighestUpgradeLevel", 3)
                             }
-                            
                             else
                             {
                                 stopTeleExit()
@@ -517,7 +497,8 @@
 				break
 
             case "giant_medic":
-                local scope = player.GetScriptScope()
+                //Amputator effect
+                player.AddCondEx(TF_COND_RADIUSHEAL_ON_DAMAGE, -1, null)
 
                 //Only need to be done once since giants have a dropped weapon deletion aura
                 //bomb_ubers.nut's think runs it every tick since other medics can switch medi guns mid life via dropped weapons
@@ -536,7 +517,7 @@
 				scope.gmedicThink <- function()
 				{
                     if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-                        delete thinkFunctions["gmedicThink"]
+                        delete thinkFunctions.gmedicThink
                     }
 
                     //Amputator effect
@@ -604,7 +585,8 @@
     }
 }
 
-::setWeaponClip <- function(player, weaponSlot, clipCount)
+//Despite its general name it's only for Nukesalot to spawn with 1 clip kek
+function root::setWeaponClip(player, weaponSlot, clipCount)
 {
     for (local i = 0; i < MaxWeapons; i++)
     {
@@ -616,66 +598,64 @@
 }
 
 //This stupid fucking weapon needs its own workaround kms
-::addGiantKnightShield <- function(player)
+function root::addGiantKnightShield(player)
 {
     debugPrint("ADDING CHARGIN TARGE")
     CTFBot.GenerateAndWearItem.call(player, "The Chargin' Targe")
 }
 
-::addGiantThink <- function(player)
+function root::addGiantThink(player)
 {
     local scope = player.GetScriptScope()
     scope.giantThink <- function()
     {
         //Remove think on death
         if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-            delete thinkFunctions["giantThink"]
-            return -1
+            delete thinkFunctions.giantThink
+            return
         }
 
         //Delete nearby dropped weapons to ensure giants can never pick one up
         local droppedWeapon = null
-        while(droppedWeapon = Entities.FindByClassnameWithin(droppedWeapon, "tf_dropped_weapon", player.GetOrigin(), 256)) //this does allow sappers but engies don't own sappers
+        while(droppedWeapon = Entities.FindByClassnameWithin(droppedWeapon, "tf_dropped_weapon", player.GetOrigin(), 256))
         {
             droppedWeapon.Kill()
         }
 
         //If giant does not have bomb, and is not ubered, teleport the bomb back to them
-        if(!self.HasItem() && !self.InCond(5))
+        if(!self.HasItem() && !self.InCond(TF_COND_INVULNERABLE))
         {
             bombFlag.SetAbsOrigin(self.GetOrigin())
         }
 
         //Everything below handles giant speed cap
         //Do not do anything if it's giant demoknight charging
-        if(self.InCond(17)) return -1
+        if(self.InCond(TF_COND_SHIELD_CHARGE)) return
 
         local vel = self.GetAbsVelocity()
         
         local scalarVel = pow(pow(vel.x, 2) + pow(vel.y, 2), 0.5).tofloat()
         // debugPrint("Scalar vel: " + scalarVel)
 
-        if(scalarVel <= giantProperties[chosenGiantThisRound].speedCap) return -1
+        if(scalarVel <= giantProperties[chosenGiantThisRound].speedCap) return
 
         //Because of acceleration and allat just going for speedCap / scalarVel doesnt seem to work nicely, so i added 0.9 scale
         //It's not perfect but it's close enough that any speed boost that actually happens will be less than 5% at most
         local speedScale = (giantProperties[chosenGiantThisRound].speedCap / scalarVel) * 0.9
         self.SetAbsVelocity(Vector(vel.x * speedScale, vel.y * speedScale, vel.z))
 
-        return -1
-
-        return -1
+        return
     }
     
     scope.thinkFunctions.giantThink <- scope.giantThink
 }
 
 //For giant engineers: ban the construction of a tele entrance by spawning one out of bounds
-::createIndestructibleTeleEntrance <- function(player)
+function root::createIndestructibleTeleEntrance(player)
 {
     local tele_entrance = SpawnEntityFromTable("obj_teleporter", {
         targetname = "indestructible_tele_entrance",
-        TeamNum = 3,
+        TeamNum = TF_TEAM_BLUE,
         defaultupgrade = 2,
         teleporterType = 1,
         spawnflags = 2,
@@ -684,7 +664,7 @@
     EntFireByHandle(tele_entrance, "SetBuilder", null, -1, player, player)
 }
 
-::setTeleExitOrigin <- function(origin, angles)
+function root::setTeleExitOrigin(origin, angles)
 {
     //Think is executed every tick but we dont want to do this if it didnt change
     if(giantEngineerTeleExitOrigin == origin) return
@@ -707,7 +687,7 @@
 	})
 }
 
-::stopTeleExit <- function()
+function root::stopTeleExit()
 {
     if(giantEngineerTeleExitParticle != null) {
         giantEngineerTeleExitParticle.Kill()
@@ -717,7 +697,7 @@
     giantEngineerTeleExitAngle = null
 }
 
-::handleGiantDeath <- function()
+function root::handleGiantDeath()
 {
     //Update team respawn times
     gamerules.AcceptInput("SetRedTeamRespawnWaveTime", RED_POST_GIANT_RESPAWN_TIME.tostring(), null, null)
@@ -725,9 +705,7 @@
 
     //Giant no longer active, allow all blu players to pick up the bomb
     isBombGiantDead = true
-
-    
-
+	
     for (local i = 1; i <= MaxPlayers ; i++)
     {
         local player = PlayerInstanceFromIndex(i)
@@ -742,26 +720,27 @@
 
     //On giant death: destroy all buildings that they owned.
     //Relevant for giant engineer
-    if(giantEngineerPlayer == null) return
-
-    debugPrint("\x07666666Player was engineer, destroy all previously owned buildings")
-    local buildingEnt = null
-    while(buildingEnt = Entities.FindByClassname(buildingEnt, "obj_*")) //this does allow sappers but engies don't own sappers
-    {
-        debugPrint("\x07666666Found a building!")
-        if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") == giantEngineerPlayer) {
-            debugPrint("\x07666666It is owned by the giant player!")
-            buildingEnt.AcceptInput("RemoveHealth", "9999", null, null)
-        }
-    }
-    giantEngineerTeleExitOrigin = null
-    giantEngineerTeleExitAngle = null
-
-    //Forget all those things to be done if there's a giant engineer
-    giantEngineerPlayer = null
+	if(giantPlayer.GetPlayerClass() == TF_CLASS_ENGINEER)
+	{
+		debugPrint("\x07666666Player was engineer, destroy all previously owned buildings")
+		local buildingEnt = null
+		while(buildingEnt = Entities.FindByClassname(buildingEnt, "obj_*")) //this does allow sappers but engies don't own sappers
+		{
+			debugPrint("\x07666666Found a building!")
+			if(NetProps.GetPropEntity(buildingEnt, "m_hBuilder") == giantPlayer) {
+				debugPrint("\x07666666It is owned by the giant player!")
+				buildingEnt.AcceptInput("RemoveHealth", "9999", null, null)
+			}
+		}
+		giantEngineerTeleExitOrigin = null
+		giantEngineerTeleExitAngle = null
+	}
+	
+	//now done with the giant
+	giantPlayer = null
 }
 
-::displayGiantTeleportParticle <- function()
+function root::displayGiantTeleportParticle()
 {
     DispatchParticleEffect("stt_giant_teleport", bombSpawnOrigin, Vector(90, 0, 0))
     playSoundEx("mvm/mvm_tele_activate.wav")

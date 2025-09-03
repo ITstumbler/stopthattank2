@@ -77,7 +77,7 @@
                                                     [4] = "vo/taunts/spy/spy_taunt_rps_win_11.mp3"
                                                 }
 
-::speakGiantKillResponse <- function(player)
+function root::speakGiantKillResponse(player)
 {
     local playerClass = player.GetPlayerClass()
     local soundListLen = GIANT_KILL_RESPONSES[playerClass].len()

@@ -1,4 +1,4 @@
-::spawnTank <- function()
+function root::spawnTank()
 {
     //Make sure tank hologram is called tank_hologram!!
     tankHologram.AcceptInput("Disable", null, null, null)
@@ -8,7 +8,7 @@
     {
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
-        if (player.GetTeam() != 2) continue
+        if (player.GetTeam() != TF_TEAM_RED) continue
         redPlayerCount += 1
     }
 
@@ -23,7 +23,7 @@
 
     tank = SpawnEntityFromTable("tank_boss", {
         targetname = "tank",
-        TeamNum = 3,
+        TeamNum = TF_TEAM_BLUE,
         speed = TANK_SPEED,
         angles = startingPathTrack.GetAbsAngles(),
         health = tankHealth,
@@ -71,7 +71,7 @@
 }
 
 //Input TANK_SPEED as speedInput to reset its speed
-::setSpeedTank <- function(speedInput, dummyOnly=false)
+function root::setSpeedTank(speedInput, dummyOnly=false)
 {
     //Intermission is happening and the command isnt to stop, ignore all previous instructions
     if(getSTTRoundState() == STATE_INTERMISSION && speedInput != 0) return

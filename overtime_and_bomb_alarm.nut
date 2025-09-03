@@ -1,31 +1,30 @@
-::startControlPointAlarm <- function()
+function root::startControlPointAlarm()
 {
     SetOvertimeAllowedForCTF(true)
     EntFire("control_point_alarm*", "PlaySound") //Easier to do this for looping sounds
     debugPrint("\x07CCFFAAStarting control point alarm, allowing overtime")
 }
 
-::stopControlPointAlarm <- function()
+function root::stopControlPointAlarm()
 {
     SetOvertimeAllowedForCTF(false)
     EntFire("control_point_alarm*", "StopSound") //Two ambient generics so asterisks are used to target both of them
     debugPrint("\x07CCFFAAStopping control point alarm, disallowing overtime")
 }
 
-::startBombAlarm <- function()
+function root::startBombAlarm()
 {
     SetOvertimeAllowedForCTF(true)
     SetMannVsMachineAlarmStatus(true) //Needed to make alarm go weewoo and administrator to scream at red
     debugPrint("\x07CCFFAAStarting hatch alarm, allowing overtime")
     // debugPrint("\x07CCFFAAActivator: " + activator.GetClassname())
 
-    
     //Mark the bomb carrier near alarm zone as ineligible for ubercharge
     local scope = activator.GetScriptScope()
     scope.isCarryingBombInAlarmZone = true
 }
 
-::stopBombAlarm <- function()
+function root::stopBombAlarm()
 {
     SetOvertimeAllowedForCTF(false)
     SetMannVsMachineAlarmStatus(false)

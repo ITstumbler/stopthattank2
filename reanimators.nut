@@ -1,5 +1,5 @@
 //Prevent dead and currently being revived players from being revived by constantly setting their state to 2
-::addReanimatorThink <- function()
+function root::addReanimatorThink()
 {
     gamerules.ValidateScriptScope()
     local scope = gamerules.GetScriptScope()
@@ -14,7 +14,6 @@
         return -1
     }
 
-    AddThinkToEnt(gamerules, null)
     AddThinkToEnt(gamerules, "reanimatorThink")
 }
 
@@ -22,7 +21,7 @@
 
 //These functions are called by callbacks in round_setup.nut
 
-::spawnReanim <- function(player, userid) 
+function root::spawnReanim(player, userid) 
 {
     local scope = player.GetScriptScope()
 

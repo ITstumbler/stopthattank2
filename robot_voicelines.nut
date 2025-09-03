@@ -1,7 +1,7 @@
-::ReplaceVoiceline <- function(player, scene)
+function root::ReplaceVoiceline(player, scene)
 {
     local name = null
-    local vcdpath  = NetProps.GetPropString(scene, "m_szInstanceFilename")
+    local vcdpath = NetProps.GetPropString(scene, "m_szInstanceFilename")
     if (vcdpath)
     {
         for (local i = vcdpath.len() - 1, endindex = null; i >= 0; --i)
@@ -47,7 +47,7 @@
 }
 
 //It's possible to disguise as a teammate so this complicated check is separated
-::IsDisguisedAsOpposingTeam <- function(player)
+function root::IsDisguisedAsOpposingTeam(player)
 {
     local team = player.GetTeam()
     if(!player.InCond(TF_COND_DISGUISED)) return false
@@ -55,7 +55,7 @@
     return true
 }
 
-::PlayRobotVoiceline <- function(player, name)
+function root::PlayRobotVoiceline(player, name)
 {
     //Ty popext from potato.tf once again
     local dotindex =  name.find( "." )
@@ -83,7 +83,6 @@
         }
         
     }
-
     else {
         // debugPrint("\x05Attempting to emit sound " + soundName)
         player.EmitSound(soundName)

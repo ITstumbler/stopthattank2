@@ -18,13 +18,13 @@
 		delete ::blueRobotCallbacks
     }
 
-    OnGameEvent_scorestats_accumulated_update = function(_) {
+    function OnGameEvent_scorestats_accumulated_update(_) {
 		if (GetRoundState() == 3) {
 			Cleanup()
 		}
 	}
 
-    OnGameEvent_player_spawn = function(params) {
+    function OnGameEvent_player_spawn(params) {
         local player = GetPlayerFromUserID(params.userid)
 
         if(player.GetTeam() == TF_TEAM_RED) {
@@ -32,7 +32,6 @@
             //Reset blood - players bleed when shot
             NetProps.SetPropInt(player, "m_bloodColor", 0)
         }
-
         else if(player.GetTeam() == TF_TEAM_BLUE) {
             player.SetCustomModelWithClassAnimations(ROBOT_PLAYER_MODELS[player.GetPlayerClass()])
 
@@ -43,5 +42,4 @@
         }
     }
 }
-
 __CollectGameEventCallbacks(blueRobotCallbacks)

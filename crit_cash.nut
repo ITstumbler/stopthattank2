@@ -1,29 +1,24 @@
-::spawnCritCash <- function()
+function root::spawnCritCash()
 {
     debugPrint("\x07CC8888Attempting to spawn crit cash triggers")
     //Iterate through all the cash entities
-    local currencyPackClassnames = ["item_currencypack_small", "item_currencypack_medium", "item_currencypack_large", "item_currencypack_custom"]
     local currencyEnt = null
-    for(local i = 0; i < currencyPackClassnames.len(); i++)
-    {
-        currencyEnt = null
-        while(currencyEnt = Entities.FindByClassname(currencyEnt, currencyPackClassnames[i]))
-        {
-            //Cash cannot be picked up and can only be collected through trigger 
-            currencyEnt.SetTeam(4)
+	while(currencyEnt = Entities.FindByClassname(currencyEnt, "item_currencypack_*"))
+	{
+		//Cash cannot be picked up and can only be collected through trigger 
+		currencyEnt.SetTeam(4)
 
-            //Iterate through them more easily later
-            //Theyre not props but they used to be and i dont want to change it idk
-            currencyEnt.KeyValueFromString("targetname", "crit_cash_prop")
-        }
-    }
+		//Iterate through them more easily later
+		//Theyre not props but they used to be and i dont want to change it idk
+		NetProps.SetPropString(currencyEnt, "m_iName", "crit_cash_prop")
+	}
 
     //Iterate again - we'll add triggers next
     //This is delayed so that the cash is on the ground before red can pick them up
     EntFire("gamerules", "CallScriptFunction", "addCritCashTriggers", 3)
 }
 
-::addCritCashTriggers <- function()
+function root::addCritCashTriggers()
 {
     local currencyEnt = null
     while(currencyEnt = Entities.FindByName(currencyEnt, "crit_cash_prop"))
@@ -50,12 +45,12 @@
         //Now we need the trigger to do something when an eligible player touches it
         EntityOutputs.AddOutput(spawnedCashTrigger, "OnStartTouch", "!activator", "CallScriptFunction", "giveCritCashBuffs", -1, -1)
         
-        //Also the cash piles should unalive themselves when triggered
+        //Also the cash piles should vaporize themselves when triggered
         EntityOutputs.AddOutput(spawnedCashTrigger, "OnStartTouch", "!self", "CallScriptFunction", "killCash", -1, -1)
     }
 }
 
-::giveCritCashBuffs <- function()
+function root::giveCritCashBuffs()
 {
     //Apply all cash buff conds
     foreach(condition, duration in CASH_CONDS)
@@ -81,7 +76,10 @@
     //The projectile shield will need to be spawned manually if our medic has their medi gun out
     local scope = activator.GetScriptScope()
 
-    scope.medigun <- null
+	//this should probably be removed
+	if(!("medigun" in scope)) {
+		scope.medigun <- null
+	}
     
     for(local i = 0; i < NetProps.GetPropArraySize(activator, "m_hMyWeapons"); i++) {
         local wep = NetProps.GetPropEntityArray(activator, "m_hMyWeapons", i)
@@ -93,16 +91,13 @@
     }
 
     if(scope.medigun == null) return
-
     if(activator.GetActiveWeapon() != scope.medigun) return
 
-    //Must be nested because IsValid() on null is no good
-    if(scope.projShield != null) {
-        if(scope.projShield.IsValid()) {
-            return
-        }
+    if(scope.projShield != null && scope.projShield.IsValid()) {
+        return
     }
-
+	
+	//projshield is placed into scope when player first connects
     scope.projShield = SpawnEntityFromTable("entity_medigun_shield", {
         //targetname = "shield"
         teamnum = activator.GetTeam()
@@ -115,26 +110,26 @@
     {
         //Remove think on death
         if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-            delete thinkFunctions["projShieldThink"]
+            delete thinkFunctions.projShieldThink
         }
 
-        if(self.GetActiveWeapon() == medigun) return -1
+        if(self.GetActiveWeapon() == medigun) return
 
         projShield.Destroy()
-        delete thinkFunctions["projShieldThink"]
+        delete thinkFunctions.projShieldThink
     }
-    scope.thinkFunctions["projShieldThink"] <- scope.projShieldThink
+    scope.thinkFunctions.projShieldThink <- scope.projShieldThink
 
     playerSpeakResponseConcept("ConceptMvMDeployRage:1", "TLK_MVM_DEPLOY_RAGE", activator)
 }
 
 //We gotta murder the trigger's parent as well
 //For now lets try making the cash collectible and teleporting it to the collector
-::killCash <- function()
+function root::killCash()
 {
     local cashEnt = self.GetMoveParent()
     self.Kill()
-    cashEnt.SetTeam(2)
+    cashEnt.SetTeam(TF_TEAM_RED)
     // cashEnt.Kill()
 }
 
@@ -149,7 +144,7 @@
 //     EntFire("gamerules", "CallScriptFunction", "expireCash", 5)
 // }
 
-::expireCash <- function()
+function root::expireCash()
 {
     debugPrint("\x0744AAAAKILLING CASH")
     local currencyEnt = null

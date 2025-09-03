@@ -1,4 +1,4 @@
-::addBombUberThink <- function(medic)
+function root::addBombUberThink(medic)
 {
     local scope = medic.GetScriptScope()
 
@@ -14,56 +14,57 @@
     {
         //Remove think on death
         if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-            delete thinkFunctions["bombUberThink"]
+            delete thinkFunctions.bombUberThink
         }
 
         //Don't think if the bomb is not out yet
         if(getSTTRoundState() != STATE_BOMB) {
             // debugPrint("\x04Not bomb round, don't do anything")
-            return -1
+            return
         }
-
-        for(local i = 0; i < NetProps.GetPropArraySize(self, "m_hMyWeapons"); i++) {
-            local wep = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i)
-        
-            if(wep && wep.GetClassname() == "tf_weapon_medigun") {
-                scope.medigun = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i);
-                break;
-            }
-        }
-
+		
+		//only update medigun when we need to (it was destroyed at whatever point)
+		if(!medigun.IsValid()) {
+			for(local i = 0; i < NetProps.GetPropArraySize(self, "m_hMyWeapons"); i++) {
+				local wep = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i)
+			
+				if(wep && wep.GetClassname() == "tf_weapon_medigun") {
+					medigun = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i);
+					break;
+				}
+			}
+		}
+		
         local medigunType = NetProps.GetPropInt(medigun, "m_AttributeManager.m_Item.m_iItemDefinitionIndex");
 
         //If medi gun does not provide stock ubercharge, don't bother
         //Think is NOT removed because medics can switch medi guns mid life via picking up dropped ones
         if(medigunType in NON_STOCK_MEDIGUN_IDS) {
-            return -1
+            return
         }
 
         local healTarget = self.GetHealTarget()
+		local healTargetScope = healTarget != null ? healTarget.GetScriptScope() : null
         
         if(healTarget != null) {
             //If ubered target gets near hatch, say no
-            if(healTarget.GetScriptScope().isCarryingBombInAlarmZone)
+            if(healTargetScope.isCarryingBombInAlarmZone)
             {
-                healTarget.RemoveCond(57)
-                healTarget.RemoveCond(8)
+                healTarget.RemoveCond(TF_COND_INVULNERABLE_CARD_EFFECT)
+                healTarget.RemoveCond(TF_COND_INVULNERABLE_WEARINGOFF)
                 ClientPrint(medic, 4, "Bomb carriers cannot be Ubercharged near hatch")
                 ClientPrint(healTarget, 4, "Bomb carriers cannot be Ubercharged near hatch")
-                return -1
+                return
             }
             //If ubered target is a giant without a bomb (because dropped while ubered), disconnect the heal beam so that the giant can pick it up
-            if(!healTarget.HasItem() && healTarget.GetScriptScope().isGiant) {
+            if(!healTarget.HasItem() && healTargetScope.isGiant) {
                 // debugPrint("\x07FF2222GIANT WITHOUT BOMB IS BEING HEALED, DISCONNECTING BEAM RN")
-                if(medigun.IsValid()) {
-                    // NetProps.SetPropEntity(medigun, "m_hHealingTarget", null);
-                    healTarget.RemoveCondEx(5, true)
-                }
-                return -1
+				// NetProps.SetPropEntity(medigun, "m_hHealingTarget", null);
+				healTarget.RemoveCondEx(TF_COND_INVULNERABLE, true)
             }
         }
 
-        isUbercharged = NetProps.GetPropBool(medigun, "m_bChargeRelease") && self.InCond(5)
+        isUbercharged = NetProps.GetPropBool(medigun, "m_bChargeRelease") && self.InCond(TF_COND_INVULNERABLE)
 
         //If medic is not ubered, or not healing anyone, or healing someone else other than bomb carrier,
         //make sure the bomb carrier isnt ubered if we have ubered them before
@@ -74,61 +75,57 @@
             if(!healTarget.HasItem()) {
                 //debugPrint("\x04Heal target does not have bomb")
                 //If they were a giant, refuse to get ubercharged until they picked up the bomb again
-                if(healTarget.GetScriptScope().isGiant && uberedBombCarrier != null) {
-                    uberedBombCarrier.RemoveCond(5)
+                if(healTargetScope.isGiant && uberedBombCarrier != null) { //this is possibly redundant with the above?
+                    uberedBombCarrier.RemoveCond(TF_COND_INVULNERABLE)
                 }
                 if(healTarget == uberedBombCarrier) {
-                    uberedBombCarrier.RemoveCond(57)
-                    uberedBombCarrier.RemoveCond(8)
+                    uberedBombCarrier.RemoveCond(TF_COND_INVULNERABLE_CARD_EFFECT)
+                    uberedBombCarrier.RemoveCond(TF_COND_INVULNERABLE_WEARINGOFF)
                     uberedBombCarrier = null
-                } 
-                
-                return -1
+                }
+                return
             }
         }
 
         if(healTarget == null || !isUbercharged) {
-            if(uberedBombCarrier == null) return -1
+            if(uberedBombCarrier == null) return
             
             //Remember when the uber beam was disconnected
             if(lastBombUberTime == null) {
                 //Flashing uber effect
-                uberedBombCarrier.AddCondEx(8, 1, self)
-                lastBombUberTime = Time()
+                uberedBombCarrier.AddCondEx(TF_COND_INVULNERABLE_WEARINGOFF, 1, self)
+                lastBombUberTime = Time() + 1
             }
 
             //If 1s has passed after beam has been disconnected, make their uber disappear
-            if(lastBombUberTime != null) {
-                uberedBombCarrier.RemoveCond(57)
-                uberedBombCarrier.RemoveCond(8)
+            if(Time() >= lastBombUberTime) {
+                uberedBombCarrier.RemoveCond(TF_COND_INVULNERABLE_CARD_EFFECT)
+                uberedBombCarrier.RemoveCond(TF_COND_INVULNERABLE_WEARINGOFF)
                 lastBombUberTime = null
                 uberedBombCarrier = null
             }
-
-            return -1
+            return
         }
         
-
         //debugPrint("\x04Checking if ubered bomb carrier is null")
         if(uberedBombCarrier == null) {
             //debugPrint("\x04Doing stuff to uber bomb carrier")
             //If bomb carrier is currently near hatch, say no 
-            if(healTarget.GetScriptScope().isCarryingBombInAlarmZone) {
+            if(healTargetScope.isCarryingBombInAlarmZone) {
                 ClientPrint(medic, 4, "Bomb carriers cannot be Ubercharged near hatch")
                 ClientPrint(healTarget, 4, "Bomb carriers cannot be Ubercharged near hatch")
-                return -1
+                return
             }
             //Bomb carriers normally can't get ubered, so we forcefully make them shiny
-            healTarget.AddCondEx(57, -1, self)
+            healTarget.AddCondEx(TF_COND_INVULNERABLE_CARD_EFFECT, -1, self)
 
             //Were they flashing? un-flash them
-            healTarget.RemoveCond(8)
+            healTarget.RemoveCond(TF_COND_INVULNERABLE_WEARINGOFF)
             lastBombUberTime = null
             uberedBombCarrier = healTarget
         }
-
-        return -1
+        return
     }
 
-    scope.thinkFunctions["bombUberThink"] <- scope.bombUberThink
+    scope.thinkFunctions.bombUberThink <- scope.bombUberThink
 }
