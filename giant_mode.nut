@@ -102,22 +102,12 @@ function root::pushPlayersNearGiantSpawnPoint()
         
         //Do trigonometry homework to find the angle to launch the players to
         local playerOrigin = playersToPush.GetOrigin()
-        local deltaX = bombSpawnOrigin.x - playerOrigin.x
-        local deltaY = bombSpawnOrigin.y - playerOrigin.y
+        local deltaOrigin = bombSpawnOrigin - playerOrigin
+        deltaOrigin.z = 0
+        deltaOrigin.Norm()
+        deltaOrigin.z = 375
 
-        local pushAngle = atan(deltaY / deltaX)
-        local pushPowerX = sin(pushAngle) * -250
-        local pushPowerY = cos(pushAngle) * -250
-
-        // debugPrint("\x07FF2222Delta X: " + deltaX)
-        // debugPrint("\x07FF2222Delta Y: " + deltaY)
-        // debugPrint("\x07FF2222Arctan: " + pushAngle)
-        // debugPrint("\x07FF2222Sin Theta: " + sin(pushAngle))
-        // debugPrint("\x07FF2222Cos Theta: " + cos(pushAngle))
-        // debugPrint("\x07FF2222Push power X: " + pushPowerX)
-        // debugPrint("\x07FF2222Push power Y: " + pushPowerY)
-
-        playersToPush.ApplyAbsVelocityImpulse(Vector(pushPowerX, pushPowerY, 375))
+        playersToPush.ApplyAbsVelocityImpulse(deltaOrigin)
     }
 }
 
@@ -139,20 +129,26 @@ function root::DestroyPlayerWeapon(player, itemSlotToDestroy)
 
 function root::GivePlayerWeapon(player, className, itemID, itemSlotToDestroy=0)
 {
-    local weapon = Entities.CreateByClassname(className)
-    NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
-    NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
-    NetProps.SetPropBool(weapon, "m_bValidatedAttachedEntity", true)
-    weapon.SetTeam(player.GetTeam())
-    weapon.DispatchSpawn()
-
     // remove existing weapon in same slot
     DestroyPlayerWeapon(player, itemSlotToDestroy)
     
-    player.Weapon_Equip(weapon)
-    player.Weapon_Switch(weapon)
+    if(className != null) {
+        local weapon = Entities.CreateByClassname(className)
+        NetProps.SetPropInt(weapon, "m_AttributeManager.m_Item.m_iItemDefinitionIndex", itemID)
+        NetProps.SetPropBool(weapon, "m_AttributeManager.m_Item.m_bInitialized", true)
+        NetProps.SetPropBool(weapon, "m_bValidatedAttachedEntity", true)
+        weapon.SetTeam(player.GetTeam())
+        weapon.DispatchSpawn()
 
-    return weapon
+        player.Weapon_Equip(weapon)
+        player.Weapon_Switch(weapon)
+
+        return weapon
+    }
+    
+    else {
+        return null
+    }
 }
 
 //Internally, weapons like Razorback, Splendid Screen etc. are cosmetics with stats and not "weapons"
@@ -197,6 +193,10 @@ function root::becomeGiant(playerIndex)
     local scope = player.GetScriptScope()
 	scope.isBecomingGiant = false
     scope.isGiant = true
+
+    if("bombUberThink" in scope.thinkFunctions) {
+        delete scope.thinkFunctions.bombUberThink
+    }
 
 	giantPlayer = player
 

@@ -115,6 +115,8 @@ function root::giveCritCashBuffs()
 
         if(self.GetActiveWeapon() == medigun) return
 
+        if(!projShield.IsValid()) return
+
         projShield.Destroy()
         delete thinkFunctions.projShieldThink
     }
