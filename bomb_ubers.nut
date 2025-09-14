@@ -12,8 +12,8 @@ function root::addBombUberThink(medic)
 
     scope.bombUberThink <- function()
     {
-        //Remove think on death
-        if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
+        //Remove think on death or somehow not a med anymore
+        if(NetProps.GetPropInt(self, "m_lifeState") != 0 || self.GetPlayerClass() != TF_CLASS_MEDIC) {
             delete thinkFunctions.bombUberThink
         }
 

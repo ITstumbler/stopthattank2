@@ -188,10 +188,6 @@ function root::becomeGiant(playerIndex)
 	scope.isBecomingGiant = false
     scope.isGiant = true
 
-    if("bombUberThink" in scope.thinkFunctions) {
-        delete scope.thinkFunctions.bombUberThink
-    }
-
 	giantPlayer = player
 
     local giantSpecifics = giantProperties[chosenGiantThisRound]
