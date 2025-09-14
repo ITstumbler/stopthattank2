@@ -75,12 +75,6 @@ function root::startGiantMode()
         player.SetScriptOverlayMaterial(null) //Remove giant info hud
         local scope = player.GetScriptScope()
         if("giantHideHudThink" in scope.thinkFunctions) delete scope.thinkFunctions.giantHideHudThink
-
-        if (player.GetPlayerClass() != TF_CLASS_MEDIC) {
-             //Add special bomb uber thinks for blu medics that let them uber bomb carriers
-            addBombUberThink(player)
-        }
-        break
     }
 
     //Have red players all yell at the incoming giant

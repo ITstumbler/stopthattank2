@@ -24,7 +24,7 @@ function root::addBombUberThink(medic)
         }
 		
 		//only update medigun when we need to (it was destroyed at whatever point)
-		if(!medigun.IsValid()) {
+		if(medigun == null || !medigun.IsValid()) {
 			for(local i = 0; i < NetProps.GetPropArraySize(self, "m_hMyWeapons"); i++) {
 				local wep = NetProps.GetPropEntityArray(self, "m_hMyWeapons", i)
 			
