@@ -355,7 +355,7 @@ function root::becomeGiant(playerIndex)
     player.AddCustomAttribute("ammo regen", 1, 5)
 
     //Show giant name and some tips if the giant is a bit complicated
-    EntFireByHandle(gameText_giantDetails, "Display", null, -1, player, player)
+    EntFireByHandle(gameText_giantDetails, "Display", null, 1, player, player)
 
     //Miscellaneous actions to do if a giant has tags
     if(giantSpecifics.tags == null) return

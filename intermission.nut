@@ -103,7 +103,7 @@ function root::startGiantPickingProcess()
 
     for (local i = 1; i <= MaxPlayers ; i++)
     {
-        if (i == giantPlayerIndex) continue //We don't need to tell the giant themself
+        if (i == giantPlayerIndex) continue //We don't need to tell the giant themselves
 
         local player = PlayerInstanceFromIndex(i)
         if (player == null) continue
@@ -112,13 +112,13 @@ function root::startGiantPickingProcess()
 			// ClientPrint(player, 3, "============================")
 			// ClientPrint(player, 3, "\x01WARNING: \x07FF3F3FGIANT ROBOT INCOMING")
 			// ClientPrint(player, 3, "============================")
-            EntFireByHandle(gameText_giantWarning, "Display", null, -1, player, player)
+            EntFireByHandle(gameText_giantWarning, "Display", null, 0.3, player, player)
 		}
 		else if(player.GetTeam() == TF_TEAM_BLUE) {
 			//Tell everyone else on blu about who's becoming what giant
 			// player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
 			// EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator)", 3, player, player)
-            EntFireByHandle(gameText_receivingAGiant, "Display", null, -1, player, player)
+            EntFireByHandle(gameText_receivingAGiant, "Display", null, 0.3, player, player)
 		}
     }
 }
@@ -202,7 +202,7 @@ function root::promptGiant(playerIndex)
     // ClientPrint(player, 3, "\x0799CCFF============================")
 
     // player.SetScriptOverlayMaterial("hud/stopthattank2/g_b_" + giantProperties[chosenGiantThisRound].hudHintName)
-    // EntFireByHandle(rejectGiantHudHint, "ShowHudHint", null, 0, player, player)
+    EntFireByHandle(rejectGiantHudHint, "ShowHudHint", null, 0, player, player)
     // EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator, 7)", 3, player, player)
 
     EntFireByHandle(gameText_becomingAGiant, "Display", null, -1, player, player)

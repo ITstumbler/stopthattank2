@@ -135,7 +135,6 @@ if(customGiantEngineerTeleEntranceMarker != null) GIANT_ENGINEER_TELE_ENTRANCE_O
 ::giantEngineerTeleExitParticle <- null
 
 if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
-updateGameTexts()
 
 //Misc.
 ::MaxPlayers <- MaxClients().tointeger()
@@ -162,6 +161,8 @@ IncludeScript("stopthattank2/spy_disguises.nut")
 IncludeScript("stopthattank2/model_indexes.nut")
 IncludeScript("stopthattank2/game_text_entities.nut")
 IncludeScript("stopthattank2/vs_math.nut")
+
+updateGameTexts()
 
 //Setup for stacking thinks
 ::playerThink <- function() {

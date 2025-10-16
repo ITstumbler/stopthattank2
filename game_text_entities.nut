@@ -5,9 +5,9 @@ function root::setGameTextMessage(gameTextEntity, newText)
 
 function root::updateGameTexts()
 {
-    setGameTextMessage(gameText_becomingAGiant, "You are about to become a giant!\n" + giantProperties[chosenGiantThisRound].giantName.upper() + "\nYou will transform once the timer ends")
-    setGameTextMessage(gameText_receivingAGiant, "Receiving a giant!\n" + giantProperties[chosenGiantThisRound].giantName.upper() + "\nA teammate will transform once the timer ends")
-    setGameTextMessage(gameText_giantDetails, "Transformed into a" + giantProperties[chosenGiantThisRound].giantName.upper() + "\n" + giantProperties[chosenGiantThisRound].playerInfo)
+    setGameTextMessage(gameText_becomingAGiant, "You are about to become a giant!\n" + giantProperties[chosenGiantThisRound].giantName.toupper() + "\nYou will transform once the timer ends")
+    setGameTextMessage(gameText_receivingAGiant, "Receiving a giant!\n" + giantProperties[chosenGiantThisRound].giantName.toupper() + "\nA teammate will transform once the timer ends")
+    setGameTextMessage(gameText_giantDetails, "Transformed into a " + giantProperties[chosenGiantThisRound].giantName.toupper() + "\n" + giantProperties[chosenGiantThisRound].playerInfo)
 }
 
 //You are about to become a giant!
@@ -16,16 +16,16 @@ function root::updateGameTexts()
 
 ::gameText_becomingAGiant <- SpawnEntityFromTable("game_text", {
     targetname = "gameText_becomingAGiant",
-    color1 = "220 220 220",
-    color2 = "170 170 170",
+    color1 = "255 255 255",
+    color2 = "255 255 255",
     effect = "2",
-    fadein = "0.35",
-    fadeout = "0.35",
-    holdtime = "10",
-    fxtime = "0.35",
+    fadein = "0.02",
+    fadeout = "5",
+    holdtime = "5",
+    fxtime = "10",
     channel = "1",
     x = "-1",
-    y = "0.8",
+    y = "0.1",
     message = "Test"
 })
 
@@ -35,16 +35,16 @@ function root::updateGameTexts()
 
 ::gameText_receivingAGiant <- SpawnEntityFromTable("game_text", {
     targetname = "gameText_receivingAGiant",
-    color1 = "220 220 220",
-    color2 = "170 170 170",
+    color1 = "255 255 255",
+    color2 = "255 255 255",
     effect = "2",
-    fadein = "0.35",
-    fadeout = "0.35",
-    holdtime = "10",
-    fxtime = "0.35",
+    fadein = "0.02",
+    fadeout = "5",
+    holdtime = "5",
+    fxtime = "10",
     channel = "1",
     x = "-1",
-    y = "0.8",
+    y = "0.1",
     message = "Test"
 })
 
@@ -53,16 +53,16 @@ function root::updateGameTexts()
 
 ::gameText_giantDetails <- SpawnEntityFromTable("game_text", {
     targetname = "gameText_giantDetails",
-    color1 = "220 220 220",
-    color2 = "170 170 170",
+    color1 = "255 255 255",
+    color2 = "255 255 255",
     effect = "2",
-    fadein = "0.35",
-    fadeout = "0.35",
-    holdtime = "6",
-    fxtime = "0.35",
+    fadein = "0.02",
+    fadeout = "5",
+    holdtime = "5",
+    fxtime = "10",
     channel = "1",
     x = "-1",
-    y = "0.8",
+    y = "0.1",
     message = "Test"
 })
 
@@ -70,15 +70,15 @@ function root::updateGameTexts()
 
 ::gameText_giantWarning <- SpawnEntityFromTable("game_text", {
     targetname = "gameText_giantWarning",
-    color1 = "220 220 220",
-    color2 = "170 170 170",
+    color1 = "255 220 220",
+    color2 = "255 255 255",
     effect = "2",
-    fadein = "0.35",
-    fadeout = "0.35",
-    holdtime = "10",
-    fxtime = "0.35",
+    fadein = "0.02",
+    fadeout = "5",
+    holdtime = "5",
+    fxtime = "10",
     channel = "1",
     x = "-1",
-    y = "0.8",
+    y = "0.1",
     message = "WARNING: GIANT ROBOT INCOMING"
 })

@@ -1,4 +1,5 @@
 //It's possible to disguise as a teammate so this complicated check is separated
+//Defined differently so that global_think_functions can access this
 function root::IsDisguisedAsOpposingTeam(player)
 {
     local team = player.GetTeam()

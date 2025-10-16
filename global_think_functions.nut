@@ -1,11 +1,3 @@
-::root <- getroottable();
-if (!("ConstantNamingConvention" in root)) // make sure folding is only done once
-{
-    foreach (a,b in Constants)
-        foreach (k,v in b)
-            root[k] <- v != null ? v : 0;
-}
-
 function Think()
 {
     local scene = null
