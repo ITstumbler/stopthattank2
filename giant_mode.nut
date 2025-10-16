@@ -354,6 +354,9 @@ function root::becomeGiant(playerIndex)
     //Full ammo regeneration for the first 5 seconds
     player.AddCustomAttribute("ammo regen", 1, 5)
 
+    //Show giant name and some tips if the giant is a bit complicated
+    EntFireByHandle(gameText_giantDetails, "Display", null, -1, player, player)
+
     //Miscellaneous actions to do if a giant has tags
     if(giantSpecifics.tags == null) return
 
@@ -643,6 +646,7 @@ function root::addGiantThink(player)
 //For giant engineers: ban the construction of a tele entrance by spawning one out of bounds
 function root::createIndestructibleTeleEntrance(player)
 {
+    if(giantPlayer == null) return //Safeguard
     local tele_entrance = SpawnEntityFromTable("obj_teleporter", {
         targetname = "indestructible_tele_entrance",
         TeamNum = TF_TEAM_BLUE,
@@ -695,6 +699,10 @@ function root::handleGiantDeath()
 
     //Giant no longer active, allow all blu players to pick up the bomb
     isBombGiantDead = true
+
+    //Announcer is happy that red took something down
+    EntFireByHandle(gamerules, "PlayVORed", "Announcer.MVM_General_Destruction", -1, null, null)
+    EntFireByHandle(gamerules, "PlayVORed", "MVM.TankEnd", -1, null, null)
 	
     for (local i = 1; i <= MaxPlayers ; i++)
     {

@@ -11,6 +11,7 @@
         //Reroll chosen giant type
         chosenGiantThisRound = RandomInt(0, GIANT_TYPES_AMOUNT - 1)
         if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
+        updateGameTexts()
 
         //Cleanup timer countdown think so it doesn't stack
         AddThinkToEnt(roundTimer, null)
@@ -50,18 +51,40 @@
 
     function OnGameEvent_player_hurt(params) {
 		local player = GetPlayerFromUserID(params.userid)
+		local attacker = GetPlayerFromUserID(params.attacker)
 
-        local weapon = params.weaponid
-        debugPrint("Weapon id: " + weapon)
+        local weapon = null
 
-        // if(player == giantPlayer) {
-            //Thanks oz
-            // SetPropFloat(params.weapon, "m_flNextPrimaryAttack", Time() + 2.0);
-            // SetPropFloat(attacker, "m_flNextAttack", Time() + 2.0);
-            // SetPropFloat(attacker, "m_flStealthNextTraitTime", Time() + 2.0);
-            // EmitSoundOn("Player.Spy_Shield_Break", player);
-            // EmitSoundOn("Player.Spy_Shield_Break", player);
-        // }
+        if("weaponid" in params) {
+            weapon = params.weaponid
+        }
+        // debugPrint("Weapon id: " + weapon)
+
+        if(player == giantPlayer && weapon == 7 && params.damageamount == 750) {
+            // Thanks oz
+            debugPrint("Spy backstab!!")
+
+            for (local i = 0; i < MaxWeapons; i++)
+            {
+                local weaponIterate = NetProps.GetPropEntityArray(attacker, "m_hMyWeapons", i)
+                if (weaponIterate == null) continue
+                if (weaponIterate.GetClassname() != "tf_weapon_knife") continue
+                
+                weapon = weaponIterate
+                break
+            }
+
+            NetProps.SetPropFloat(weapon, "m_flNextPrimaryAttack", Time() + 2.0);
+            NetProps.SetPropFloat(attacker, "m_flNextAttack", Time() + 2.0);
+            NetProps.SetPropFloat(attacker, "m_flStealthNextTraitTime", Time() + 2.0);
+            EmitSoundOn("Player.Spy_Shield_Break", player);
+            EmitSoundOn("Player.Spy_Shield_Break", player);
+
+            EntFireByHandle(player, "RunScriptCode", "EmitSoundOn(`Spy.LaughEvil01`, player)", 0.2, player, player)
+            EntFireByHandle(player, "RunScriptCode", "EmitSoundOn(`Spy.LaughEvil01`, player)", 0.2, player, player)
+
+            ClientPrint(player, 4, "YOU'VE BEEN BACKSTABBED!!")
+        }
         
         //Flash giants when shot during invuln phase
         if (player.GetCustomAttribute("dmg taken increased", 1) == 0.001) {
@@ -106,7 +129,7 @@
         //Find this function in spy_disguises.nut
         if(player.GetPlayerClass() == TF_CLASS_SPY) {
             addSpyDisguiseThink(player, params.team)
-            EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`armor penetration`, 75, -1)", -1, player, player)
+            EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`armor piercing`, 75, -1)", -1, player, player)
         }
 
         //Red players should say something a few seconds after spawning
@@ -190,29 +213,37 @@
         //Only execute for giant engis
         if(owner != giantPlayer) return
 
+        //Don't interfere with the function that destroys all giant engineer buildings on death
+        if(isBombGiantDead) return
+
         //Check if destroyed object was a teleporter entrance
         if(params.objecttype != 1) return
 
         local tele = EntIndexToHScript(params.index)
 
+        //Check if entrance or exit was destroyed
         if(tele.GetName() == "indestructible_tele_entrance") return
             
         stopTeleExit()
     }
 
     function OnGameEvent_object_detonated(params) {
-        if(giantPlayer.GetPlayerClass() != TF_CLASS_ENGINEER) return
+        if(giantPlayer != null && giantPlayer.GetPlayerClass() != TF_CLASS_ENGINEER) return
 
         local detonator = GetPlayerFromUserID(params.userid)
 
         //Only execute for giant engis
         if(detonator != giantPlayer) return
 
-        //Check if detonated object was a teleporter entrance
+        //Don't interfere with the function that destroys all giant engineer buildings on death
+        if(isBombGiantDead) return
+
+        //Check if detonated object was a teleporter
         if(params.objecttype != 1) return
 
         local tele = EntIndexToHScript(params.index)
 
+        //Check if entrance or exit was destroyed
         if(tele.GetName() != "indestructible_tele_entrance")
         {
             stopTeleExit()
@@ -247,10 +278,12 @@
         //Below handles giant death events
         if (!scope.isGiant) return
         handleGiantDeath() //Global events
-        if(killer != player && killer.IsPlayer() && killer.IsAlive()) { //Only say something for non suicide player kills
+        if(killer != player && killer != null && killer.IsPlayer() && killer.IsAlive()) { //Only say something for non suicide player kills
             speakGiantKillResponse(killer) //Have the killer say something cool, find in giant_kill_responses.nut
         }
         playSoundEx("mvm/sentrybuster/mvm_sentrybuster_explode.wav")
+
+        //TODO: Print "Blue giant defeated!"
 
         local deadPlayerName = Convars.GetClientConvarValue("name", player.GetEntityIndex())
         debugPrint("\x01Giant privileges removed on death for player \x0799CCFF" + deadPlayerName)

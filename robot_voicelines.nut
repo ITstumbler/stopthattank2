@@ -46,15 +46,6 @@ function root::ReplaceVoiceline(player, scene)
     EntFireByHandle(player, "RunScriptCode", "PlayRobotVoiceline(activator,`" + VCDToSoundscriptList[voicelineClass][name] + "`)", 0.02, player, player)
 }
 
-//It's possible to disguise as a teammate so this complicated check is separated
-function root::IsDisguisedAsOpposingTeam(player)
-{
-    local team = player.GetTeam()
-    if(!player.InCond(TF_COND_DISGUISED)) return false
-    if(player.GetDisguiseTeam() == team) return false
-    return true
-}
-
 function root::PlayRobotVoiceline(player, name)
 {
     //Ty popext from potato.tf once again

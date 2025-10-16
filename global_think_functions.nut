@@ -1,3 +1,11 @@
+::root <- getroottable();
+if (!("ConstantNamingConvention" in root)) // make sure folding is only done once
+{
+    foreach (a,b in Constants)
+        foreach (k,v in b)
+            root[k] <- v != null ? v : 0;
+}
+
 function Think()
 {
     local scene = null
@@ -9,10 +17,10 @@ function Think()
 		{
             if (owner.IsPlayer())
             {
-				printl(owner)
-				printl(owner.GetTeam())
+				// printl(owner)
+				// printl(owner.GetTeam())
                 //Blue team OR disguised red spy
-                //Find IsDisguisedAsOpposingTeam in robot_voicelines.nut
+                //Find IsDisguisedAsOpposingTeam in spy_disguises.nut
                 if ((owner.GetTeam() == TF_TEAM_BLUE && !IsDisguisedAsOpposingTeam(owner)) ||
 					(owner.GetPlayerClass() == TF_CLASS_SPY && IsDisguisedAsOpposingTeam(owner) && owner.GetTeam() == TF_TEAM_RED))
                 {

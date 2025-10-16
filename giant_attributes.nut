@@ -66,7 +66,8 @@ local giantSoldier = { //TODO: Use giant attack sounds
     meleeWeaponClassName        = "tf_weapon_shovel",
     respawnOverride             = null, //If not null, sets blue respawn time to this number
 	tags						= null,
-    playerInfo                  = "-Increased explosion damage and radius.\n-Moves slower than most giants.",
+    // playerInfo                  = "-Increased explosion damage and radius.\n-Moves slower than most giants.",
+    playerInfo                  = "",
     introSound                  = giantSounds[TF_CLASS_SOLDIER],
     playerAttributes            =
     {
@@ -100,8 +101,9 @@ local giantHeavy = { //TODO: Custom minigun spin sounds
     meleeWeaponClassName        = "tf_weapon_fists",
     respawnOverride             = null, //If not null, sets blue respawn time to this number
 	tags						= null, //If not null, list of tags to permanently apply to the giant
-    playerInfo                  = "-Minigun deals +60% more damage.\n-Moves slower than any other giant while attacking.",
-    introSound                  = giantSounds[TF_CLASS_HEAVYWEAPONS],
+    // playerInfo                  = "-Minigun deals +60% more damage.\n-Moves slower than any other giant while attacking.",
+    playerInfo                  = "",
+	introSound                  = giantSounds[TF_CLASS_HEAVYWEAPONS],
     playerAttributes            =
     {
         "move speed bonus"              : 0.5,
@@ -136,7 +138,8 @@ local giantRapidFireDemo = { //TODO: Use giant attack sounds
 	meleeWeaponClassName        = "tf_weapon_bottle",
 	respawnOverride             = null,
 	tags						= null,
-	playerInfo                  = "-Shoots and reloads grenades rapidly.\n-Moves slower than most giants.",
+	// playerInfo                  = "-Shoots and reloads grenades rapidly.\n-Moves slower than most giants.",
+	playerInfo                  = "",
 	introSound                  = giantSounds[TF_CLASS_DEMOMAN],	
 	playerAttributes =
 	{
@@ -172,7 +175,8 @@ local giantPyro = { //TODO: Use giant attack sounds
 	meleeWeaponClassName        = "tf_weapon_fireaxe",
 	respawnOverride             = null,
 	tags						= ["airblast_crits"],
-	playerInfo                  = "-Increased direct flame damage and range.\n-Equipped with a high damage Flare Gun.\n-Reflected projectiles turn into crits.",
+	// playerInfo                  = "-Increased direct flame damage and range.\n-Equipped with a high damage Flare Gun.\n-Reflected projectiles turn into crits.",
+	playerInfo                  = "Also equipped with a high damage Flare Gun",
 	introSound                  = giantSounds[TF_CLASS_PYRO],	
 	playerAttributes =
 	{
@@ -197,9 +201,9 @@ local giantPyro = { //TODO: Use giant attack sounds
     meleeAttributes             = null
 }
 
-local giantRapidFireHuntsman = { //TODO: make this guy spawn with 5 jarates
+local giantRapidFireHuntsman = {
 	classId 					= TF_CLASS_SNIPER,
-	giantName                   = "Giant Rapid Fire Huntsman",
+	giantName                   = "Giant Rapid Fire Bowman",
 	baseHealth                  = 10000.0,
 	speedCap					= 150,
 	playerModel                 = giantModels[TF_CLASS_SNIPER],
@@ -213,7 +217,8 @@ local giantRapidFireHuntsman = { //TODO: make this guy spawn with 5 jarates
 	meleeWeaponClassName        = "tf_weapon_club",
 	respawnOverride             = null,
 	tags						= null,
-	playerInfo                  = "-Increased arrow damage and reload speed.\n-Can recharge and store up to 5 Jarates at once.\n-Bushwacka doesn't increase damage taken.",
+	// playerInfo                  = "-Increased arrow damage and reload speed.\n-Can recharge and store up to 5 Jarates at once.\n-Bushwacka doesn't increase damage taken.",
+	playerInfo                  = "Also equipped with a fast-recharging jarate",
 	introSound                  = giantSounds[TF_CLASS_SNIPER],	
 	playerAttributes =
 	{
@@ -255,7 +260,8 @@ local majorLeagueScout = {
 	meleeWeaponClassName        = "tf_weapon_bat",
 	respawnOverride             = 0.1,
 	tags						= null,
-	playerInfo                  = "-Moves faster than most giants.\n-Captures control points twice as fast.\n-Teammates respawn much faster.\n-Low health compared to most giants.",
+	// playerInfo                  = "-Moves faster than most giants.\n-Captures control points twice as fast.\n-Teammates respawn much faster.\n-Low health compared to most giants.",
+	playerInfo                  = "",
 	introSound                  = giantSounds[TF_CLASS_SCOUT],	
 	playerAttributes =
 	{
@@ -292,7 +298,8 @@ local giantDemoknight = { //TODO: Futureproof the goddamn shield I hate the char
 	meleeWeaponClassName        = "tf_weapon_sword",
 	respawnOverride             = null,
 	tags						= ["knight_shield"],
-	playerInfo                  = "-Gains crits and health on every kill.\n-Full turning control while charging.\n-Melee damage and range increased.\n-Resistant to explosive and fire damage.",
+	// playerInfo                  = "-Gains crits and health on every kill.\n-Full turning control while charging.\n-Melee damage and range increased.\n-Resistant to explosive and fire damage.",
+	playerInfo                  = "",
 	introSound                  = giantSounds[TF_CLASS_DEMOMAN],	
 	playerAttributes =
 	{
@@ -334,7 +341,8 @@ local giant10ShotBazookaSoldier = {
 	meleeWeaponClassName        = "tf_weapon_shovel",
 	respawnOverride             = null,
 	tags						= null,
-	playerInfo                  = "-Loads up to 10 rockets rapidly.\n-Cannot overload.\n-6 degrees in random projectile deviation.",
+	// playerInfo                  = "-Loads up to 10 rockets rapidly.\n-Cannot overload.\n-6 degrees in random projectile deviation.",
+	playerInfo                  = "Can load up to 10 rockets at once",
 	introSound                  = giantSounds[TF_CLASS_SOLDIER],	
 	playerAttributes =
 	{
@@ -375,7 +383,8 @@ local giantShotgunHeavy = {
 	meleeWeaponClassName        = "tf_weapon_fists",
 	respawnOverride             = null,
 	tags						= ["1_clip_secondary"],
-	playerInfo                  = "-Can one-shot almost every enemy in close range.\n-Melee weapon gives crits for 7s on kill.\n-Weak at longer ranges.",
+	// playerInfo                  = "-Can one-shot almost every enemy in close range.\n-Melee weapon gives crits for 7s on kill.\n-Weak at longer ranges.",
+	playerInfo                  = "Also equipped with an improved Killing Gloves of Boxing",
 	introSound                  = giantSounds[TF_CLASS_HEAVYWEAPONS],	
 	playerAttributes =
 	{
@@ -418,7 +427,8 @@ local sirNukesalot = {
 	meleeWeaponClassName        = "tf_weapon_bottle",
 	respawnOverride             = null,
 	tags						= ["always_crit", "1_clip_primary"],
-	playerInfo                  = "-Can clear large groups of enemies with a single shot.\n-Explosions can be used as a smoke screen for your team.\n-Vulnerable in close range combat.",
+	// playerInfo                  = "-Can clear large groups of enemies with a single shot.\n-Explosions can be used as a smoke screen for your team.\n-Vulnerable in close range combat.",
+	playerInfo                  = "",
 	introSound                  = giantSounds[TF_CLASS_DEMOMAN],	
 	playerAttributes =
 	{
@@ -458,7 +468,8 @@ local giantEngineer = {
 	meleeWeaponClassName        = "tf_weapon_robot_arm",
 	respawnOverride             = null,
 	tags						= ["giant_engineer"],
-	playerInfo                  = "-Builds Giant Mini-Sentries and Dispensers.\n-Dispenser range is greatly increased.\n-Teleporter Exit becomes your team's respawn point.\n-Low health compared to most giants.",
+	// playerInfo                  = "-Builds Giant Mini-Sentries and Dispensers.\n-Dispenser range is greatly increased.\n-Teleporter Exit becomes your team's respawn point.\n-Low health compared to most giants.",
+	playerInfo                  = "Can rapidly construct buildings\nYour team will respawn on your teleporter exit",
 	introSound                  = giantSounds[TF_CLASS_ENGINEER],	
 	playerAttributes =
 	{
@@ -506,7 +517,8 @@ local giantKritzkriegMedic = {
 	meleeWeaponClassName        = "tf_weapon_bonesaw",
 	respawnOverride             = null,
 	tags						= ["giant_medic"],
-	playerInfo                  = "-Ubercharge build rate massively increased.\n-Nearby teammates gain the effects of the Ubercharge when deployed.\n-Nearby teammates recover health automatically.\n-Low health compared to most giants.",
+	// playerInfo                  = "-Ubercharge build rate massively increased.\n-Nearby teammates gain the effects of the Ubercharge when deployed.\n-Nearby teammates recover health automatically.\n-Low health compared to most giants.",
+	playerInfo                  = "Nearby teammates also receive healing and ubercharge effects",
 	introSound                  = giantSounds[TF_CLASS_MEDIC],	
 	playerAttributes =
 	{

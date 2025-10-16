@@ -1,6 +1,6 @@
 ::ROBOT_PLAYER_MODELS <- {}
 
-//TODO: Replace with proper robot models
+//TODO: Replace with proper robot models (dont forget model_indexes as well)
 ::ROBOT_PLAYER_MODELS[TF_CLASS_SCOUT]           <- "models/bots/scout/bot_scout.mdl"
 ::ROBOT_PLAYER_MODELS[TF_CLASS_SOLDIER]         <- "models/bots/soldier/bot_soldier.mdl"
 ::ROBOT_PLAYER_MODELS[TF_CLASS_PYRO]            <- "models/bots/pyro/bot_pyro.mdl"
@@ -26,6 +26,10 @@
 
     function OnGameEvent_player_spawn(params) {
         local player = GetPlayerFromUserID(params.userid)
+
+        //Enables romevision for robot disguises (see spy_disguises.nut)
+        EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`vision opt in flags`, 4, -1)", -1, player, player)
+        EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`always_transmit_so`, 1, -1)", -1, player, player)
 
         if(player.GetTeam() == TF_TEAM_RED) {
             player.SetCustomModelWithClassAnimations(null)

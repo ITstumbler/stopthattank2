@@ -33,6 +33,27 @@ function root::spawnTank()
     SetBossEntity(tank)
 	UpdateBossBarLeaderboardIcon(leaderboard.tank)
 
+    //We need to make everyone see romevision for spy disguises, so the tank needs to be un-romevision'd
+    NetProps.SetPropIntArray(tank, "m_nModelIndexOverrides", GetModelIndex("models/bots/boss_bot/boss_tank.mdl"), 3);
+
+    //Ty tankextensions
+    for(local hChild = tank.FirstMoveChild(); hChild != null; hChild = hChild.NextMovePeer())
+    {
+        local sChildModel = hChild.GetModelName().tolower()
+        local childModelIndex = null
+        if((sChildModel.find("track_l"))) {
+            childModelIndex = GetModelIndex("models/bots/boss_bot/tank_track_l.mdl")
+        }
+        else if((sChildModel.find("track_r"))) {
+            childModelIndex = GetModelIndex("models/bots/boss_bot/tank_track_r.mdl")
+        }
+        else if((sChildModel.find("bomb_mechanism"))) {
+            childModelIndex = GetModelIndex("models/bots/boss_bot/bomb_mechanism.mdl")
+        }
+
+        if(childModelIndex != null) NetProps.SetPropIntArray(hChild, "m_nModelIndexOverrides", childModelIndex, 3);
+    }
+
     //Allow tank to be instantly destroyed by anyone when debugging
     if(GetDeveloperLevel() >= 1) {
         tank.SetHealth(1)

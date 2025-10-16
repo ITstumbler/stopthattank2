@@ -109,14 +109,16 @@ function root::startGiantPickingProcess()
         if (player == null) continue
 		if (player.GetTeam() == TF_TEAM_RED) {
 			//Yell at everyone on red about incoming giant robot. They don't get details
-			ClientPrint(player, 3, "============================")
-			ClientPrint(player, 3, "\x01WARNING: \x07FF3F3FGIANT ROBOT INCOMING")
-			ClientPrint(player, 3, "============================")
+			// ClientPrint(player, 3, "============================")
+			// ClientPrint(player, 3, "\x01WARNING: \x07FF3F3FGIANT ROBOT INCOMING")
+			// ClientPrint(player, 3, "============================")
+            EntFireByHandle(gameText_giantWarning, "Display", null, -1, player, player)
 		}
 		else if(player.GetTeam() == TF_TEAM_BLUE) {
 			//Tell everyone else on blu about who's becoming what giant
-			player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
-			EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator)", 3, player, player)
+			// player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
+			// EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator)", 3, player, player)
+            EntFireByHandle(gameText_receivingAGiant, "Display", null, -1, player, player)
 		}
     }
 }
@@ -160,7 +162,8 @@ function root::pickRandomPlayerToBeGiant(eligibleTable)
             local scope = player.GetScriptScope()
             scope.isBecomingGiant = true
             ClientPrint(player, 3, "\x05Everyone on your team rejected. You have been chosen to become the next giant.")
-            player.SetScriptOverlayMaterial("hud/stopthattank2/g_b_" + giantProperties[chosenGiantThisRound].hudHintName)
+            // player.SetScriptOverlayMaterial("hud/stopthattank2/g_b_" + giantProperties[chosenGiantThisRound].hudHintName)
+            EntFireByHandle(gameText_becomingAGiant, "Display", null, -1, player, player)
 
             break
         }
@@ -197,9 +200,12 @@ function root::promptGiant(playerIndex)
     // ClientPrint(player, 3, "\x01You will become a: \x0799CCFF" + giantProperties[chosenGiantThisRound].giantName)
     // ClientPrint(player, 3, "\x04" + giantProperties[chosenGiantThisRound].playerInfo)
     // ClientPrint(player, 3, "\x0799CCFF============================")
-    player.SetScriptOverlayMaterial("hud/stopthattank2/g_b_" + giantProperties[chosenGiantThisRound].hudHintName)
-    EntFireByHandle(rejectGiantHudHint, "ShowHudHint", null, 0, player, player)
-    EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator, 7)", 3, player, player)
+
+    // player.SetScriptOverlayMaterial("hud/stopthattank2/g_b_" + giantProperties[chosenGiantThisRound].hudHintName)
+    // EntFireByHandle(rejectGiantHudHint, "ShowHudHint", null, 0, player, player)
+    // EntFireByHandle(player, "RunScriptCode", "AddGiantHideHudThink(activator, 7)", 3, player, player)
+
+    EntFireByHandle(gameText_becomingAGiant, "Display", null, -1, player, player)
 
     local scope = player.GetScriptScope()
     scope.isBecomingGiant = true
@@ -218,7 +224,8 @@ function root::promptGiant(playerIndex)
 
             //Theyre no longer willing, so they get the receiving hud instead
             if(!hasHiddenGiantHud) {
-                player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
+                // player.SetScriptOverlayMaterial("hud/stopthattank2/g_r_" + giantProperties[chosenGiantThisRound].hudHintName)
+                EntFireByHandle(gameText_receivingAGiant, "Display", null, -1, player, player)
             }
             
             debugPrint("\x04Current candidate has rejected to become a giant!")
