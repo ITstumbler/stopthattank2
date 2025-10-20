@@ -27,14 +27,17 @@
     function OnGameEvent_player_spawn(params) {
         local player = GetPlayerFromUserID(params.userid)
 
-        //Enables romevision for robot disguises (see spy_disguises.nut)
-        EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`vision opt in flags`, 4, -1)", -1, player, player)
-        EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`always_transmit_so`, 1, -1)", -1, player, player)
-
         if(player.GetTeam() == TF_TEAM_RED) {
             player.SetCustomModelWithClassAnimations(null)
             //Reset blood - players bleed when shot
             NetProps.SetPropInt(player, "m_bloodColor", 0)
+
+            //Enables romevision for robot disguises (see spy_disguises.nut)
+            EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`vision opt in flags`, 4, -1)", -1, player, player)
+            EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`always_transmit_so`, 1, -1)", -1, player, player)
+
+            //Reset "disguise" model
+            NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", HUMAN_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 4);
         }
         else if(player.GetTeam() == TF_TEAM_BLUE) {
             player.SetCustomModelWithClassAnimations(ROBOT_PLAYER_MODELS[player.GetPlayerClass()])
@@ -43,6 +46,12 @@
             EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`override footstep sound set`, 7, -1)", -1, player, player)
             //Robots don't bleed
             NetProps.SetPropInt(player, "m_bloodColor", -1)
+
+            //Disable romevision
+            EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`vision opt in flags`, 0, -1)", -1, player, player)
+
+            //Reset "disguise" model
+            NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", ROBOT_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 4);
         }
     }
 }

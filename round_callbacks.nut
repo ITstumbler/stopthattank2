@@ -197,7 +197,9 @@
         startIntermission() //Find in intermission.nut
 
         //Delay the crit cash function to ensure that it happens after the cash entities spawn
-        EntFire("gamerules", "CallScriptFunction", "spawnCritCash", -1) //Find in crit_cash.nut
+        EntFire("gamerules", "CallScriptFunction", "spawnCritCash", -1) //Find in crit_cash.
+        
+        handleTankDestructionAnimation() //Find in tank_functions_callbacks.nut
 
         //Mapmaker decides what else needs to happen using boss_dead_relay
 

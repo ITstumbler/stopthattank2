@@ -15,7 +15,9 @@ function root::IsDisguisedAsOpposingTeam(player)
 
     debugPrint("\x04Spy thinks added")
 
-    scope.isDisguised <- false
+    // scope.isDisguised <- false
+    scope.lastDisguiseClass <- 0
+    scope.disguiseClass <- 0
     
     //Blu spies have human footsteps when disguised, robotic otherwise
     //There are no, and should never be any, giant spies
@@ -42,25 +44,35 @@ function root::IsDisguisedAsOpposingTeam(player)
             delete thinkFunctions["spyDisguiseThink"]
         }
 
+        disguiseClass = NetProps.GetPropInt(player,"m_Shared.m_nDisguiseClass")
+
         //Run if we just disguised as an enemy
-        if(IsDisguisedAsOpposingTeam(self) && !isDisguised) {
-            isDisguised = true
+        if(IsDisguisedAsOpposingTeam(self) && disguiseClass != lastDisguiseClass) {
             self.AddCustomAttribute("override footstep sound set", disguisedFootsteps, -1)
 
             //Override the "romevision" model that the enemy team will see
-            local DisguiseClass = NetProps.GetPropInt(player,"m_Shared.m_nDisguiseClass")
-            NetProps.SetPropIntArray(self, "m_nModelIndexOverrides", disguiseModelIndex[DisguiseClass], 3);
+            
+            if(self.GetTeam() == TF_TEAM_BLUE) {
+                NetProps.SetPropIntArray(self, "m_nModelIndexOverrides", disguiseModelIndex[disguiseClass], 3);
+            }
         }
 
         //Run if we just undisguised
-        else if(!IsDisguisedAsOpposingTeam(self) && isDisguised) {
-            isDisguised = false
+        else if(!IsDisguisedAsOpposingTeam(self) || disguiseClass != lastDisguiseClass) {
             self.AddCustomAttribute("override footstep sound set", defaultFootsteps, -1)
 
             //Reset the "romevision" model that the enemy team will see
-            local DisguiseClass = NetProps.GetPropInt(player,"m_Shared.m_nDisguiseClass")
-            NetProps.SetPropIntArray(self, "m_nModelIndexOverrides", defaultModelIndex[DisguiseClass], 3);
+            if(self.GetTeam() == TF_TEAM_BLUE) {
+                if(disguiseClass == 0) {
+                    NetProps.SetPropIntArray(self, "m_nModelIndexOverrides", defaultModelIndex[TF_CLASS_SPY], 3);
+                }
+                else {
+                    NetProps.SetPropIntArray(self, "m_nModelIndexOverrides", defaultModelIndex[disguiseClass], 3);
+                }
+            }
         }
+
+        lastDisguiseClass = disguiseClass
 
         return -1
     }

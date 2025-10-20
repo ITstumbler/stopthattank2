@@ -1,3 +1,14 @@
+//Used to un-romevision the tank whenever it changes model
+::tankThink <- function() {
+    local currentModel = self.GetModelName()
+    if(currentModel == lastModel) return -1
+
+    NetProps.SetPropIntArray(tank, "m_nModelIndexOverrides", GetModelIndex(currentModel), 0);
+    NetProps.SetPropIntArray(tank, "m_nModelIndexOverrides", GetModelIndex(currentModel), 3);
+
+    return -1
+}
+
 function root::spawnTank()
 {
     //Make sure tank hologram is called tank_hologram!!
@@ -30,13 +41,19 @@ function root::spawnTank()
         model = "models/bots/boss_bot/boss_tank.mdl"
 	})
 
+    tank.ValidateScriptScope()
+    local tank_scope = tank.GetScriptScope()
+
+    //Used by tankThink to determine whether our model changed
+    tank_scope.lastModel <- ""
+
     SetBossEntity(tank)
 	UpdateBossBarLeaderboardIcon(leaderboard.tank)
 
-    //We need to make everyone see romevision for spy disguises, so the tank needs to be un-romevision'd
-    NetProps.SetPropIntArray(tank, "m_nModelIndexOverrides", GetModelIndex("models/bots/boss_bot/boss_tank.mdl"), 3);
+    AddThinkToEnt(tank, "tankThink")
 
     //Ty tankextensions
+    //Un-romevisions the tank for red
     for(local hChild = tank.FirstMoveChild(); hChild != null; hChild = hChild.NextMovePeer())
     {
         local sChildModel = hChild.GetModelName().tolower()
@@ -99,6 +116,20 @@ function root::setSpeedTank(speedInput, dummyOnly=false)
     trainWatcherDummy.AcceptInput("SetSpeedDir", speedInput.tostring(), null, null)
     trainWatcherDummy.KeyValueFromInt("startspeed", speedInput)
     if(tank.IsValid() && !dummyOnly) tank.AcceptInput("SetSpeed", speedInput.tostring(), null, null)
+}
+
+function root::handleTankDestructionAnimation()
+{
+    local destructionModelName = "models/bots/boss_bot/boss_tank_part1_destruction.mdl"
+    local destructionModelIndex = GetModelIndex(destructionModelName)
+
+    local destructionEntity = Entities.FindByClassname(null, "tank_destruction")
+
+    destructionEntity.SetModel(destructionModelName)
+    NetProps.SetPropIntArray(destructionEntity, "m_nModelIndexOverrides", destructionModelIndex, 0);
+    NetProps.SetPropIntArray(destructionEntity, "m_nModelIndexOverrides", destructionModelIndex, 3);
+
+    destructionEntity.SetSequence(1)
 }
 
 // ::totalTankDistance <- 0
