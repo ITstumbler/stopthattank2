@@ -25,21 +25,16 @@ function root::tryDeployBomb()
 		fakePlayer.SetModelScale(1.75, 0)
 	}
 	
-	local fakeFlag = SpawnEntityFromTable("prop_dynamic",
-	{
-		targetname = "bombdeployprop",
-	})
-	fakeFlag.SetModel("models/props_td/atom_bomb.mdl")
-	fakeFlag.AcceptInput("SetParent", "playerdeployprop", null, null)
-	EntFireByHandle(fakeFlag, "SetParentAttachment", "flag", 0.02, null, null)
-	
-	bombFlag.AcceptInput("Disable", null, null, null) //hide the light
+	bombFlag.AcceptInput("SetParent", "playerdeployprop", null, null)
+	EntFireByHandle(bombFlag, "SetParentAttachment", "flag", 0.02, null, null)
 	for(local wearable = activator.FirstMoveChild(); wearable != null; wearable = wearable.NextMovePeer())
 	{	
+		local name = wearable.GetClassname()
+		if(name == "item_teamflag") continue //don't make bomb invis
+		
 		NetProps.SetPropInt(wearable, "m_nRenderMode", kRenderNone)
 		
-		local name = wearable.GetClassname()
-		if(name == "item_teamflag" || startswith(name, "tf_weapon") || name == "tf_viewmodel") continue
+		if(startswith(name, "tf_weapon") || name == "tf_viewmodel") continue
 		
 		local dummyWearable = SpawnEntityFromTable("prop_dynamic_ornament",
 		{
@@ -76,14 +71,14 @@ function root::tryDeployBomb()
 		entity = activator
 	})
 	
-    activator.GetScriptScope().isDeploying <- true
+    activator.GetScriptScope().isDeploying = true
     EntFire("finish_deploy_relay", "trigger", null, 0, activator) //calls finishDeployBomb
     debugPrint("ATTEMPTING TO DEPLOY")
 }
 
 function root::stopDeployBomb() //called by capture trigger onendtouch
 {
-    if(!activator.HasItem()) return
+    if(!activator.GetScriptScope().isDeploying) return
 	activator.SetForcedTauntCam(0)
 	NetProps.SetPropInt(activator, "m_nRenderMode", kRenderNormal)
 	activator.RemoveCustomAttribute("move speed penalty")
@@ -91,7 +86,7 @@ function root::stopDeployBomb() //called by capture trigger onendtouch
 	{
 		NetProps.SetPropInt(wearable, "m_nRenderMode", kRenderNormal)
 	}	
-	bombFlag.AcceptInput("Enable", null, null, null)
+	bombFlag.AcceptInput("ClearParent", "", null, null)
 	EntFire("playerdeployprop", "Kill")
 	
     activator.GetScriptScope().isDeploying = false
@@ -102,7 +97,7 @@ function root::stopDeployBomb() //called by capture trigger onendtouch
 function root::finishDeployBomb()
 {
     debugPrint("ATTEMPTING TO FINISH")
-    if(!activator.HasItem()) {
+    if(!activator.GetScriptScope().isDeploying) {
         debugPrint("ACTIVATOR DOES NOT HAVE ITEM, CANCELLING FINISH")
         return
     }
@@ -110,6 +105,9 @@ function root::finishDeployBomb()
         debugPrint("ACTIVATOR IS NOT DEPLOYING, CANCELLING FINISH")
         return
     }
+	bombFlag.AcceptInput("ClearParent", "", null, null)
+	bombFlag.AcceptInput("Disable", "", null, null)
+	activator.GetScriptScope().isDeploying = false
 	EntFire("playerdeployprop", "Kill")
     EntFire("bomb_deploy_relay", "trigger") //hatch blows up and other stuff
     //Disable countdown sounds
