@@ -80,8 +80,8 @@
             EmitSoundOn("Player.Spy_Shield_Break", player);
             EmitSoundOn("Player.Spy_Shield_Break", player);
 
-            EntFireByHandle(player, "RunScriptCode", "EmitSoundOn(`Spy.LaughEvil01`, player)", 0.2, player, player)
-            EntFireByHandle(player, "RunScriptCode", "EmitSoundOn(`Spy.LaughEvil01`, player)", 0.2, player, player)
+            EntFireByHandle(player, "RunScriptCode", "EmitSoundOn(`Spy.LaughEvil01`, giantPlayer)", 0.2, player, player)
+            EntFireByHandle(player, "RunScriptCode", "EmitSoundOn(`Spy.LaughEvil01`, giantPlayer)", 0.2, player, player)
 
             ClientPrint(player, 4, "YOU'VE BEEN BACKSTABBED!!")
         }
@@ -210,6 +210,7 @@
     }
 
     function OnGameEvent_object_destroyed(params) {
+        if(giantPlayer == null) return
         if(giantPlayer.GetPlayerClass() != TF_CLASS_ENGINEER) return
 
         local owner = GetPlayerFromUserID(params.userid)
