@@ -112,6 +112,7 @@
             scope.hasHiddenGiantHud <- false
             scope.lastResponseTime <- 0 //Used for red spies disguised as blue spies - see robot_voicelines.nut
             scope.isDeploying <- false
+            scope.botModelName <- null
 
             AddThinkToEnt(player, "playerThink")
 		}

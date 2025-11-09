@@ -28,7 +28,7 @@
         local player = GetPlayerFromUserID(params.userid)
 
         if(player.GetTeam() == TF_TEAM_RED) {
-            player.SetCustomModelWithClassAnimations(null)
+            removeBonemergeModel(player)
             //Reset blood - players bleed when shot
             NetProps.SetPropInt(player, "m_bloodColor", 0)
 
@@ -40,7 +40,10 @@
             NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", HUMAN_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 4);
         }
         else if(player.GetTeam() == TF_TEAM_BLUE) {
-            player.SetCustomModelWithClassAnimations(ROBOT_PLAYER_MODELS[player.GetPlayerClass()])
+            player.GetScriptScope().botModelName = ROBOT_PLAYER_MODELS[player.GetPlayerClass()]
+            bonemergeBotModel(player)
+            //there's a minor issue where the model sometimes doesn't apply properly on first spawn
+            //may need to delay?
 
             //Sets footsteps to Sentry Buster's footsteps - which is then overridden by the level_sounds
             EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`override footstep sound set`, 7, -1)", -1, player, player)

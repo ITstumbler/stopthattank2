@@ -229,7 +229,8 @@ function root::becomeGiant(playerIndex)
     player.SetHealth(giantHealth)
 
     player.SetModelScale(GIANT_SCALE, 0)
-    player.SetCustomModelWithClassAnimations(giantSpecifics.playerModel)
+    scope.botModelName = giantSpecifics.playerModel
+    bonemergeBotModel(player)
     player.AddCond(130)
 
     //Remove weapon wearables such as Razorback

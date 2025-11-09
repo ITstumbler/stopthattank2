@@ -4,11 +4,14 @@ PrecacheSound("mvm/mvm_deploy_small.wav")
 function root::tryDeployBomb()
 {
     if(!activator.HasItem()) return
+	
+	local scope = activator.GetScriptScope()
+	
     activator.EndLongTaunt()
     activator.CancelTaunt()
     activator.SetForcedTauntCam(1)
-	NetProps.SetPropInt(activator, "m_nRenderMode", kRenderNone)
 	activator.AddCustomAttribute("move speed penalty", 0.000000001, -1)
+	NetProps.SetPropInt(activator, "m_nRenderMode", kRenderNone)
 	
 	local fakePlayer = SpawnEntityFromTable("prop_dynamic",
 	{
@@ -16,11 +19,11 @@ function root::tryDeployBomb()
 		origin = activator.GetOrigin(),
 		angles = activator.GetAbsAngles(),
 		disablebonefollowers = 1,
-		model = activator.GetModelName(),
+		model = scope.botModelName,
 		skin = 1,
 		defaultanim = "primary_deploybomb"
 	})
-	if(activator.GetScriptScope().isGiant)
+	if(scope.isGiant)
 	{
 		fakePlayer.SetModelScale(1.75, 0)
 	}
@@ -34,14 +37,14 @@ function root::tryDeployBomb()
 		
 		NetProps.SetPropInt(wearable, "m_nRenderMode", kRenderNone)
 		
-		if(startswith(name, "tf_weapon") || name == "tf_viewmodel") continue
+		if(startswith(name, "tf_weapon") || name == "tf_viewmodel" || wearable.GetName() == "bonemerge_model") continue
 		
 		local dummyWearable = SpawnEntityFromTable("prop_dynamic_ornament",
 		{
 			initialowner = "playerdeployprop",
 			model = wearable.GetModelName(),
 			skin = wearable.GetSkin()
-			//todo: figure out body groups
+			//todo: body groups are an itemattr
 		})
 		/*
 		local id = NetProps.GetPropInt(wearable, "m_AttributeManager.m_Item.m_iItemDefinitionIndex")
@@ -63,15 +66,14 @@ function root::tryDeployBomb()
 		*/
 	}
 	
-	local sound = activator.GetScriptScope().isGiant ? "mvm/mvm_deploy_giant.wav" : "mvm/mvm_deploy_small.wav"
 	EmitSoundEx(
 	{
-		sound_name = sound,
+		sound_name = scope.isGiant ? "mvm/mvm_deploy_giant.wav" : "mvm/mvm_deploy_small.wav",
 		filter_type = RECIPIENT_FILTER_GLOBAL,
 		entity = activator
 	})
 	
-    activator.GetScriptScope().isDeploying = true
+    scope.isDeploying = true
     EntFire("finish_deploy_relay", "trigger", null, 0, activator) //calls finishDeployBomb
     debugPrint("ATTEMPTING TO DEPLOY")
 }
@@ -96,18 +98,15 @@ function root::stopDeployBomb() //called by capture trigger onendtouch
 
 function root::finishDeployBomb()
 {
+	local scope = activator.GetScriptScope()
     debugPrint("ATTEMPTING TO FINISH")
-    if(!activator.GetScriptScope().isDeploying) {
-        debugPrint("ACTIVATOR DOES NOT HAVE ITEM, CANCELLING FINISH")
-        return
-    }
-    if(!activator.GetScriptScope().isDeploying) {
+    if(!scope.isDeploying) {
         debugPrint("ACTIVATOR IS NOT DEPLOYING, CANCELLING FINISH")
         return
     }
 	bombFlag.AcceptInput("ClearParent", "", null, null)
 	bombFlag.AcceptInput("Disable", "", null, null)
-	activator.GetScriptScope().isDeploying = false
+	scope.isDeploying = false
 	EntFire("playerdeployprop", "Kill")
     EntFire("bomb_deploy_relay", "trigger") //hatch blows up and other stuff
     //Disable countdown sounds

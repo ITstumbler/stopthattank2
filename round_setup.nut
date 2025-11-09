@@ -141,6 +141,7 @@ if(DEBUG_FORCE_GIANT_TYPE != null) chosenGiantThisRound = DEBUG_FORCE_GIANT_TYPE
 ::MaxWeapons <- 8
 
 IncludeScript("stopthattank2/precaches.nut")
+IncludeScript("stopthattank2/round_callbacks.nut")
 IncludeScript("stopthattank2/custom_boss_bar.nut")
 IncludeScript("stopthattank2/giant_kill_responses.nut")
 IncludeScript("stopthattank2/intermission.nut")
@@ -149,9 +150,9 @@ IncludeScript("stopthattank2/bomb.nut")
 IncludeScript("stopthattank2/bomb_ubers.nut")
 IncludeScript("stopthattank2/overtime_and_bomb_alarm.nut")
 IncludeScript("stopthattank2/tank_functions_callbacks.nut")
-IncludeScript("stopthattank2/round_callbacks.nut")
 IncludeScript("stopthattank2/crit_cash.nut")
 IncludeScript("stopthattank2/reanimators.nut")
+IncludeScript("stopthattank2/bonemerge.nut")
 IncludeScript("stopthattank2/blue_robots.nut")
 IncludeScript("stopthattank2/giant_mode.nut")
 IncludeScript("stopthattank2/giant_attributes.nut")
