@@ -19,7 +19,7 @@ function root::tryDeployBomb()
 		origin = activator.GetOrigin(),
 		angles = activator.GetAbsAngles(),
 		disablebonefollowers = 1,
-		model = scope.botModelName,
+		model = activator.GetModelName(),
 		skin = 1,
 		defaultanim = "primary_deploybomb"
 	})

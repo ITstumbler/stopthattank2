@@ -4,7 +4,7 @@
 ::ROBOT_PLAYER_MODEL_INDEXES[TF_CLASS_SOLDIER]         <- GetModelIndex("models/bots/soldier/bot_soldier.mdl")
 ::ROBOT_PLAYER_MODEL_INDEXES[TF_CLASS_PYRO]            <- GetModelIndex("models/bots/pyro/bot_pyro.mdl")
 ::ROBOT_PLAYER_MODEL_INDEXES[TF_CLASS_DEMOMAN]         <- GetModelIndex("models/bots/demo/bot_demo.mdl")
-::ROBOT_PLAYER_MODEL_INDEXES[TF_CLASS_HEAVYWEAPONS]    <- GetModelIndex("models/bots/heavy/bot_heavy.mdl")
+::ROBOT_PLAYER_MODEL_INDEXES[TF_CLASS_HEAVYWEAPONS]    <- GetModelIndex("models/bots/human_rigged_bot_models/bot_heavy.mdl")
 ::ROBOT_PLAYER_MODEL_INDEXES[TF_CLASS_ENGINEER]        <- GetModelIndex("models/bots/engineer/bot_engineer.mdl")
 ::ROBOT_PLAYER_MODEL_INDEXES[TF_CLASS_MEDIC]           <- GetModelIndex("models/bots/medic/bot_medic.mdl")
 ::ROBOT_PLAYER_MODEL_INDEXES[TF_CLASS_SNIPER]          <- GetModelIndex("models/bots/sniper/bot_sniper.mdl")

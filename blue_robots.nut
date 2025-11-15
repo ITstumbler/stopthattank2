@@ -1,15 +1,15 @@
 ::ROBOT_PLAYER_MODELS <- {}
 
 //TODO: Replace with proper robot models (dont forget model_indexes as well)
-::ROBOT_PLAYER_MODELS[TF_CLASS_SCOUT]           <- "models/bots/scout/bot_scout.mdl"
-::ROBOT_PLAYER_MODELS[TF_CLASS_SOLDIER]         <- "models/bots/soldier/bot_soldier.mdl"
-::ROBOT_PLAYER_MODELS[TF_CLASS_PYRO]            <- "models/bots/pyro/bot_pyro.mdl"
-::ROBOT_PLAYER_MODELS[TF_CLASS_DEMOMAN]         <- "models/bots/demo/bot_demo.mdl"
-::ROBOT_PLAYER_MODELS[TF_CLASS_HEAVYWEAPONS]    <- "models/bots/heavy/bot_heavy.mdl"
+::ROBOT_PLAYER_MODELS[TF_CLASS_SCOUT]           <- "models/bots/human_rigged_bot_models/bot_scout.mdl"
+::ROBOT_PLAYER_MODELS[TF_CLASS_SOLDIER]         <- "models/bots/human_rigged_bot_models/bot_soldier.mdl"
+::ROBOT_PLAYER_MODELS[TF_CLASS_PYRO]            <- "models/bots/human_rigged_bot_models/bot_pyro.mdl"
+::ROBOT_PLAYER_MODELS[TF_CLASS_DEMOMAN]         <- "models/bots/human_rigged_bot_models/bot_demo.mdl"
+::ROBOT_PLAYER_MODELS[TF_CLASS_HEAVYWEAPONS]    <- "models/bots/human_rigged_bot_models/bot_heavy.mdl"
 ::ROBOT_PLAYER_MODELS[TF_CLASS_ENGINEER]        <- "models/bots/engineer/bot_engineer.mdl"
-::ROBOT_PLAYER_MODELS[TF_CLASS_MEDIC]           <- "models/bots/medic/bot_medic.mdl"
-::ROBOT_PLAYER_MODELS[TF_CLASS_SNIPER]          <- "models/bots/sniper/bot_sniper.mdl"
-::ROBOT_PLAYER_MODELS[TF_CLASS_SPY]             <- "models/bots/spy/bot_spy.mdl"
+::ROBOT_PLAYER_MODELS[TF_CLASS_MEDIC]           <- "models/bots/human_rigged_bot_models/bot_medic.mdl"
+::ROBOT_PLAYER_MODELS[TF_CLASS_SNIPER]          <- "models/bots/human_rigged_bot_models/bot_sniper.mdl"
+::ROBOT_PLAYER_MODELS[TF_CLASS_SPY]             <- "models/bots/human_rigged_bot_models/bot_spy.mdl"
 
 ::blueRobotCallbacks <-
 {
@@ -28,7 +28,9 @@
         local player = GetPlayerFromUserID(params.userid)
 
         if(player.GetTeam() == TF_TEAM_RED) {
-            removeBonemergeModel(player)
+
+            player.SetCustomModelWithClassAnimations(null)
+
             //Reset blood - players bleed when shot
             NetProps.SetPropInt(player, "m_bloodColor", 0)
 
@@ -40,10 +42,8 @@
             NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", HUMAN_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 4);
         }
         else if(player.GetTeam() == TF_TEAM_BLUE) {
-            player.GetScriptScope().botModelName = ROBOT_PLAYER_MODELS[player.GetPlayerClass()]
-            bonemergeBotModel(player)
-            //there's a minor issue where the model sometimes doesn't apply properly on first spawn
-            //may need to delay?
+
+            player.SetCustomModelWithClassAnimations(ROBOT_PLAYER_MODELS[player.GetPlayerClass()])
 
             //Sets footsteps to Sentry Buster's footsteps - which is then overridden by the level_sounds
             EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`override footstep sound set`, 7, -1)", -1, player, player)

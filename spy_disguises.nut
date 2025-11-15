@@ -17,6 +17,7 @@ function root::IsDisguisedAsOpposingTeam(player)
 
     // scope.isDisguised <- false
     scope.lastDisguiseClass <- 0
+    scope.lastDisguiseTeam <- false
     scope.disguiseClass <- 0
     
     //Blu spies have human footsteps when disguised, robotic otherwise
@@ -47,7 +48,7 @@ function root::IsDisguisedAsOpposingTeam(player)
         disguiseClass = NetProps.GetPropInt(player,"m_Shared.m_nDisguiseClass")
 
         //Run if we just disguised as an enemy
-        if(IsDisguisedAsOpposingTeam(self) && disguiseClass != lastDisguiseClass) {
+        if(IsDisguisedAsOpposingTeam(self) && (disguiseClass != lastDisguiseClass || IsDisguisedAsOpposingTeam(self) != lastDisguiseTeam)) {
             self.AddCustomAttribute("override footstep sound set", disguisedFootsteps, -1)
 
             //Override the "romevision" model that the enemy team will see
@@ -58,7 +59,7 @@ function root::IsDisguisedAsOpposingTeam(player)
         }
 
         //Run if we just undisguised
-        else if(!IsDisguisedAsOpposingTeam(self) || disguiseClass != lastDisguiseClass) {
+        else if(!IsDisguisedAsOpposingTeam(self) || (disguiseClass != lastDisguiseClass || IsDisguisedAsOpposingTeam(self) != lastDisguiseTeam)) {
             self.AddCustomAttribute("override footstep sound set", defaultFootsteps, -1)
 
             //Reset the "romevision" model that the enemy team will see
@@ -73,6 +74,7 @@ function root::IsDisguisedAsOpposingTeam(player)
         }
 
         lastDisguiseClass = disguiseClass
+        lastDisguiseTeam = IsDisguisedAsOpposingTeam(self)
 
         return -1
     }

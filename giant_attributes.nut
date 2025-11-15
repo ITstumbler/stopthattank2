@@ -26,15 +26,15 @@
 //also need to be precached
 ::giantModels <- {}
 
-::giantModels[TF_CLASS_SCOUT] 			<- "models/bots/scout_boss/bot_scout_boss.mdl"
-::giantModels[TF_CLASS_SOLDIER] 		<- "models/bots/soldier_boss/bot_soldier_boss.mdl"
-::giantModels[TF_CLASS_PYRO] 			<- "models/bots/pyro_boss/bot_pyro_boss.mdl"
-::giantModels[TF_CLASS_DEMOMAN] 		<- "models/bots/demo_boss/bot_demo_boss.mdl"
-::giantModels[TF_CLASS_HEAVYWEAPONS] 	<- "models/bots/heavy_boss/bot_heavy_boss.mdl"
+::giantModels[TF_CLASS_SCOUT] 			<- "models/bots/human_rigged_bot_models/bot_scout_boss.mdl"
+::giantModels[TF_CLASS_SOLDIER] 		<- "models/bots/human_rigged_bot_models/bot_soldier_boss.mdl"
+::giantModels[TF_CLASS_PYRO] 			<- "models/bots/human_rigged_bot_models/bot_pyro_boss.mdl"
+::giantModels[TF_CLASS_DEMOMAN] 		<- "models/bots/human_rigged_bot_models/bot_demo_boss.mdl"
+::giantModels[TF_CLASS_HEAVYWEAPONS] 	<- "models/bots/human_rigged_bot_models/bot_heavy_boss.mdl"
 ::giantModels[TF_CLASS_ENGINEER] 		<- "models/bots/engineer/bot_engineer.mdl"
-::giantModels[TF_CLASS_MEDIC] 			<- "models/bots/medic/bot_medic.mdl"
-::giantModels[TF_CLASS_SNIPER] 			<- "models/bots/sniper/bot_sniper.mdl"
-::giantModels[TF_CLASS_SPY]		 		<- "models/bots/spy/bot_spy.mdl"
+::giantModels[TF_CLASS_MEDIC] 			<- "models/bots/human_rigged_bot_models/bot_medic.mdl"
+::giantModels[TF_CLASS_SNIPER] 			<- "models/bots/human_rigged_bot_models/bot_sniper.mdl"
+::giantModels[TF_CLASS_SPY]		 		<- "models/bots/human_rigged_bot_models/bot_spy.mdl"
 
 //these need to be precached
 ::giantSounds <- {}

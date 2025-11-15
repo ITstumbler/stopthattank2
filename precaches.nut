@@ -89,15 +89,21 @@ PrecacheSound("vo/mvm/mght/heavy_mvm_m_battlecry01.mp3")
 PrecacheSound("vo/Announcer_mvm_engbot_arrive03.mp3")
 
 //Bot player models
-PrecacheModel("models/bots/scout/bot_scout.mdl")
-PrecacheModel("models/bots/soldier/bot_soldier.mdl")
-PrecacheModel("models/bots/pyro/bot_pyro.mdl")
-PrecacheModel("models/bots/demo/bot_demo.mdl")
-PrecacheModel("models/bots/heavy/bot_heavy.mdl")
+PrecacheModel("models/human_rigged_bot_models/scout/bot_scout.mdl")
+PrecacheModel("models/human_rigged_bot_models/soldier/bot_soldier.mdl")
+PrecacheModel("models/human_rigged_bot_models/pyro/bot_pyro.mdl")
+PrecacheModel("models/human_rigged_bot_models/demo/bot_demo.mdl")
+PrecacheModel("models/human_rigged_bot_models/heavy/bot_heavy.mdl")
 PrecacheModel("models/bots/engineer/bot_engineer.mdl")
-PrecacheModel("models/bots/medic/bot_medic.mdl")
-PrecacheModel("models/bots/sniper/bot_sniper.mdl")
-PrecacheModel("models/bots/spy/bot_spy.mdl")
+PrecacheModel("models/human_rigged_bot_models/medic/bot_medic.mdl")
+PrecacheModel("models/human_rigged_bot_models/sniper/bot_sniper.mdl")
+PrecacheModel("models/human_rigged_bot_models/spy/bot_spy.mdl")
+
+PrecacheModel("models/bots/human_rigged_bot_models/bot_scout_boss.mdl")
+PrecacheModel("models/bots/human_rigged_bot_models/bot_soldier_boss.mdl")
+PrecacheModel("models/bots/human_rigged_bot_models/bot_pyro_boss.mdl")
+PrecacheModel("models/bots/human_rigged_bot_models/bot_demo_boss.mdl")
+PrecacheModel("models/bots/human_rigged_bot_models/bot_heavy_boss.mdl")
 
 //Voicelines
 PrecacheScriptSound("Demoman.MVM_Activatecharge01")
@@ -4250,58 +4256,8 @@ PrecacheSound("weapons/weapon_crit_charged_off.wav")
 PrecacheSound("vo/mvm/norm/medic_mvm_specialcompleted05.mp3")
 PrecacheSound("mvm/sentrybuster/mvm_sentrybuster_explode.wav")
 
-//Despite the file name saying precaches this also handles compilepal packing
 /*
 This is how we make CompilePal include custom files.
-PrecacheModel("materials/hud/stopthattank2/g_r_bazooka.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_bazooka.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_bazooka.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_bazooka.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_demoknight.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_demoknight.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_demoknight.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_demoknight.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_demoman.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_demoman.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_demoman.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_demoman.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_engineer.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_engineer.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_engineer.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_engineer.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_heavy.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_heavy.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_heavy.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_heavy.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_huntsman.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_huntsman.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_huntsman.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_huntsman.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_medic_kritz.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_medic_kritz.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_medic_kritz.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_medic_kritz.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_nukesalot.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_nukesalot.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_nukesalot.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_nukesalot.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_pyro.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_pyro.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_pyro.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_pyro.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_scout.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_scout.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_scout.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_scout.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_shotgunheavy.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_shotgunheavy.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_shotgunheavy.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_shotgunheavy.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_r_soldier.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_r_soldier.vtf");
-PrecacheModel("materials/hud/stopthattank2/g_b_soldier.vmt");
-PrecacheModel("materials/hud/stopthattank2/g_b_soldier.vtf");
-
 PrecacheModel("materials/vgui/class_portraits/demoman_blue.vtf");
 PrecacheModel("materials/vgui/class_portraits/demoman_blue_grey.vtf");
 PrecacheModel("materials/vgui/class_portraits/engineer_blue.vtf");
@@ -4320,6 +4276,4 @@ PrecacheModel("materials/vgui/class_portraits/soldier_blue.vtf");
 PrecacheModel("materials/vgui/class_portraits/soldier_blue_grey.vtf");
 PrecacheModel("materials/vgui/class_portraits/spy_blue.vtf");
 PrecacheModel("materials/vgui/class_portraits/spy_blue_grey.vtf");
-
-
 */
