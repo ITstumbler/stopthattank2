@@ -10,41 +10,67 @@ function root::tryDeployBomb()
     activator.EndLongTaunt()
     activator.CancelTaunt()
     activator.SetForcedTauntCam(1)
-	activator.AddCustomAttribute("move speed penalty", 0.000000001, -1)
-	NetProps.SetPropInt(activator, "m_nRenderMode", kRenderNone)
+    activator.AddCustomAttribute("move speed penalty", 0.000000001, -1)
 	
-	local fakePlayer = SpawnEntityFromTable("prop_dynamic",
-	{
-		targetname = "playerdeployprop",
-		origin = activator.GetOrigin(),
-		angles = activator.GetAbsAngles(),
-		disablebonefollowers = 1,
-		model = activator.GetModelName(),
-		skin = 1,
-		defaultanim = "primary_deploybomb"
-	})
-	if(scope.isGiant)
-	{
-		fakePlayer.SetModelScale(1.75, 0)
-	}
+    EmitSoundEx(
+    {
+        sound_name = scope.isGiant ? "mvm/mvm_deploy_giant.wav" : "mvm/mvm_deploy_small.wav",
+        filter_type = RECIPIENT_FILTER_GLOBAL,
+        entity = activator
+    })
 	
-	bombFlag.AcceptInput("SetParent", "playerdeployprop", null, null)
-	EntFireByHandle(bombFlag, "SetParentAttachment", "flag", 0.02, null, null)
-	for(local wearable = activator.FirstMoveChild(); wearable != null; wearable = wearable.NextMovePeer())
-	{	
-		local name = wearable.GetClassname()
-		if(name == "item_teamflag") continue //don't make bomb invis
+    scope.isDeploying = true
+    EntFire("finish_deploy_relay", "trigger", null, 0, activator) //calls finishDeployBomb
+    debugPrint("ATTEMPTING TO DEPLOY")
+    //TODO: add some impulse or something to push players during the animation
+	
+    //no fake prop for these two
+    if(activator.GetPlayerClass() == TF_CLASS_ENGINEER || activator.GetPlayerClass() == TF_CLASS_SPY)
+    {
+        return
+    }
+	
+    NetProps.SetPropInt(activator, "m_nRenderMode", kRenderNone)
+	
+    local modelString = CLASSNAMES[activator.GetPlayerClass()]
+    if(activator.GetPlayerClass() != TF_CLASS_MEDIC)
+    {
+        modelString = scope.isGiant ? modelString + "_giant" : modelString
+    }
+    modelString = format("models/bots/%s/bot_%s.mdl", modelString, modelString)
+
+    local fakePlayer = SpawnEntityFromTable("prop_dynamic",
+    {
+        targetname = "playerdeployprop",
+        origin = activator.GetOrigin(),
+        angles = activator.GetAbsAngles(),
+        disablebonefollowers = 1,
+        model = modelString,
+        skin = 1,
+        defaultanim = "primary_deploybomb"
+    })
+    if(scope.isGiant)
+	{
+        fakePlayer.SetModelScale(1.75, 0)
+    }
+	
+    bombFlag.AcceptInput("SetParent", "playerdeployprop", null, null)
+    EntFireByHandle(bombFlag, "SetParentAttachment", "flag", 0.02, null, null)
+    for(local wearable = activator.FirstMoveChild(); wearable != null; wearable = wearable.NextMovePeer())
+    {	
+        local name = wearable.GetClassname()
+        if(name == "item_teamflag") continue //don't make bomb invis
 		
-		NetProps.SetPropInt(wearable, "m_nRenderMode", kRenderNone)
+        NetProps.SetPropInt(wearable, "m_nRenderMode", kRenderNone)
 		
-		if(startswith(name, "tf_weapon") || name == "tf_viewmodel" || wearable.GetName() == "bonemerge_model") continue
+        if(startswith(name, "tf_weapon") || name == "tf_viewmodel") continue
 		
-		local dummyWearable = SpawnEntityFromTable("prop_dynamic_ornament",
-		{
-			initialowner = "playerdeployprop",
-			model = wearable.GetModelName(),
-			skin = wearable.GetSkin()
-			//todo: body groups are an itemattr
+        local dummyWearable = SpawnEntityFromTable("prop_dynamic_ornament",
+        {
+            initialowner = "playerdeployprop",
+            model = wearable.GetModelName(),
+            skin = wearable.GetSkin()
+            //todo: body groups are an itemattr
 		})
 		/*
 		local id = NetProps.GetPropInt(wearable, "m_AttributeManager.m_Item.m_iItemDefinitionIndex")
@@ -65,35 +91,30 @@ function root::tryDeployBomb()
 		//dummyWearable.AcceptInput("SetParent", "playerdeployprop", null, null)
 		*/
 	}
-	
-	EmitSoundEx(
-	{
-		sound_name = scope.isGiant ? "mvm/mvm_deploy_giant.wav" : "mvm/mvm_deploy_small.wav",
-		filter_type = RECIPIENT_FILTER_GLOBAL,
-		entity = activator
-	})
-	
-    scope.isDeploying = true
-    EntFire("finish_deploy_relay", "trigger", null, 0, activator) //calls finishDeployBomb
-    debugPrint("ATTEMPTING TO DEPLOY")
 }
 
 function root::stopDeployBomb() //called by capture trigger onendtouch
 {
     if(!activator.GetScriptScope().isDeploying) return
-	activator.SetForcedTauntCam(0)
-	NetProps.SetPropInt(activator, "m_nRenderMode", kRenderNormal)
-	activator.RemoveCustomAttribute("move speed penalty")
-	for(local wearable = activator.FirstMoveChild(); wearable != null; wearable = wearable.NextMovePeer())
-	{
-		NetProps.SetPropInt(wearable, "m_nRenderMode", kRenderNormal)
-	}	
-	bombFlag.AcceptInput("ClearParent", "", null, null)
-	EntFire("playerdeployprop", "Kill")
-	
+    activator.SetForcedTauntCam(0)
+    activator.RemoveCustomAttribute("move speed penalty")
+
+    debugPrint("STOP DEPLOYING")	
     activator.GetScriptScope().isDeploying = false
-    debugPrint("STOP DEPLOYING")
     EntFire("finish_deploy_relay", "CancelPending")
+	
+    if(activator.GetPlayerClass() == TF_CLASS_ENGINEER || activator.GetPlayerClass() == TF_CLASS_SPY)
+    {
+        return
+    }
+	
+    NetProps.SetPropInt(activator, "m_nRenderMode", kRenderNormal)
+    for(local wearable = activator.FirstMoveChild(); wearable != null; wearable = wearable.NextMovePeer())
+    {
+        NetProps.SetPropInt(wearable, "m_nRenderMode", kRenderNormal)
+    }	
+    bombFlag.AcceptInput("ClearParent", "", null, null)
+    EntFire("playerdeployprop", "Kill")
 }
 
 function root::finishDeployBomb()
@@ -104,14 +125,23 @@ function root::finishDeployBomb()
         debugPrint("ACTIVATOR IS NOT DEPLOYING, CANCELLING FINISH")
         return
     }
-	bombFlag.AcceptInput("ClearParent", "", null, null)
-	bombFlag.AcceptInput("Disable", "", null, null)
-	scope.isDeploying = false
-	EntFire("playerdeployprop", "Kill")
+	
+    scope.isDeploying = false
     EntFire("bomb_deploy_relay", "trigger") //hatch blows up and other stuff
     //Disable countdown sounds
     AddThinkToEnt(roundTimer, null)
+	
+    if(activator.GetPlayerClass() == TF_CLASS_ENGINEER || activator.GetPlayerClass() == TF_CLASS_SPY)
+    {
+        return
+    }
+	
+    bombFlag.AcceptInput("ClearParent", "", null, null)
+    bombFlag.AcceptInput("Disable", "", null, null)
+    NetProps.SetPropInt(activator, "m_nRenderMode", kRenderNormal)
+    EntFire("playerdeployprop", "Kill")
     
+    //TODO: is this necessary?
     //Remove the persisting no rocket jump attribute
     for (local i = 0; i < MaxWeapons; i++)
 	{

@@ -7,6 +7,8 @@ if (!("ConstantNamingConvention" in root)) // make sure folding is only done onc
             root[k] <- v != null ? v : 0;
 }
 
+::CLASSNAMES <- {"scout", "sniper", "soldier", "demo", "medic", "heavy", "pyro", "spy", "engineer"}
+
 ::SND_STOP <- 4 //flag for emitsoundex
 
 //Balance-sensitive parameters
@@ -165,7 +167,7 @@ IncludeScript("stopthattank2/vs_math.nut")
 updateGameTexts()
 
 //Setup for stacking thinks
-::playerThink <- function() {
+function root::playerThink {
 	foreach(key, func in thinkFunctions) {
 		func()
 	}
