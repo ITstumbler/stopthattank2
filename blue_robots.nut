@@ -42,7 +42,12 @@
             NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", HUMAN_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 4);
         }
         else if(player.GetTeam() == TF_TEAM_BLUE) {
-            player.SetCustomModelWithClassAnimations(ROBOT_PLAYER_MODELS[player.GetPlayerClass()])
+            local scope = player.GetScriptScope()
+            if(!scope.isGiant) {
+                player.SetCustomModelWithClassAnimations(ROBOT_PLAYER_MODELS[player.GetPlayerClass()])
+                //Reset "disguise" model
+                NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", ROBOT_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 4);
+            }
 
             //Sets footsteps to Sentry Buster's footsteps - which is then overridden by the level_sounds
             EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`override footstep sound set`, 7, -1)", -1, player, player)
@@ -52,8 +57,7 @@
             //Disable romevision
             EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`vision opt in flags`, 0, -1)", -1, player, player)
 
-            //Reset "disguise" model
-            NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", ROBOT_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 4);
+            
         }
     }
 }

@@ -38,7 +38,7 @@ function root::stopBombAlarm()
         if (!player.HasItem()) continue
         local scope = player.GetScriptScope()
         scope.isCarryingBombInAlarmZone = false
-        ClientPrint(player, 3, "\x07CCFFAAFound the bomb carrier, marking the thingy as false")
+        debugPrint("\x07CCFFAAFound the bomb carrier, marking the thingy as false")
         break
     }
 }

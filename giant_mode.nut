@@ -230,6 +230,8 @@ function root::becomeGiant(playerIndex)
 
     player.SetModelScale(GIANT_SCALE, 0)
     player.SetCustomModelWithClassAnimations(giantSpecifics.playerModel)
+    //Reset "disguise" model
+    NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", GIANT_PLAYER_MODEL_INDEXES[giantSpecifics.classId], 4);
     player.AddCond(130)
 
     //Remove weapon wearables such as Razorback

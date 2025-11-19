@@ -128,6 +128,7 @@ function root::finishDeployBomb()
     }
 	
     scope.isDeploying = false
+    scope.isGiant = false
     EntFire("bomb_deploy_relay", "trigger") //hatch blows up and other stuff
     //Disable countdown sounds
     AddThinkToEnt(roundTimer, null)
