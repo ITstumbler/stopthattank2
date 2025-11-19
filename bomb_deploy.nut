@@ -35,7 +35,7 @@ function root::tryDeployBomb()
     local modelString = CLASSNAMES[activator.GetPlayerClass()]
     if(activator.GetPlayerClass() != TF_CLASS_MEDIC)
     {
-        modelString = scope.isGiant ? modelString + "_giant" : modelString
+        modelString = scope.isGiant ? modelString + "_boss" : modelString
     }
     modelString = format("models/bots/%s/bot_%s.mdl", modelString, modelString)
 
@@ -64,6 +64,7 @@ function root::tryDeployBomb()
         NetProps.SetPropInt(wearable, "m_nRenderMode", kRenderNone)
 		
         if(startswith(name, "tf_weapon") || name == "tf_viewmodel") continue
+        if(name == "env_spritetrail") continue //Demoknight charge particle
 		
         local dummyWearable = SpawnEntityFromTable("prop_dynamic_ornament",
         {

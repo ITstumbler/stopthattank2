@@ -62,7 +62,7 @@ function root::updateGameTexts()
     fxtime = "10",
     channel = "1",
     x = "-1",
-    y = "0.1",
+    y = "0.3",
     message = "Test"
 })
 
