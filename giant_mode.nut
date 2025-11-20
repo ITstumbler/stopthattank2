@@ -231,7 +231,7 @@ function root::becomeGiant(playerIndex)
     player.SetModelScale(GIANT_SCALE, 0)
     player.SetCustomModelWithClassAnimations(giantSpecifics.playerModel)
     //Reset "disguise" model
-    NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", GIANT_PLAYER_MODEL_INDEXES[giantSpecifics.classId], 4);
+    NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", GIANT_PLAYER_MODEL_INDEXES[giantSpecifics.classId], 3);
     player.AddCond(130)
 
     //Remove weapon wearables such as Razorback
@@ -563,6 +563,7 @@ function root::becomeGiant(playerIndex)
 						local radialKritzPlayer = null
 						while(radialKritzPlayer = Entities.FindByClassnameWithin(radialKritzPlayer, "player", self.GetOrigin(), 450))
 						{
+                            if(radialKritzPlayer.GetTeam() != TF_TEAM_BLUE) continue
 							//Cond 39 to not override other crits or have the dumb conditions 11 has
 							radialKritzPlayer.AddCondEx(39, 0.045, null)
 						}

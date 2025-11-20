@@ -98,7 +98,7 @@ function SpawnBossBar()
         points_per_player = 0,
         red_respawn_time = 0,
         targetname = "pd_logic",
-        res_file = "resource/ui/custom_boss_bar.res"
+        res_file = "resource/ui/stt2_custom_boss_bar.res"
     });
     SetPropInt(pd_logic, "m_nBlueScore", 0);
     SetPropInt(pd_logic, "m_nRedScore", 0);
@@ -175,7 +175,7 @@ function Think()
 
 /*
 This is how we make CompilePal include custom files.
-PrecacheModel("resource/ui/custom_boss_bar.res");
+PrecacheModel("resource/ui/stt2_custom_boss_bar.res");
 PrecacheModel("materials/hud/stopthattank2/boss_bar_stt2.vmt");
 PrecacheModel("materials/hud/stopthattank2/boss_bar_stt2.vtf");
 PrecacheModel("materials/hud/stopthattank2/custom_boss_bar_surround_stt2.vmt");

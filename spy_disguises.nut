@@ -40,9 +40,10 @@ function root::IsDisguisedAsOpposingTeam(player)
 
     scope.spyDisguiseThink <- function()
     {
-        //Remove think on death
-        if(NetProps.GetPropInt(self, "m_lifeState") != 0) {
-            delete thinkFunctions["spyDisguiseThink"]
+        //Remove think on death or if not spy
+        if(NetProps.GetPropInt(self, "m_lifeState") != 0 || self.GetPlayerClass() != TF_CLASS_SPY) {
+            delete thinkFunctions.spyDisguiseThink
+            return -1
         }
 
         disguiseClass = NetProps.GetPropInt(player,"m_Shared.m_nDisguiseClass")

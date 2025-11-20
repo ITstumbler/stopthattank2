@@ -33,7 +33,7 @@ function root::tryDeployBomb()
     NetProps.SetPropInt(activator, "m_nRenderMode", kRenderNone)
 	
     local modelString = CLASSNAMES[activator.GetPlayerClass()]
-    if(activator.GetPlayerClass() != TF_CLASS_MEDIC)
+    if(activator.GetPlayerClass() != TF_CLASS_MEDIC && activator.GetPlayerClass() != TF_CLASS_SNIPER && activator.GetPlayerClass() != TF_CLASS_ENGINEER && activator.GetPlayerClass() != TF_CLASS_SPY)
     {
         modelString = scope.isGiant ? modelString + "_boss" : modelString
     }

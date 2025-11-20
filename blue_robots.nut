@@ -39,14 +39,14 @@
             EntFireByHandle(player, "RunScriptCode", "applyAttributeOnSpawn(`always_transmit_so`, 1, -1)", -1, player, player)
 
             //Reset "disguise" model
-            NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", HUMAN_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 4);
+            NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", HUMAN_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 3);
         }
         else if(player.GetTeam() == TF_TEAM_BLUE) {
             local scope = player.GetScriptScope()
             if(!scope.isGiant) {
                 player.SetCustomModelWithClassAnimations(ROBOT_PLAYER_MODELS[player.GetPlayerClass()])
                 //Reset "disguise" model
-                NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", ROBOT_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 4);
+                NetProps.SetPropIntArray(player, "m_nModelIndexOverrides", ROBOT_PLAYER_MODEL_INDEXES[player.GetPlayerClass()], 3);
             }
 
             //Sets footsteps to Sentry Buster's footsteps - which is then overridden by the level_sounds
